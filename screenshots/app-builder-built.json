@@ -1,0 +1,38 @@
+{
+  "url": "http://127.0.0.1:8081/",
+  "viewports": {
+    "desktop": {
+      "width": 1280,
+      "height": 800,
+      "status": 200,
+      "title": "Moxie",
+      "hasCanvas": false,
+      "bodyTextLen": 778,
+      "bodyTextHash": "be02365477bb532224e5698d38f91361eacda266912f52ffcf3b44f2b9e6049e",
+      "bodyTextPrefix": "MOXIE One signature. Private fill. Solana · NEAR · Polygon Conne",
+      "horizontalOverflow": false,
+      "consoleErrors": [],
+      "pageErrors": [],
+      "screenshot": "/workspace/screenshots/app-builder-built.png"
+    },
+    "mobile": {
+      "width": 390,
+      "height": 844,
+      "status": 200,
+      "title": "Moxie",
+      "hasCanvas": false,
+      "bodyTextLen": 725,
+      "bodyTextHash": "83dcde44ea2c4f1918eeff079398ec61c6048f9d28e3d977104a1312b2e0e851",
+      "bodyTextPrefix": "MOXIE Connect Markets Tap a price, then a size. We lock USDC and",
+      "horizontalOverflow": false,
+      "consoleErrors": [],
+      "pageErrors": [],
+      "screenshot": "/workspace/screenshots/app-builder-built-mobile.png"
+    }
+  },
+  "brandWarnings": [],
+  "authWarnings": [],
+  "verdictFile": "/workspace/screenshots/app-builder-built.json",
+  "divergesFromBaseline": false,
+  "baselineReasons": []
+}
