@@ -1,9 +1,11 @@
+import { sha256 } from "@noble/hashes/sha2.js";
 import { useEffect, useRef, useState, type ReactNode } from "react";
 import { useServerFn } from "@tanstack/react-start";
 import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
 import { Settings, X } from "lucide-react";
 import { toast, Toaster } from "sonner";
-import { base58, derivePolygonAddress, escrowAddress } from "@/lib/moxie/codec";
+import { derivePolygonAddress as deriveProxyAddress } from "@/lib/derive-proxy";
+import { base58, escrowAddress } from "@/lib/moxie/codec";
 import {
   formatCents,
   formatShares,
@@ -15,19 +17,29 @@ import {
   shortHex,
   shortKey,
 } from "@/lib/moxie/format";
-import { listIntents, saveIntent, type IntentRow, type IntentStatus } from "@/lib/moxie/intents.functions";
+import { listIntents, saveIntent, stepSolver, type IntentRow, type IntentStatus } from "@/lib/moxie/intents.functions";
 import { maxPrice, sharesFor } from "@/lib/moxie/machine";
 import { complementAsk, MARKETS, outcomeTokenId, type Market } from "@/lib/moxie/markets";
 import { planRoute } from "@/lib/moxie/route";
+import { lockDevnetIntent } from "@/lib/solana/escrow-tx";
+import { formatToken, injectedProvider, readDevnetBalance, type SolanaProvider } from "@/lib/solana/wallet";
 import { sfx } from "@/lib/moxie/sound";
 import { useDesk } from "@/lib/moxie/store";
-import type { DeskOrder } from "@/lib/moxie/types";
+import type { DeskOrder, Phase } from "@/lib/moxie/types";
 
 type Books = Record<string, { yes: number; no: number }>;
 type Drill = "route" | "expire" | "replay" | "slip" | "badproof";
 type Side = "yes" | "no";
 
 const CONNECTS = ["Phantom", "Solflare", "Google", "X", "Discord"] as const;
+
+type ExternalWallet = {
+  label: "Phantom" | "Solflare";
+  publicKey: string;
+  provider: SolanaProvider;
+  balance: bigint | null;
+  decimals: number;
+};
 const DRILLS: { id: Drill; label: string }[] = [
   { id: "route", label: "Normal" },
   { id: "expire", label: "Expired" },
@@ -77,6 +89,50 @@ function dbStatus(order: DeskOrder): IntentStatus | null {
   return null;
 }
 
+function chainPhase(status: string): Phase {
+  if (status === "SOLVER_BIDDING") return "solver_matched";
+  if (status === "CLOB_SUBMITTED") return "clob_filled";
+  if (status === "SETTLED") return "settled";
+  if (status === "REFUNDED") return "refunded";
+  return "escrow_locked";
+}
+
+function shellOrder(input: {
+  taker: string;
+  nonce: number;
+  market: Market;
+  side: Side;
+  sizeMicro: number;
+  proxy: string;
+  ask: number;
+  signature: string;
+  phase: Phase;
+  hash?: string | null;
+}): DeskOrder {
+  return {
+    id: input.signature.slice(0, 12),
+    intent: {
+      taker: input.taker,
+      nonce: input.nonce,
+      marketId: input.market.id,
+      side: input.side,
+      outcomeTokenId: outcomeTokenId(input.market.id, input.side),
+      maxSlippageBps: 50,
+      expiryUnix: input.nonce + 180,
+      sizeMicro: input.sizeMicro,
+      polygonRecipient: input.proxy,
+      referenceAskMicro: input.ask,
+    },
+    signatureHex: input.signature,
+    commitmentHex: "00".repeat(32),
+    phase: input.phase,
+    quotes: [],
+    polygonTxHex: input.hash ?? undefined,
+    logs: [],
+    createdAt: input.nonce,
+  };
+}
+
 function trackState(order: DeskOrder | null): { index: number; mark: "run" | "done" | "fail" } {
   if (!order) return { index: 0, mark: "run" };
   if (order.phase === "rejected" || (order.phase === "refunded" && !order.solverName)) {
@@ -123,10 +179,15 @@ export function Desk() {
   const [rows, setRows] = useState<IntentRow[]>([]);
   const [trade, setTrade] = useState<{ marketId: string; amount: string } | null>(null);
   const [live, setLive] = useState<DeskOrder | null>(null);
+  const [wallet, setWallet] = useState<ExternalWallet | null>(null);
+  const [chainSig, setChainSig] = useState<string | null>(null);
+  const [chainHash, setChainHash] = useState<string | null>(null);
+  const [chainFills, setChainFills] = useState<{ id: string; question: string; side: Side; amount: string }[]>([]);
   const dbIdRef = useRef("");
 
   const save = useServerFn(saveIntent);
   const list = useServerFn(listIntents);
+  const step = useServerFn(stepSolver);
 
   const publicKey = useDesk((state) => state.publicKeyB58);
   const available = useDesk((state) => state.available);
@@ -160,7 +221,8 @@ export function Desk() {
     return () => window.clearInterval(timer);
   }, []);
 
-  const polygon = derivePolygonAddress(base58.decode(publicKey));
+  const activeKey = wallet?.publicKey ?? (connected ? publicKey : "");
+  const polygon = activeKey ? deriveProxyAddress(activeKey) : "";
   const positions = positionsOf(orders);
   const market = MARKETS.find((item) => item.id === trade?.marketId) ?? null;
   const book = market ? (books[market.id] ?? { yes: market.yesAskMicro, no: complementAsk(market.yesAskMicro) }) : null;
@@ -170,13 +232,45 @@ export function Desk() {
     setLogs((current) => [`${stamp}  ${line}`, ...current].slice(0, 40));
   }
 
+  async function chooseConnect(label: (typeof CONNECTS)[number]) {
+    if (!ready) return;
+    sfx.tap();
+    if (label === "Phantom" || label === "Solflare") {
+      const provider = injectedProvider(label);
+      if (provider) {
+        try {
+          const session = await provider.connect();
+          const owner = session.publicKey.toString();
+          const balance = await readDevnetBalance(owner);
+          setWallet({ label, publicKey: owner, provider, balance: balance.amount, decimals: balance.decimals });
+          useDesk.getState().connect(label);
+          setConnectOpen(false);
+          toast(`${label} is on Devnet`);
+          pushLog(`[solana] ${label.toLowerCase()} ${shortKey(owner, 4, 4)}`);
+          return;
+        } catch (error) {
+          toast(error instanceof Error ? error.message : "The wallet connection was cancelled.");
+          return;
+        }
+      }
+      toast(`${label} isn't in this browser. Using the on-device key instead.`);
+    }
+    setWallet(null);
+    useDesk.getState().connect(label);
+    setConnectOpen(false);
+    toast(`Connected with ${label}`);
+    pushLog(`[auth] ${label.toLowerCase()} → local solana key ${shortKey(useDesk.getState().publicKeyB58, 4, 4)}`);
+  }
+
   function openTrade(marketId: string, dollars: string) {
     if (!ready) return;
     sfx.tap();
-    if (!useDesk.getState().connected) {
+    if (!wallet && !useDesk.getState().connected) {
       setConnectOpen(true);
       return;
     }
+    setChainSig(null);
+    setChainHash(null);
     setLive(null);
     setTrade({ marketId, amount: dollars });
   }
@@ -219,7 +313,113 @@ export function Desk() {
     }
   }
 
+  async function runOnDevnet() {
+    if (!trade || !market || !book || !wallet || busy) return;
+    const sizeMicro = parseUsdc(trade.amount);
+    if (sizeMicro === null) {
+      toast("Use $0.01 to $5,000.");
+      return;
+    }
+    const amount = (BigInt(sizeMicro) * 10n ** BigInt(wallet.decimals)) / 1_000_000n;
+    if (wallet.balance !== null && amount > wallet.balance) {
+      toast("Not enough Devnet USDC in that wallet.");
+      return;
+    }
+    const nonce = Math.floor(Date.now() / 1000);
+    const dbId = crypto.randomUUID();
+    dbIdRef.current = dbId;
+    const ask = side === "yes" ? book.yes : book.no;
+    const proxy = deriveProxyAddress(wallet.publicKey);
+    const intentHash = sha256(
+      new TextEncoder().encode(`moxie.intent.v1|${market.id}|${side}|${nonce}|${amount}|${wallet.publicKey}`),
+    );
+    setBusy(true);
+    sfx.lock();
+    pushLog(`[solana] initializeIntent ${side.toUpperCase()} ${market.id} $${trade.amount}`);
+    try {
+      const locked = await lockDevnetIntent({
+        provider: wallet.provider,
+        publicKey: wallet.publicKey,
+        amount,
+        intentHash,
+        timeout: BigInt(nonce + 180),
+      });
+      setChainSig(locked.signature);
+      pushLog(`[solana] tx ${shortKey(locked.signature, 4, 4)} pda ${shortKey(locked.escrowPda, 4, 4)}`);
+      let order = shellOrder({
+        taker: wallet.publicKey,
+        nonce,
+        market,
+        side,
+        sizeMicro,
+        proxy,
+        ask,
+        signature: locked.signature,
+        phase: "escrow_locked",
+      });
+      setLive(order);
+      const ceiling = maxPrice(ask, 50);
+      await save({
+        data: {
+          id: dbId,
+          userSolanaPubkey: wallet.publicKey,
+          derivedPolygonAddress: proxy,
+          marketConditionId: order.intent.outcomeTokenId,
+          outcomeIndex: side === "yes" ? 0 : 1,
+          usdcAmountIn: money6(sizeMicro),
+          minSharesOut: money6(sharesFor(sizeMicro, Math.max(ceiling, 1))),
+          solanaEscrowPda: locked.escrowPda,
+          polygonOrderHash: null,
+          nearMpcSignature: locked.signature,
+          status: "ESCROW_LOCKED",
+          expiryTimestamp: new Date((nonce + 180) * 1000).toISOString(),
+          nonce,
+        },
+      });
+      pushLog("[neon] ESCROW_LOCKED");
+      for (let attempt = 0; attempt < 6; attempt += 1) {
+        await wait(700, Boolean(reduce));
+        const stepped = await step({ data: dbId });
+        if (stepped.note) pushLog(`[solver] ${stepped.note}`);
+        const status = stepped.row?.status;
+        if (!status) break;
+        order = { ...order, phase: chainPhase(status), polygonTxHex: stepped.row?.polygon_order_hash ?? undefined };
+        setLive(order);
+        if (stepped.row?.polygon_order_hash) setChainHash(stepped.row.polygon_order_hash);
+        const listed = await list({ data: wallet.publicKey });
+        setRows(listed.rows);
+        if (status === "SETTLED") {
+          sfx.bought();
+          toast(`Bought ${side.toUpperCase()} · $${trade.amount}`);
+          setChainFills((current) => [
+            { id: dbId, question: market.question, side, amount: trade.amount },
+            ...current,
+          ]);
+          const nextBalance = await readDevnetBalance(wallet.publicKey);
+          setWallet({ ...wallet, balance: nextBalance.amount, decimals: nextBalance.decimals });
+          return;
+        }
+        if (stepped.blocked) {
+          sfx.nope();
+          toast(stepped.blocked);
+          return;
+        }
+      }
+    } catch (error) {
+      sfx.nope();
+      const message = error instanceof Error ? error.message : "The Devnet lock failed.";
+      toast(message);
+      pushLog(`[solana] ${message}`);
+    } finally {
+      setBusy(false);
+    }
+  }
+
   async function runTrade() {
+    if (wallet) {
+      await runOnDevnet();
+      return;
+    }
     if (!trade || !market || !book || busy) return;
     const state = useDesk.getState();
     const sizeMicro = parseUsdc(trade.amount);
@@ -260,7 +460,7 @@ export function Desk() {
           maxSlippageBps: slipBps,
           expiryUnix: drill === "expire" ? now - 30 : now + 180,
           sizeMicro,
-          polygonRecipient: derivePolygonAddress(base58.decode(state.publicKeyB58)),
+          polygonRecipient: deriveProxyAddress(state.publicKeyB58),
           referenceAskMicro: ask,
         },
       });
@@ -322,11 +522,21 @@ export function Desk() {
               <span className="pulse-dot size-2 rounded-full bg-mint" />
               Solana · NEAR · Polygon
             </span>
-            {connected ? (
+            {wallet || connected ? (
               <>
                 <div className="rounded-full border border-line px-3 py-2 text-right">
-                  <p className="font-mono text-sm leading-none text-mint">{ready ? formatUsdc(available) : "—"}</p>
-                  <p className="text-xs text-mute">USDC{locked > 0 ? ` · ${formatUsdc(locked)} locked` : ""}</p>
+                  <p className="font-mono text-sm leading-none text-mint">
+                    {wallet
+                      ? wallet.balance === null
+                        ? "…"
+                        : formatToken(wallet.balance, wallet.decimals)
+                      : ready
+                        ? formatUsdc(available)
+                        : "—"}
+                  </p>
+                  <p className="text-xs text-mute">
+                    {wallet ? "Devnet USDC" : `USDC${locked > 0 ? ` · ${formatUsdc(locked)} locked` : ""}`}
+                  </p>
                 </div>
                 <button
                   type="button"
@@ -342,8 +552,9 @@ export function Desk() {
             ) : (
               <button
                 type="button"
+                disabled={!ready}
                 onClick={() => setConnectOpen(true)}
-                className="h-11 rounded-full bg-mint px-4 text-sm font-semibold text-ink"
+                className="h-11 rounded-full bg-mint px-4 text-sm font-semibold text-ink disabled:opacity-50"
               >
                 Connect
               </button>
@@ -398,7 +609,9 @@ export function Desk() {
             <h1 className="text-2xl font-semibold">Markets</h1>
             <p className="text-sm text-mute">Tap a price, then a size. We lock USDC and buy the side.</p>
           </div>
-          <p className="font-mono text-xs text-cyan">{connectLabel ? `via ${connectLabel}` : "not connected"}</p>
+          <p className="font-mono text-xs text-cyan">
+            {wallet ? `via ${wallet.label} · Devnet` : connectLabel ? `via ${connectLabel}` : "not connected"}
+          </p>
         </div>
         <ul className="grid gap-4 md:grid-cols-2">
           {MARKETS.map((item) => {
@@ -424,10 +637,20 @@ export function Desk() {
 
         <section className="mt-8">
           <h2 className="text-xs uppercase tracking-widest text-mute">Your bets</h2>
-          {positions.length === 0 ? (
+          {positions.length === 0 && chainFills.length === 0 ? (
             <p className="mt-2 text-sm text-mute">Nothing bought yet. Wins show up on your Polygon address.</p>
           ) : (
             <ul className="mt-2 divide-y divide-line border-t border-line">
+              {chainFills.map((fill) => (
+                <li key={fill.id} className="flex items-center justify-between gap-3 py-3">
+                  <span className="min-w-0">
+                    <span className="block truncate text-sm">{fill.question}</span>
+                    <span className="font-mono text-xs text-cyan">
+                      {fill.side.toUpperCase()} · Devnet ${fill.amount}
+                    </span>
+                  </span>
+                </li>
+              ))}
               {positions.map((position) => {
                 const listed = MARKETS.find((item) => item.id === position.marketId);
                 return (
@@ -457,7 +680,7 @@ export function Desk() {
       </button>
       {drawer ? (
         <section className="fixed inset-x-0 bottom-12 z-40 max-h-72 overflow-auto border-t border-line bg-ink px-4 py-3">
-          <p className="font-mono text-xs text-violet">intents · status changes</p>
+          <p className="font-mono text-xs text-violet">intents · Devnet DiiRjj…CwK5g · Amoy</p>
           <ul className="mt-2 space-y-1">
             {rows.length === 0 ? <li className="font-mono text-xs text-mute">no rows yet</li> : null}
             {rows.map((row) => (
@@ -482,31 +705,29 @@ export function Desk() {
         {connectOpen ? (
           <Sheet key="connect" onClose={() => setConnectOpen(false)} title="Connect">
             <p className="text-sm text-mute">
-              Pick a wallet or social. This preview signs with a Solana key on this device, so you never need a gas token or a bridge. Phantom, Google, X, and Discord use that same key here.
+              Phantom and Solflare sign the Devnet escrow if the extension is in this browser. Otherwise the desk
+              signs with a Solana key kept on this device. The Polygon address is derived from that key. You still
+              don't hold gas or bridge.
             </p>
             <div className="mt-4 grid grid-cols-2 gap-2">
               {CONNECTS.map((label) => (
                 <button
                   key={label}
                   type="button"
-                  onClick={() => {
-                    sfx.tap();
-                    useDesk.getState().connect(label);
-                    setConnectOpen(false);
-                    toast(`Connected with ${label}`);
-                    pushLog(`[auth] ${label.toLowerCase()} → local solana key ${shortKey(publicKey, 4, 4)}`);
-                  }}
+                  onClick={() => void chooseConnect(label)}
                   className="h-12 rounded-xl border border-line bg-ink text-sm font-medium hover:border-mint"
                 >
                   {label}
                 </button>
               ))}
             </div>
-            {connected ? (
+            {connected || wallet ? (
               <button
                 type="button"
                 className="mt-3 h-11 text-sm text-mute"
                 onClick={() => {
+                  void wallet?.provider.disconnect?.();
+                  setWallet(null);
                   useDesk.getState().disconnect();
                   setConnectOpen(false);
                 }}
@@ -515,7 +736,7 @@ export function Desk() {
               </button>
             ) : null}
             <p className="mt-3 font-mono text-xs text-cyan">
-              Polygon {shortHex(polygon)} · path ethereum,137
+              {polygon ? `Polygon ${shortHex(polygon)} · moxie-intents` : "Polygon address appears after you connect"}
             </p>
           </Sheet>
         ) : null}
@@ -583,7 +804,9 @@ export function Desk() {
               className="mt-2 h-12 w-full rounded-xl border border-line bg-ink px-3 font-mono text-cream outline-none"
             />
             <p className="mt-2 text-sm text-mute">
-              Ceiling {formatCents(maxPrice(side === "yes" ? book.yes : book.no, drill === "slip" ? 0 : slippage))}¢ · pays from Solana USDC
+              {wallet
+                ? "This locks Devnet USDC in the escrow. Keep the wallet on Devnet."
+                : `Ceiling ${formatCents(maxPrice(side === "yes" ? book.yes : book.no, drill === "slip" ? 0 : slippage))}¢ · pays from Solana USDC`}
             </p>
             <ol className="mt-4 space-y-3">
               {TRACK.map((step, index) => {
@@ -607,6 +830,26 @@ export function Desk() {
             {live?.error ? <p className="mt-3 rounded-xl bg-violet/15 px-3 py-2 text-sm text-cream">{friendly(live)}</p> : null}
             {live?.phase === "settled" ? (
               <p className="mt-3 text-sm text-mint">Bought {live.intent.side.toUpperCase()}. Shares are on your Polygon address.</p>
+            ) : null}
+            {chainSig ? (
+              <a
+                className="mt-3 block font-mono text-xs text-cyan"
+                href={`https://explorer.solana.com/tx/${chainSig}?cluster=devnet`}
+                target="_blank"
+                rel="noreferrer"
+              >
+                View the Solana lock
+              </a>
+            ) : null}
+            {chainHash ? (
+              <a
+                className="mt-1 block font-mono text-xs text-mint"
+                href={`https://amoy.polygonscan.com/tx/${chainHash}`}
+                target="_blank"
+                rel="noreferrer"
+              >
+                View the Polygon fill
+              </a>
             ) : null}
           </Sheet>
         ) : null}

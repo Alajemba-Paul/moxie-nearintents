@@ -1,5 +1,5 @@
 import { n as TSS_SERVER_FUNCTION, t as createServerFn } from "./ssr.mjs";
-//#region node_modules/.nitro/vite/services/ssr/assets/intents.functions-BYORkuv0.js
+//#region node_modules/.nitro/vite/services/ssr/assets/intents.functions-NWL9hgg0.js
 var createServerRpc = (serverFnMeta, splitImportFn) => {
 	const url = "/_serverFn/" + serverFnMeta.id;
 	return Object.assign(splitImportFn, {
@@ -17,6 +17,9 @@ var INTENT_STATUSES = [
 	"REFUNDED",
 	"EXPIRED"
 ];
+function okSignature(value) {
+	return /^[0-9a-f]{64,256}$/i.test(value) || /^[1-9A-HJ-NP-Za-km-z]{64,128}$/.test(value);
+}
 function assertSave(input) {
 	if (!/^[0-9a-f-]{36}$/i.test(input.id)) throw new Error("bad id");
 	if (!/^[1-9A-HJ-NP-Za-km-z]{32,44}$/.test(input.userSolanaPubkey)) throw new Error("bad key");
@@ -27,7 +30,7 @@ function assertSave(input) {
 	if (!/^\d{1,12}\.\d{6}$/.test(input.minSharesOut)) throw new Error("bad shares");
 	if (input.solanaEscrowPda && !/^[1-9A-HJ-NP-Za-km-z]{32,44}$/.test(input.solanaEscrowPda)) throw new Error("bad pda");
 	if (input.polygonOrderHash && !/^0x[0-9a-fA-F]{64}$/.test(input.polygonOrderHash)) throw new Error("bad fill hash");
-	if (input.nearMpcSignature && !/^[0-9a-f]{64,256}$/i.test(input.nearMpcSignature)) throw new Error("bad signature");
+	if (input.nearMpcSignature && !okSignature(input.nearMpcSignature)) throw new Error("bad signature");
 	if (!INTENT_STATUSES.includes(input.status)) throw new Error("bad status");
 	if (Number.isNaN(Date.parse(input.expiryTimestamp))) throw new Error("bad expiry");
 	if (!Number.isSafeInteger(input.nonce) || input.nonce < 0) throw new Error("bad nonce");
@@ -99,5 +102,21 @@ var listIntents = createServerFn({ method: "GET" }).validator((pubkey) => {
     `
 	};
 });
+var stepSolver_createServerFn_handler = createServerRpc({
+	id: "11f195d7f2d0fe5b71a98dfff85b6ad125f398a9d4b01f1972baf81163ce55ef",
+	name: "stepSolver",
+	filename: "src/lib/moxie/intents.functions.ts"
+}, (opts) => stepSolver.__executeServer(opts));
+var stepSolver = createServerFn({ method: "POST" }).validator((id) => {
+	if (!/^[0-9a-f-]{36}$/i.test(id)) throw new Error("bad id");
+	return id;
+}).handler(stepSolver_createServerFn_handler, async ({ data }) => {
+	const { getSql, dbSource } = await import("./db-DtvRonbb.mjs");
+	const { stepIntent } = await import("./solver-tick-CWqlklbc.mjs");
+	return {
+		source: dbSource,
+		...await stepIntent(await getSql(), data)
+	};
+});
 //#endregion
-export { listIntents_createServerFn_handler, saveIntent_createServerFn_handler };
+export { listIntents_createServerFn_handler, saveIntent_createServerFn_handler, stepSolver_createServerFn_handler };

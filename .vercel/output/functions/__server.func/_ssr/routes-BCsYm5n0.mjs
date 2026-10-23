@@ -2,13 +2,15 @@ import { o as __toESM } from "../_runtime.mjs";
 import { J as require_react, W as isRedirect, b as useRouter, x as require_jsx_runtime } from "../_libs/@tanstack/react-router+[...].mjs";
 import { n as TSS_SERVER_FUNCTION, r as getServerFnById, t as createServerFn } from "./ssr.mjs";
 import { r as Settings, t as X } from "../_libs/lucide-react.mjs";
+import { i as SOLANA_ESCROW_PROGRAM_ID, r as SOLANA_DEVNET_RPC, t as DEVNET_USDC_MINT } from "./constants-C-g3w5gT.mjs";
+import { I as sha256, L as bytesToHex, R as hexToBytes, y as ed25519 } from "../_libs/noble__curves+noble__hashes.mjs";
 import { n as motion, r as AnimatePresence, t as useReducedMotion } from "../_libs/framer-motion+[...].mjs";
 import { n as toast, t as Toaster } from "../_libs/sonner.mjs";
-import { c as bytesToHex, d as hexToBytes, n as sha256, t as ed25519 } from "../_libs/noble__curves+noble__hashes.mjs";
-import { t as keccak_256 } from "../_libs/noble__hashes.mjs";
+import { i as toUtf8Bytes, n as getAddress, r as keccak256 } from "../_libs/ethers+ws.mjs";
 import { t as base58 } from "../_libs/scure__base.mjs";
+import { a as TransactionInstruction, i as Transaction, n as PublicKey, r as SystemProgram, t as Connection } from "../_libs/@solana/web3.js.mjs";
 import { n as create, t as persist } from "../_libs/zustand.mjs";
-//#region node_modules/.nitro/vite/services/ssr/assets/routes-B_YSzaOj.js
+//#region node_modules/.nitro/vite/services/ssr/assets/routes-BCsYm5n0.js
 var import_react = /* @__PURE__ */ __toESM(require_react());
 var import_jsx_runtime = require_jsx_runtime();
 function useServerFn(serverFn) {
@@ -26,6 +28,15 @@ function useServerFn(serverFn) {
 			throw err;
 		}
 	}, [router, serverFn]);
+}
+/**
+* Derives a deterministic EVM address on Polygon Amoy
+* from the user's Solana public key using the NEAR MPC derivation path standard.
+*/
+function derivePolygonAddress(solanaPubkey, nearContractId = "v1.signer-prod.testnet") {
+	const combinedSeed = `${nearContractId},${`moxie-intents,${solanaPubkey}`}`;
+	const hash = keccak256(toUtf8Bytes(combinedSeed));
+	return getAddress("0x" + hash.slice(-40));
 }
 var ErrorCodes = {
 	EXPIRED: "EXPIRED",
@@ -54,13 +65,12 @@ function asProtocolError(error) {
 	if (error instanceof Error) return new ProtocolError(ErrorCodes.INTENT_INCOMPLETE, error.message);
 	return new ProtocolError(ErrorCodes.INTENT_INCOMPLETE, "Unknown protocol failure");
 }
-var PROGRAM_ID = "Fp8YfZhD52nPSvagqpVD9gDwMvQ7d1a2K7JXkDL3HMUV";
+var PROGRAM_ID$1 = "Fp8YfZhD52nPSvagqpVD9gDwMvQ7d1a2K7JXkDL3HMUV";
 var PAPER_SECRET_HEX = "69489837016c26e637c8c94a8eec4faa79a571dadc37d517746d186c37775485";
 var INTENT_DOMAIN = "moxie.intent.v1";
 var SOLVER_AUTH_DOMAIN = "moxie.solver-auth.v1";
 var QUOTE_DOMAIN = "moxie.quote.v1";
 var FILL_DOMAIN = "moxie.fill.v1";
-var CHAIN_SIG_DOMAIN = "moxie.chain-sig.v1|ethereum,137|";
 var text$1 = new TextEncoder();
 function concatBytes(parts) {
 	const len = parts.reduce((sum, part) => sum + part.length, 0);
@@ -167,21 +177,6 @@ function fillMessage(proof) {
 		proof.solverPubkey
 	]);
 }
-/** Domain-separated stand-in for a NEAR chain-signature on path `ethereum,137`. */
-function derivePolygonAddress(solanaPubkey) {
-	if (solanaPubkey.length !== 32) throw new ProtocolError(ErrorCodes.INTENT_INCOMPLETE, "Solana key must be 32 bytes");
-	return toChecksumAddress(keccak_256(concatBytes([text$1.encode(CHAIN_SIG_DOMAIN), solanaPubkey])).slice(12));
-}
-function toChecksumAddress(addr) {
-	const hex = bytesToHex(addr);
-	const hash = bytesToHex(keccak_256(text$1.encode(hex)));
-	let out = "0x";
-	for (let i = 0; i < hex.length; i += 1) {
-		const nibble = Number.parseInt(hash[i] ?? "0", 16);
-		out += nibble >= 8 ? hex[i].toUpperCase() : hex[i];
-	}
-	return out;
-}
 function publicKeyFromSecret(secretKey) {
 	return ed25519.getPublicKey(secretKey);
 }
@@ -210,7 +205,7 @@ function escrowAddress(taker, nonce) {
 		text$1.encode("escrow"),
 		taker,
 		u64le(nonce)
-	], base58.decode(PROGRAM_ID));
+	], base58.decode(PROGRAM_ID$1));
 	return {
 		address: base58.encode(found.address),
 		bump: found.bump
@@ -298,6 +293,9 @@ var INTENT_STATUSES = [
 	"REFUNDED",
 	"EXPIRED"
 ];
+function okSignature(value) {
+	return /^[0-9a-f]{64,256}$/i.test(value) || /^[1-9A-HJ-NP-Za-km-z]{64,128}$/.test(value);
+}
 function assertSave(input) {
 	if (!/^[0-9a-f-]{36}$/i.test(input.id)) throw new Error("bad id");
 	if (!/^[1-9A-HJ-NP-Za-km-z]{32,44}$/.test(input.userSolanaPubkey)) throw new Error("bad key");
@@ -308,7 +306,7 @@ function assertSave(input) {
 	if (!/^\d{1,12}\.\d{6}$/.test(input.minSharesOut)) throw new Error("bad shares");
 	if (input.solanaEscrowPda && !/^[1-9A-HJ-NP-Za-km-z]{32,44}$/.test(input.solanaEscrowPda)) throw new Error("bad pda");
 	if (input.polygonOrderHash && !/^0x[0-9a-fA-F]{64}$/.test(input.polygonOrderHash)) throw new Error("bad fill hash");
-	if (input.nearMpcSignature && !/^[0-9a-f]{64,256}$/i.test(input.nearMpcSignature)) throw new Error("bad signature");
+	if (input.nearMpcSignature && !okSignature(input.nearMpcSignature)) throw new Error("bad signature");
 	if (!INTENT_STATUSES.includes(input.status)) throw new Error("bad status");
 	if (Number.isNaN(Date.parse(input.expiryTimestamp))) throw new Error("bad expiry");
 	if (!Number.isSafeInteger(input.nonce) || input.nonce < 0) throw new Error("bad nonce");
@@ -319,6 +317,10 @@ var listIntents = createServerFn({ method: "GET" }).validator((pubkey) => {
 	if (typeof pubkey !== "string" || !/^[1-9A-HJ-NP-Za-km-z]{32,44}$/.test(pubkey)) throw new Error("bad key");
 	return pubkey;
 }).handler(createSsrRpc("fff1395232e8903f4a50b2aaea3d494ba3acc1139b862d32066e38c9da373fb2"));
+var stepSolver = createServerFn({ method: "POST" }).validator((id) => {
+	if (!/^[0-9a-f-]{36}$/i.test(id)) throw new Error("bad id");
+	return id;
+}).handler(createSsrRpc("11f195d7f2d0fe5b71a98dfff85b6ad125f398a9d4b01f1972baf81163ce55ef"));
 function nonceKey(taker, nonce) {
 	return `${taker}:${nonce}`;
 }
@@ -822,6 +824,166 @@ function planRoute(input) {
 	});
 	return events;
 }
+var TOKEN_PROGRAM_ID = new PublicKey("TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA");
+var PROGRAM_ID = new PublicKey(SOLANA_ESCROW_PROGRAM_ID);
+var MINT = new PublicKey(DEVNET_USDC_MINT);
+/** Confirmed on Devnet: seeds `["escrow", maker]` and `["vault", escrow]`. */
+function escrowPda(maker) {
+	return PublicKey.findProgramAddressSync([Buffer.from("escrow"), maker.toBuffer()], PROGRAM_ID)[0];
+}
+function vaultPda(escrow) {
+	return PublicKey.findProgramAddressSync([Buffer.from("vault"), escrow.toBuffer()], PROGRAM_ID)[0];
+}
+function makerTokenAccount(maker) {
+	const associated = new PublicKey("ATokenGPvbdGVxr1b2hvZbsiqW5xWH25efTNsLJA8knL");
+	return PublicKey.findProgramAddressSync([
+		maker.toBuffer(),
+		TOKEN_PROGRAM_ID.toBuffer(),
+		MINT.toBuffer()
+	], associated)[0];
+}
+function instructionData(amount, intentHash, timeout) {
+	if (intentHash.length !== 32) throw new Error("Intent hash must be 32 bytes");
+	const disc = Buffer.from(sha256(new TextEncoder().encode("global:initialize_intent"))).subarray(0, 8);
+	const data = Buffer.alloc(56);
+	disc.copy(data, 0);
+	data.writeBigUInt64LE(amount, 8);
+	Buffer.from(intentHash).copy(data, 16);
+	data.writeBigInt64LE(timeout, 48);
+	return data;
+}
+function initializeIntentTransaction(input) {
+	const escrow = escrowPda(input.maker);
+	const vault = vaultPda(escrow);
+	const ix = new TransactionInstruction({
+		programId: PROGRAM_ID,
+		keys: [
+			{
+				pubkey: input.maker,
+				isSigner: true,
+				isWritable: true
+			},
+			{
+				pubkey: escrow,
+				isSigner: false,
+				isWritable: true
+			},
+			{
+				pubkey: makerTokenAccount(input.maker),
+				isSigner: false,
+				isWritable: true
+			},
+			{
+				pubkey: vault,
+				isSigner: false,
+				isWritable: true
+			},
+			{
+				pubkey: MINT,
+				isSigner: false,
+				isWritable: false
+			},
+			{
+				pubkey: TOKEN_PROGRAM_ID,
+				isSigner: false,
+				isWritable: false
+			},
+			{
+				pubkey: SystemProgram.programId,
+				isSigner: false,
+				isWritable: false
+			}
+		],
+		data: instructionData(input.amount, input.intentHash, input.timeout)
+	});
+	return {
+		transaction: new Transaction({
+			feePayer: input.maker,
+			recentBlockhash: input.blockhash
+		}).add(ix),
+		escrow,
+		vault
+	};
+}
+function logMessage(logs) {
+	return (logs?.find((item) => item.includes("Error Message:")))?.split("Error Message:")[1]?.trim() || null;
+}
+async function lockDevnetIntent(input) {
+	if (!input.provider.signTransaction) throw new Error("This wallet cannot sign a Solana transaction.");
+	const connection = new Connection(SOLANA_DEVNET_RPC, "confirmed");
+	const maker = new PublicKey(input.publicKey);
+	const { blockhash, lastValidBlockHeight } = await connection.getLatestBlockhash("confirmed");
+	const built = initializeIntentTransaction({
+		maker,
+		amount: input.amount,
+		intentHash: input.intentHash,
+		timeout: input.timeout,
+		blockhash
+	});
+	const raw = built.transaction.serialize({
+		requireAllSignatures: false,
+		verifySignatures: false
+	});
+	const preview = await (await fetch(SOLANA_DEVNET_RPC, {
+		method: "POST",
+		headers: { "content-type": "application/json" },
+		body: JSON.stringify({
+			jsonrpc: "2.0",
+			id: 1,
+			method: "simulateTransaction",
+			params: [Buffer.from(raw).toString("base64"), {
+				encoding: "base64",
+				sigVerify: false,
+				replaceRecentBlockhash: true
+			}]
+		})
+	})).json();
+	if (preview.error?.message) throw new Error(preview.error.message);
+	if (preview.result?.value?.err) throw new Error(logMessage(preview.result.value.logs) ?? "Devnet rejected the lock before signing.");
+	const signed = await input.provider.signTransaction(built.transaction);
+	const signature = await connection.sendRawTransaction(signed.serialize(), { skipPreflight: false });
+	await connection.confirmTransaction({
+		signature,
+		blockhash,
+		lastValidBlockHeight
+	}, "confirmed");
+	return {
+		signature,
+		escrowPda: built.escrow.toBase58()
+	};
+}
+function devnetConnection() {
+	return new Connection(SOLANA_DEVNET_RPC, "confirmed");
+}
+function injectedProvider(which) {
+	const host = window;
+	if (which === "Phantom") return host.phantom?.solana ?? (host.solana?.isPhantom ? host.solana : null);
+	return host.solflare ?? (host.solana?.isSolflare ? host.solana : null);
+}
+async function readDevnetBalance(owner) {
+	const connection = devnetConnection();
+	const mint = new PublicKey(DEVNET_USDC_MINT);
+	const info = (await connection.getParsedTokenAccountsByOwner(new PublicKey(owner), { mint })).value[0]?.account.data.parsed.info.tokenAmount;
+	if (!info) {
+		const mintInfo = await connection.getParsedAccountInfo(mint);
+		return {
+			amount: 0n,
+			decimals: mintInfo.value && "parsed" in mintInfo.value.data ? Number(mintInfo.value.data.parsed.info.decimals) : 9
+		};
+	}
+	return {
+		amount: BigInt(info.amount),
+		decimals: info.decimals
+	};
+}
+function formatToken(amount, decimals) {
+	const scale = 10n ** BigInt(decimals);
+	const whole = amount / scale;
+	const frac = amount % scale;
+	const grouped = whole.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+	if (frac === 0n) return grouped;
+	return `${grouped}.${frac.toString().padStart(decimals, "0").replace(/0+$/, "")}`;
+}
 var ctx = null;
 function context() {
 	if (typeof window === "undefined") return null;
@@ -1077,6 +1239,37 @@ function dbStatus(order) {
 	if (order.phase === "refunded") return "REFUNDED";
 	return null;
 }
+function chainPhase(status) {
+	if (status === "SOLVER_BIDDING") return "solver_matched";
+	if (status === "CLOB_SUBMITTED") return "clob_filled";
+	if (status === "SETTLED") return "settled";
+	if (status === "REFUNDED") return "refunded";
+	return "escrow_locked";
+}
+function shellOrder(input) {
+	return {
+		id: input.signature.slice(0, 12),
+		intent: {
+			taker: input.taker,
+			nonce: input.nonce,
+			marketId: input.market.id,
+			side: input.side,
+			outcomeTokenId: outcomeTokenId(input.market.id, input.side),
+			maxSlippageBps: 50,
+			expiryUnix: input.nonce + 180,
+			sizeMicro: input.sizeMicro,
+			polygonRecipient: input.proxy,
+			referenceAskMicro: input.ask
+		},
+		signatureHex: input.signature,
+		commitmentHex: "00".repeat(32),
+		phase: input.phase,
+		quotes: [],
+		polygonTxHex: input.hash ?? void 0,
+		logs: [],
+		createdAt: input.nonce
+	};
+}
 function trackState(order) {
 	if (!order) return {
 		index: 0,
@@ -1140,9 +1333,14 @@ function Desk() {
 	const [rows, setRows] = (0, import_react.useState)([]);
 	const [trade, setTrade] = (0, import_react.useState)(null);
 	const [live, setLive] = (0, import_react.useState)(null);
+	const [wallet, setWallet] = (0, import_react.useState)(null);
+	const [chainSig, setChainSig] = (0, import_react.useState)(null);
+	const [chainHash, setChainHash] = (0, import_react.useState)(null);
+	const [chainFills, setChainFills] = (0, import_react.useState)([]);
 	const dbIdRef = (0, import_react.useRef)("");
 	const save = useServerFn(saveIntent);
 	const list = useServerFn(listIntents);
+	const step = useServerFn(stepSolver);
 	const publicKey = useDesk((state) => state.publicKeyB58);
 	const available = useDesk((state) => state.available);
 	const locked = useDesk((state) => state.locked);
@@ -1178,7 +1376,8 @@ function Desk() {
 		}, 1800);
 		return () => window.clearInterval(timer);
 	}, []);
-	const polygon = derivePolygonAddress(base58.decode(publicKey));
+	const activeKey = wallet?.publicKey ?? (connected ? publicKey : "");
+	const polygon = activeKey ? derivePolygonAddress(activeKey) : "";
 	const positions = positionsOf(orders);
 	const market = MARKETS.find((item) => item.id === trade?.marketId) ?? null;
 	const book = market ? books[market.id] ?? {
@@ -1189,13 +1388,47 @@ function Desk() {
 		const stamp = (/* @__PURE__ */ new Date()).toISOString().slice(11, 19);
 		setLogs((current) => [`${stamp}  ${line}`, ...current].slice(0, 40));
 	}
+	async function chooseConnect(label) {
+		if (!ready) return;
+		sfx.tap();
+		if (label === "Phantom" || label === "Solflare") {
+			const provider = injectedProvider(label);
+			if (provider) try {
+				const owner = (await provider.connect()).publicKey.toString();
+				const balance = await readDevnetBalance(owner);
+				setWallet({
+					label,
+					publicKey: owner,
+					provider,
+					balance: balance.amount,
+					decimals: balance.decimals
+				});
+				useDesk.getState().connect(label);
+				setConnectOpen(false);
+				toast(`${label} is on Devnet`);
+				pushLog(`[solana] ${label.toLowerCase()} ${shortKey(owner, 4, 4)}`);
+				return;
+			} catch (error) {
+				toast(error instanceof Error ? error.message : "The wallet connection was cancelled.");
+				return;
+			}
+			toast(`${label} isn't in this browser. Using the on-device key instead.`);
+		}
+		setWallet(null);
+		useDesk.getState().connect(label);
+		setConnectOpen(false);
+		toast(`Connected with ${label}`);
+		pushLog(`[auth] ${label.toLowerCase()} → local solana key ${shortKey(useDesk.getState().publicKeyB58, 4, 4)}`);
+	}
 	function openTrade(marketId, dollars) {
 		if (!ready) return;
 		sfx.tap();
-		if (!useDesk.getState().connected) {
+		if (!wallet && !useDesk.getState().connected) {
 			setConnectOpen(true);
 			return;
 		}
+		setChainSig(null);
+		setChainHash(null);
 		setLive(null);
 		setTrade({
 			marketId,
@@ -1233,7 +1466,118 @@ function Desk() {
 			pushLog(`[neon] ${error instanceof Error ? error.message : "save failed"}`);
 		}
 	}
+	async function runOnDevnet() {
+		if (!trade || !market || !book || !wallet || busy) return;
+		const sizeMicro = parseUsdc(trade.amount);
+		if (sizeMicro === null) {
+			toast("Use $0.01 to $5,000.");
+			return;
+		}
+		const amount = BigInt(sizeMicro) * 10n ** BigInt(wallet.decimals) / 1000000n;
+		if (wallet.balance !== null && amount > wallet.balance) {
+			toast("Not enough Devnet USDC in that wallet.");
+			return;
+		}
+		const nonce = Math.floor(Date.now() / 1e3);
+		const dbId = crypto.randomUUID();
+		dbIdRef.current = dbId;
+		const ask = side === "yes" ? book.yes : book.no;
+		const proxy = derivePolygonAddress(wallet.publicKey);
+		const intentHash = sha256(new TextEncoder().encode(`moxie.intent.v1|${market.id}|${side}|${nonce}|${amount}|${wallet.publicKey}`));
+		setBusy(true);
+		sfx.lock();
+		pushLog(`[solana] initializeIntent ${side.toUpperCase()} ${market.id} $${trade.amount}`);
+		try {
+			const locked = await lockDevnetIntent({
+				provider: wallet.provider,
+				publicKey: wallet.publicKey,
+				amount,
+				intentHash,
+				timeout: BigInt(nonce + 180)
+			});
+			setChainSig(locked.signature);
+			pushLog(`[solana] tx ${shortKey(locked.signature, 4, 4)} pda ${shortKey(locked.escrowPda, 4, 4)}`);
+			let order = shellOrder({
+				taker: wallet.publicKey,
+				nonce,
+				market,
+				side,
+				sizeMicro,
+				proxy,
+				ask,
+				signature: locked.signature,
+				phase: "escrow_locked"
+			});
+			setLive(order);
+			const ceiling = maxPrice(ask, 50);
+			await save({ data: {
+				id: dbId,
+				userSolanaPubkey: wallet.publicKey,
+				derivedPolygonAddress: proxy,
+				marketConditionId: order.intent.outcomeTokenId,
+				outcomeIndex: side === "yes" ? 0 : 1,
+				usdcAmountIn: money6(sizeMicro),
+				minSharesOut: money6(sharesFor(sizeMicro, Math.max(ceiling, 1))),
+				solanaEscrowPda: locked.escrowPda,
+				polygonOrderHash: null,
+				nearMpcSignature: locked.signature,
+				status: "ESCROW_LOCKED",
+				expiryTimestamp: (/* @__PURE__ */ new Date((nonce + 180) * 1e3)).toISOString(),
+				nonce
+			} });
+			pushLog("[neon] ESCROW_LOCKED");
+			for (let attempt = 0; attempt < 6; attempt += 1) {
+				await wait(700, Boolean(reduce));
+				const stepped = await step({ data: dbId });
+				if (stepped.note) pushLog(`[solver] ${stepped.note}`);
+				const status = stepped.row?.status;
+				if (!status) break;
+				order = {
+					...order,
+					phase: chainPhase(status),
+					polygonTxHex: stepped.row?.polygon_order_hash ?? void 0
+				};
+				setLive(order);
+				if (stepped.row?.polygon_order_hash) setChainHash(stepped.row.polygon_order_hash);
+				const listed = await list({ data: wallet.publicKey });
+				setRows(listed.rows);
+				if (status === "SETTLED") {
+					sfx.bought();
+					toast(`Bought ${side.toUpperCase()} · $${trade.amount}`);
+					setChainFills((current) => [{
+						id: dbId,
+						question: market.question,
+						side,
+						amount: trade.amount
+					}, ...current]);
+					const nextBalance = await readDevnetBalance(wallet.publicKey);
+					setWallet({
+						...wallet,
+						balance: nextBalance.amount,
+						decimals: nextBalance.decimals
+					});
+					return;
+				}
+				if (stepped.blocked) {
+					sfx.nope();
+					toast(stepped.blocked);
+					return;
+				}
+			}
+		} catch (error) {
+			sfx.nope();
+			const message = error instanceof Error ? error.message : "The Devnet lock failed.";
+			toast(message);
+			pushLog(`[solana] ${message}`);
+		} finally {
+			setBusy(false);
+		}
+	}
 	async function runTrade() {
+		if (wallet) {
+			await runOnDevnet();
+			return;
+		}
 		if (!trade || !market || !book || busy) return;
 		const state = useDesk.getState();
 		const sizeMicro = parseUsdc(trade.amount);
@@ -1278,7 +1622,7 @@ function Desk() {
 					maxSlippageBps: slipBps,
 					expiryUnix: drill === "expire" ? now - 30 : now + 180,
 					sizeMicro,
-					polygonRecipient: derivePolygonAddress(base58.decode(state.publicKeyB58)),
+					polygonRecipient: derivePolygonAddress(state.publicKeyB58),
 					referenceAskMicro: ask
 				}
 			});
@@ -1344,14 +1688,14 @@ function Desk() {
 								className: "hidden items-center gap-2 rounded-full border border-line px-3 py-2 text-xs text-mute sm:flex",
 								children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", { className: "pulse-dot size-2 rounded-full bg-mint" }), "Solana · NEAR · Polygon"]
 							}),
-							connected ? /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(import_jsx_runtime.Fragment, { children: [/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+							wallet || connected ? /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(import_jsx_runtime.Fragment, { children: [/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
 								className: "rounded-full border border-line px-3 py-2 text-right",
 								children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("p", {
 									className: "font-mono text-sm leading-none text-mint",
-									children: ready ? formatUsdc(available) : "—"
-								}), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("p", {
+									children: wallet ? wallet.balance === null ? "…" : formatToken(wallet.balance, wallet.decimals) : ready ? formatUsdc(available) : "—"
+								}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)("p", {
 									className: "text-xs text-mute",
-									children: ["USDC", locked > 0 ? ` · ${formatUsdc(locked)} locked` : ""]
+									children: wallet ? "Devnet USDC" : `USDC${locked > 0 ? ` · ${formatUsdc(locked)} locked` : ""}`
 								})]
 							}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)("button", {
 								type: "button",
@@ -1363,8 +1707,9 @@ function Desk() {
 								children: shortHex(polygon)
 							})] }) : /* @__PURE__ */ (0, import_jsx_runtime.jsx)("button", {
 								type: "button",
+								disabled: !ready,
 								onClick: () => setConnectOpen(true),
-								className: "h-11 rounded-full bg-mint px-4 text-sm font-semibold text-ink",
+								className: "h-11 rounded-full bg-mint px-4 text-sm font-semibold text-ink disabled:opacity-50",
 								children: "Connect"
 							}),
 							/* @__PURE__ */ (0, import_jsx_runtime.jsx)("button", {
@@ -1423,7 +1768,7 @@ function Desk() {
 							children: "Tap a price, then a size. We lock USDC and buy the side."
 						})] }), /* @__PURE__ */ (0, import_jsx_runtime.jsx)("p", {
 							className: "font-mono text-xs text-cyan",
-							children: connectLabel ? `via ${connectLabel}` : "not connected"
+							children: wallet ? `via ${wallet.label} · Devnet` : connectLabel ? `via ${connectLabel}` : "not connected"
 						})]
 					}),
 					/* @__PURE__ */ (0, import_jsx_runtime.jsx)("ul", {
@@ -1452,12 +1797,28 @@ function Desk() {
 						children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("h2", {
 							className: "text-xs uppercase tracking-widest text-mute",
 							children: "Your bets"
-						}), positions.length === 0 ? /* @__PURE__ */ (0, import_jsx_runtime.jsx)("p", {
+						}), positions.length === 0 && chainFills.length === 0 ? /* @__PURE__ */ (0, import_jsx_runtime.jsx)("p", {
 							className: "mt-2 text-sm text-mute",
 							children: "Nothing bought yet. Wins show up on your Polygon address."
-						}) : /* @__PURE__ */ (0, import_jsx_runtime.jsx)("ul", {
+						}) : /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("ul", {
 							className: "mt-2 divide-y divide-line border-t border-line",
-							children: positions.map((position) => {
+							children: [chainFills.map((fill) => /* @__PURE__ */ (0, import_jsx_runtime.jsx)("li", {
+								className: "flex items-center justify-between gap-3 py-3",
+								children: /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("span", {
+									className: "min-w-0",
+									children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", {
+										className: "block truncate text-sm",
+										children: fill.question
+									}), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("span", {
+										className: "font-mono text-xs text-cyan",
+										children: [
+											fill.side.toUpperCase(),
+											" · Devnet $",
+											fill.amount
+										]
+									})]
+								})
+							}, fill.id)), positions.map((position) => {
 								const listed = MARKETS.find((item) => item.id === position.marketId);
 								return /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("li", {
 									className: "flex items-center justify-between gap-3 py-3",
@@ -1475,7 +1836,7 @@ function Desk() {
 										children: formatShares(position.sharesMicro)
 									})]
 								}, position.tokenId);
-							})
+							})]
 						})]
 					})
 				]
@@ -1500,7 +1861,7 @@ function Desk() {
 				children: [
 					/* @__PURE__ */ (0, import_jsx_runtime.jsx)("p", {
 						className: "font-mono text-xs text-violet",
-						children: "intents · status changes"
+						children: "intents · Devnet DiiRjj…CwK5g · Amoy"
 					}),
 					/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("ul", {
 						className: "mt-2 space-y-1",
@@ -1538,39 +1899,31 @@ function Desk() {
 				children: [
 					/* @__PURE__ */ (0, import_jsx_runtime.jsx)("p", {
 						className: "text-sm text-mute",
-						children: "Pick a wallet or social. This preview signs with a Solana key on this device, so you never need a gas token or a bridge. Phantom, Google, X, and Discord use that same key here."
+						children: "Phantom and Solflare sign the Devnet escrow if the extension is in this browser. Otherwise the desk signs with a Solana key kept on this device. The Polygon address is derived from that key. You still don't hold gas or bridge."
 					}),
 					/* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
 						className: "mt-4 grid grid-cols-2 gap-2",
 						children: CONNECTS.map((label) => /* @__PURE__ */ (0, import_jsx_runtime.jsx)("button", {
 							type: "button",
-							onClick: () => {
-								sfx.tap();
-								useDesk.getState().connect(label);
-								setConnectOpen(false);
-								toast(`Connected with ${label}`);
-								pushLog(`[auth] ${label.toLowerCase()} → local solana key ${shortKey(publicKey, 4, 4)}`);
-							},
+							onClick: () => void chooseConnect(label),
 							className: "h-12 rounded-xl border border-line bg-ink text-sm font-medium hover:border-mint",
 							children: label
 						}, label))
 					}),
-					connected ? /* @__PURE__ */ (0, import_jsx_runtime.jsx)("button", {
+					connected || wallet ? /* @__PURE__ */ (0, import_jsx_runtime.jsx)("button", {
 						type: "button",
 						className: "mt-3 h-11 text-sm text-mute",
 						onClick: () => {
+							wallet?.provider.disconnect?.();
+							setWallet(null);
 							useDesk.getState().disconnect();
 							setConnectOpen(false);
 						},
 						children: "Disconnect"
 					}) : null,
-					/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("p", {
+					/* @__PURE__ */ (0, import_jsx_runtime.jsx)("p", {
 						className: "mt-3 font-mono text-xs text-cyan",
-						children: [
-							"Polygon ",
-							shortHex(polygon),
-							" · path ethereum,137"
-						]
+						children: polygon ? `Polygon ${shortHex(polygon)} · moxie-intents` : "Polygon address appears after you connect"
 					})
 				]
 			}, "connect") : null, trade && market && book ? /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(Sheet, {
@@ -1648,13 +2001,9 @@ function Desk() {
 						}),
 						className: "mt-2 h-12 w-full rounded-xl border border-line bg-ink px-3 font-mono text-cream outline-none"
 					}),
-					/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("p", {
+					/* @__PURE__ */ (0, import_jsx_runtime.jsx)("p", {
 						className: "mt-2 text-sm text-mute",
-						children: [
-							"Ceiling ",
-							formatCents(maxPrice(side === "yes" ? book.yes : book.no, drill === "slip" ? 0 : slippage)),
-							"¢ · pays from Solana USDC"
-						]
+						children: wallet ? "This locks Devnet USDC in the escrow. Keep the wallet on Devnet." : `Ceiling ${formatCents(maxPrice(side === "yes" ? book.yes : book.no, drill === "slip" ? 0 : slippage))}¢ · pays from Solana USDC`
 					}),
 					/* @__PURE__ */ (0, import_jsx_runtime.jsx)("ol", {
 						className: "mt-4 space-y-3",
@@ -1684,6 +2033,20 @@ function Desk() {
 							live.intent.side.toUpperCase(),
 							". Shares are on your Polygon address."
 						]
+					}) : null,
+					chainSig ? /* @__PURE__ */ (0, import_jsx_runtime.jsx)("a", {
+						className: "mt-3 block font-mono text-xs text-cyan",
+						href: `https://explorer.solana.com/tx/${chainSig}?cluster=devnet`,
+						target: "_blank",
+						rel: "noreferrer",
+						children: "View the Solana lock"
+					}) : null,
+					chainHash ? /* @__PURE__ */ (0, import_jsx_runtime.jsx)("a", {
+						className: "mt-1 block font-mono text-xs text-mint",
+						href: `https://amoy.polygonscan.com/tx/${chainHash}`,
+						target: "_blank",
+						rel: "noreferrer",
+						children: "View the Polygon fill"
 					}) : null
 				]
 			}, "trade") : null] })

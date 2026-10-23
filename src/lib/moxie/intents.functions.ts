@@ -43,6 +43,10 @@ export interface SaveIntentInput {
   nonce: number;
 }
 
+function okSignature(value: string): boolean {
+  return /^[0-9a-f]{64,256}$/i.test(value) || /^[1-9A-HJ-NP-Za-km-z]{64,128}$/.test(value);
+}
+
 function assertSave(input: SaveIntentInput): SaveIntentInput {
   if (!/^[0-9a-f-]{36}$/i.test(input.id)) throw new Error("bad id");
   if (!/^[1-9A-HJ-NP-Za-km-z]{32,44}$/.test(input.userSolanaPubkey)) throw new Error("bad key");
@@ -57,7 +61,7 @@ function assertSave(input: SaveIntentInput): SaveIntentInput {
   if (input.polygonOrderHash && !/^0x[0-9a-fA-F]{64}$/.test(input.polygonOrderHash)) {
     throw new Error("bad fill hash");
   }
-  if (input.nearMpcSignature && !/^[0-9a-f]{64,256}$/i.test(input.nearMpcSignature)) {
+  if (input.nearMpcSignature && !okSignature(input.nearMpcSignature)) {
     throw new Error("bad signature");
   }
   if (!INTENT_STATUSES.includes(input.status)) throw new Error("bad status");
@@ -126,4 +130,17 @@ export const listIntents = createServerFn({ method: "GET" })
       limit 8
     `;
     return { source: dbSource, rows };
+  });
+
+export const stepSolver = createServerFn({ method: "POST" })
+  .validator((id: string) => {
+    if (!/^[0-9a-f-]{36}$/i.test(id)) throw new Error("bad id");
+    return id;
+  })
+  .handler(async ({ data }) => {
+    const { getSql, dbSource } = await import("@/lib/db");
+    const { stepIntent } = await import("./solver-tick.ts");
+    const sql = await getSql();
+    const stepped = await stepIntent(sql, data);
+    return { source: dbSource, ...stepped };
   });
