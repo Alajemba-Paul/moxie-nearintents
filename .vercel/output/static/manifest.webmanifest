@@ -1,0 +1,13 @@
+{
+  "name": "Moxie",
+  "short_name": "Moxie",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#012624",
+  "theme_color": "#012624",
+  "icons": [
+    { "src": "/favicon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any" },
+    { "src": "/favicon-32.png", "sizes": "32x32", "type": "image/png", "purpose": "any" },
+    { "src": "/apple-touch-icon.png", "sizes": "180x180", "type": "image/png", "purpose": "any" }
+  ]
+}

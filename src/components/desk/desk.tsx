@@ -1,9 +1,11 @@
 import { sha256 } from "@noble/hashes/sha2.js";
 import { useEffect, useRef, useState, type ReactNode } from "react";
+import { useNavigate } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
 import { Settings, X } from "lucide-react";
 import { toast, Toaster } from "sonner";
+import { ParticleOrb } from "@/components/particle-orb";
 import { derivePolygonAddress as deriveProxyAddress } from "@/lib/derive-proxy";
 import { base58, escrowAddress } from "@/lib/moxie/codec";
 import {
@@ -22,7 +24,7 @@ import { maxPrice, sharesFor } from "@/lib/moxie/machine";
 import { complementAsk, MARKETS, outcomeTokenId, type Market } from "@/lib/moxie/markets";
 import { planRoute } from "@/lib/moxie/route";
 import { lockDevnetIntent } from "@/lib/solana/escrow-tx";
-import { formatToken, injectedProvider, readDevnetBalance, type SolanaProvider } from "@/lib/solana/wallet";
+import { formatToken, injectedProvider, openMobileWallet, readDevnetBalance, type InjectedWallet, type SolanaProvider } from "@/lib/solana/wallet";
 import { sfx } from "@/lib/moxie/sound";
 import { useDesk } from "@/lib/moxie/store";
 import type { DeskOrder, Phase } from "@/lib/moxie/types";
@@ -31,10 +33,19 @@ type Books = Record<string, { yes: number; no: number }>;
 type Drill = "route" | "expire" | "replay" | "slip" | "badproof";
 type Side = "yes" | "no";
 
-const CONNECTS = ["Phantom", "Solflare", "Google", "X", "Discord"] as const;
+type ConnectId = InjectedWallet | "Mobile" | "Google" | "X";
+
+const CONNECTS: { id: ConnectId; label: string; hint: string }[] = [
+  { id: "Phantom", label: "Phantom", hint: "Devnet extension" },
+  { id: "Solflare", label: "Solflare", hint: "Devnet extension" },
+  { id: "Backpack", label: "Backpack", hint: "Devnet extension" },
+  { id: "Mobile", label: "Mobile wallet", hint: "Opens the phone wallet" },
+  { id: "Google", label: "Google", hint: "On-device Solana key" },
+  { id: "X", label: "X", hint: "On-device Solana key" },
+];
 
 type ExternalWallet = {
-  label: "Phantom" | "Solflare";
+  label: InjectedWallet;
   publicKey: string;
   provider: SolanaProvider;
   balance: bigint | null;
@@ -166,9 +177,11 @@ function friendly(order: DeskOrder): string {
 
 export function Desk() {
   const reduce = useReducedMotion();
+  const navigate = useNavigate();
   const [ready, setReady] = useState(false);
   const [books, setBooks] = useState<Books>(initialBooks);
   const [side, setSide] = useState<Side>("yes");
+  const [focusId, setFocusId] = useState(MARKETS[0]!.id);
   const [drill, setDrill] = useState<Drill>("route");
   const [slippage, setSlippage] = useState(50);
   const [settings, setSettings] = useState(false);
@@ -232,39 +245,48 @@ export function Desk() {
     setLogs((current) => [`${stamp}  ${line}`, ...current].slice(0, 40));
   }
 
-  async function chooseConnect(label: (typeof CONNECTS)[number]) {
+  async function chooseConnect(choice: (typeof CONNECTS)[number]) {
     if (!ready) return;
     sfx.tap();
-    if (label === "Phantom" || label === "Solflare") {
-      const provider = injectedProvider(label);
+    if (choice.id === "Phantom" || choice.id === "Solflare" || choice.id === "Backpack") {
+      const provider = injectedProvider(choice.id);
       if (provider) {
         try {
           const session = await provider.connect();
           const owner = session.publicKey.toString();
           const balance = await readDevnetBalance(owner);
-          setWallet({ label, publicKey: owner, provider, balance: balance.amount, decimals: balance.decimals });
-          useDesk.getState().connect(label);
+          setWallet({ label: choice.id, publicKey: owner, provider, balance: balance.amount, decimals: balance.decimals });
+          useDesk.getState().connect(choice.label);
           setConnectOpen(false);
-          toast(`${label} is on Devnet`);
-          pushLog(`[solana] ${label.toLowerCase()} ${shortKey(owner, 4, 4)}`);
+          toast(`${choice.label} is on Devnet`);
+          pushLog(`[solana] ${choice.label.toLowerCase()} ${shortKey(owner, 4, 4)}`);
           return;
         } catch (error) {
           toast(error instanceof Error ? error.message : "The wallet connection was cancelled.");
           return;
         }
       }
-      toast(`${label} isn't in this browser. Using the on-device key instead.`);
+      toast(`${choice.label} isn't in this browser. Using the on-device key instead.`);
+    }
+    if (choice.id === "Mobile") {
+      const phone = /Android|iPhone|iPad/i.test(navigator.userAgent);
+      if (phone) {
+        openMobileWallet();
+        return;
+      }
+      toast("Mobile wallets open from a phone. Using the on-device key instead.");
     }
     setWallet(null);
-    useDesk.getState().connect(label);
+    useDesk.getState().connect(choice.label);
     setConnectOpen(false);
-    toast(`Connected with ${label}`);
-    pushLog(`[auth] ${label.toLowerCase()} → local solana key ${shortKey(useDesk.getState().publicKeyB58, 4, 4)}`);
+    toast(`Connected with ${choice.label}`);
+    pushLog(`[auth] ${choice.label.toLowerCase()} → local solana key ${shortKey(useDesk.getState().publicKeyB58, 4, 4)}`);
   }
 
   function openTrade(marketId: string, dollars: string) {
     if (!ready) return;
     sfx.tap();
+    setFocusId(marketId);
     if (!wallet && !useDesk.getState().connected) {
       setConnectOpen(true);
       return;
@@ -397,6 +419,10 @@ export function Desk() {
           ]);
           const nextBalance = await readDevnetBalance(wallet.publicKey);
           setWallet({ ...wallet, balance: nextBalance.amount, decimals: nextBalance.decimals });
+          void navigate({
+            to: "/thank-you",
+            search: { market: market.question, side, amount: trade.amount },
+          });
           return;
         }
         if (stepped.blocked) {
@@ -491,6 +517,10 @@ export function Desk() {
       if (last.order.phase === "settled") {
         sfx.bought();
         toast(`Bought ${side.toUpperCase()} · $${trade.amount}`);
+        void navigate({
+          to: "/thank-you",
+          search: { market: market.question, side, amount: trade.amount },
+        });
       } else {
         sfx.nope();
         toast(friendly(last.order));
@@ -501,31 +531,27 @@ export function Desk() {
   }
 
   const maxDollars = Math.min(MAX_TICKET, Math.max(0, available)) / 1_000_000;
+  const focus = MARKETS.find((item) => item.id === focusId) ?? MARKETS[0]!;
+  const focusBook = books[focus.id] ?? { yes: focus.yesAskMicro, no: complementAsk(focus.yesAskMicro) };
+  const focusPrice = side === "yes" ? focusBook.yes : focusBook.no;
 
   return (
-    <div className="min-h-screen bg-ink text-cream">
+    <div className="bg-abyss text-platinum">
       <Toaster
         theme="dark"
         position="top-center"
         toastOptions={{
-          style: { background: "#10141c", color: "#e8fff6", border: "1px solid #1c2433" },
+          style: { background: "#011d1c", color: "#ffffff", border: "none" },
         }}
       />
-      <header className="sticky top-0 z-30 border-b border-line bg-ink/95 backdrop-blur">
-        <div className="mx-auto flex max-w-6xl items-center justify-between gap-3 px-4 py-3">
-          <div className="min-w-0">
-            <p className="font-mono text-xs uppercase tracking-widest text-mint">Moxie</p>
-            <p className="hidden text-sm text-mute sm:block">One signature. Private fill.</p>
-          </div>
+      <div className="sticky top-16 z-30 bg-abyss">
+        <div className="flex items-center justify-between gap-3 px-4 py-4">
+          <p className="kicker hidden text-xs text-slate sm:block">Solana · NEAR · Polygon</p>
           <div className="flex items-center gap-2">
-            <span className="hidden items-center gap-2 rounded-full border border-line px-3 py-2 text-xs text-mute sm:flex">
-              <span className="pulse-dot size-2 rounded-full bg-mint" />
-              Solana · NEAR · Polygon
-            </span>
             {wallet || connected ? (
               <>
-                <div className="rounded-full border border-line px-3 py-2 text-right">
-                  <p className="font-mono text-sm leading-none text-mint">
+                <div className="rounded-control bg-deep px-3 py-2 text-right">
+                  <p className="stat text-sm leading-none">
                     {wallet
                       ? wallet.balance === null
                         ? "…"
@@ -534,7 +560,7 @@ export function Desk() {
                         ? formatUsdc(available)
                         : "—"}
                   </p>
-                  <p className="text-xs text-mute">
+                  <p className="text-xs text-mist">
                     {wallet ? "Devnet USDC" : `USDC${locked > 0 ? ` · ${formatUsdc(locked)} locked` : ""}`}
                   </p>
                 </div>
@@ -544,7 +570,7 @@ export function Desk() {
                     sfx.tap();
                     setConnectOpen(true);
                   }}
-                  className="max-w-36 truncate rounded-full border border-cyan/40 px-3 py-2 font-mono text-xs text-cyan"
+                  className="max-w-36 truncate rounded-control bg-kelp px-3 py-2 text-xs text-foam"
                 >
                   {shortHex(polygon)}
                 </button>
@@ -554,66 +580,45 @@ export function Desk() {
                 type="button"
                 disabled={!ready}
                 onClick={() => setConnectOpen(true)}
-                className="h-11 rounded-full bg-mint px-4 text-sm font-semibold text-ink disabled:opacity-50"
+                className="h-11 rounded-control bg-cta px-4 text-sm font-medium text-abyss disabled:opacity-50"
               >
                 Connect
               </button>
             )}
             <button
               type="button"
+              onClick={() => setDrawer(true)}
+              className="hidden h-11 rounded-control bg-kelp px-3 text-sm text-foam sm:inline-flex"
+            >
+              Logs
+            </button>
+            <button
+              type="button"
               aria-label="Settings"
-              onClick={() => setSettings((open) => !open)}
-              className="flex size-11 items-center justify-center rounded-full border border-line"
+              onClick={() => setSettings(true)}
+              className="flex size-11 items-center justify-center rounded-control bg-kelp"
             >
               <Settings className="size-4" />
             </button>
           </div>
         </div>
-        {settings ? (
-          <div className="border-t border-line">
-            <div className="mx-auto flex max-w-6xl flex-col gap-3 px-4 py-3 sm:flex-row sm:items-center sm:justify-between">
-              <div className="flex flex-wrap gap-2" role="group" aria-label="Price room">
-                {[25, 50, 100].map((bps) => (
-                  <button
-                    key={bps}
-                    type="button"
-                    aria-pressed={slippage === bps}
-                    onClick={() => setSlippage(bps)}
-                    className={`h-10 rounded-full px-3 text-sm ${slippage === bps ? "bg-mint text-ink" : "border border-line text-mute"}`}
-                  >
-                    {(bps / 100).toFixed(2)}% room
-                  </button>
-                ))}
-              </div>
-              <div className="flex flex-wrap gap-2" role="group" aria-label="Practice modes">
-                {DRILLS.map((item) => (
-                  <button
-                    key={item.id}
-                    type="button"
-                    aria-pressed={drill === item.id}
-                    onClick={() => setDrill(item.id)}
-                    className={`h-10 rounded-full px-3 text-sm ${drill === item.id ? "bg-violet text-cream" : "border border-line text-mute"}`}
-                  >
-                    {item.label}
-                  </button>
-                ))}
-              </div>
-            </div>
-          </div>
-        ) : null}
-      </header>
+      </div>
 
-      <main className="mx-auto max-w-6xl px-4 py-6 pb-28">
-        <div className="mb-5 flex items-end justify-between gap-3">
+      <main className="px-4 py-8 pb-28">
+        <div className="grid items-center gap-6 md:grid-cols-[1.2fr_0.8fr]">
           <div>
-            <h1 className="text-2xl font-semibold">Markets</h1>
-            <p className="text-sm text-mute">Tap a price, then a size. We lock USDC and buy the side.</p>
+            <p className="kicker text-xs text-slate">Markets</p>
+            <h1 className="mt-2 text-4xl text-platinum">Lock once. Fill in private.</h1>
+            <p className="mt-3 max-w-xl text-mist">
+              Tap a price, then a size. USDC stays on Solana until a solver fills the market. You don't hold gas or bridge.
+            </p>
+            <p className="mt-4 text-sm text-foam">
+              {wallet ? `via ${wallet.label} · Devnet` : connectLabel ? `via ${connectLabel}` : "not connected"}
+            </p>
           </div>
-          <p className="font-mono text-xs text-cyan">
-            {wallet ? `via ${wallet.label} · Devnet` : connectLabel ? `via ${connectLabel}` : "not connected"}
-          </p>
+          <ParticleOrb className="mx-auto h-56 w-56 md:h-72 md:w-72" />
         </div>
-        <ul className="grid gap-4 md:grid-cols-2">
+        <ul className="mt-8 grid gap-8 md:grid-cols-2">
           {MARKETS.map((item) => {
             const prices = books[item.id] ?? { yes: item.yesAskMicro, no: complementAsk(item.yesAskMicro) };
             return (
@@ -626,6 +631,7 @@ export function Desk() {
                   maxDollars={maxDollars}
                   onSide={(next) => {
                     sfx.tap();
+                    setFocusId(item.id);
                     setSide(next);
                   }}
                   onChip={(dollars) => openTrade(item.id, dollars)}
@@ -635,17 +641,17 @@ export function Desk() {
           })}
         </ul>
 
-        <section className="mt-8">
-          <h2 className="text-xs uppercase tracking-widest text-mute">Your bets</h2>
+        <section className="mt-10">
+          <h2 className="kicker text-xs text-slate">Your bets</h2>
           {positions.length === 0 && chainFills.length === 0 ? (
-            <p className="mt-2 text-sm text-mute">Nothing bought yet. Wins show up on your Polygon address.</p>
+            <p className="mt-3 text-sm">Nothing bought yet. Wins show up on your Polygon address.</p>
           ) : (
-            <ul className="mt-2 divide-y divide-line border-t border-line">
+            <ul className="mt-4 space-y-3">
               {chainFills.map((fill) => (
-                <li key={fill.id} className="flex items-center justify-between gap-3 py-3">
+                <li key={fill.id} className="flex items-center justify-between gap-3 rounded-card bg-deep px-4 py-3">
                   <span className="min-w-0">
-                    <span className="block truncate text-sm">{fill.question}</span>
-                    <span className="font-mono text-xs text-cyan">
+                    <span className="block truncate text-sm text-platinum">{fill.question}</span>
+                    <span className="text-xs text-foam">
                       {fill.side.toUpperCase()} · Devnet ${fill.amount}
                     </span>
                   </span>
@@ -654,12 +660,12 @@ export function Desk() {
               {positions.map((position) => {
                 const listed = MARKETS.find((item) => item.id === position.marketId);
                 return (
-                  <li key={position.tokenId} className="flex items-center justify-between gap-3 py-3">
+                  <li key={position.tokenId} className="flex items-center justify-between gap-3 rounded-card bg-deep px-4 py-3">
                     <span className="min-w-0">
-                      <span className="block truncate text-sm">{listed?.question}</span>
-                      <span className="font-mono text-xs text-mint">{position.side.toUpperCase()}</span>
+                      <span className="block truncate text-sm text-platinum">{listed?.question}</span>
+                      <span className="text-xs text-foam">{position.side.toUpperCase()}</span>
                     </span>
-                    <span className="font-mono text-sm tabular-nums">{formatShares(position.sharesMicro)}</span>
+                    <span className="stat text-sm">{formatShares(position.sharesMicro)}</span>
                   </li>
                 );
               })}
@@ -668,63 +674,56 @@ export function Desk() {
         </section>
       </main>
 
-      <button
-        type="button"
-        onClick={() => setDrawer((open) => !open)}
-        className="fixed inset-x-0 bottom-0 z-40 border-t border-line bg-panel px-4 py-3 text-left"
-      >
-        <span className="flex items-center justify-between">
-          <span className="font-mono text-xs uppercase tracking-widest text-cyan">Dev console</span>
-          <span className="text-xs text-mute">{drawer ? "Hide" : `${rows.length} db rows`}</span>
-        </span>
-      </button>
-      {drawer ? (
-        <section className="fixed inset-x-0 bottom-12 z-40 max-h-72 overflow-auto border-t border-line bg-ink px-4 py-3">
-          <p className="font-mono text-xs text-violet">intents · Devnet DiiRjj…CwK5g · Amoy</p>
-          <ul className="mt-2 space-y-1">
-            {rows.length === 0 ? <li className="font-mono text-xs text-mute">no rows yet</li> : null}
-            {rows.map((row) => (
-              <li key={row.id} className="font-mono text-xs text-cream">
-                {row.status} · nonce {row.nonce} · {row.usdc_amount_in} USDC
-                {row.polygon_order_hash ? ` · ${shortHex(row.polygon_order_hash)}` : ""}
-              </li>
-            ))}
-          </ul>
-          <ul className="mt-3 space-y-1 border-t border-line pt-2">
-            {logs.length === 0 ? <li className="font-mono text-xs text-mute">rpc log is empty</li> : null}
-            {logs.map((line, index) => (
-              <li key={`${line}-${index}`} className="break-all font-mono text-xs text-mute">
-                {line}
-              </li>
-            ))}
-          </ul>
-        </section>
-      ) : null}
+      <div className="fixed inset-x-0 bottom-0 z-30 bg-deep px-4 py-3 md:hidden">
+        <div className="flex items-center gap-3">
+          <div className="min-w-0 flex-1">
+            <p className="truncate text-sm text-platinum">{focus.question}</p>
+            <p className="stat text-sm">
+              {side.toUpperCase()} {pct(focusPrice)}%
+            </p>
+          </div>
+          <button
+            type="button"
+            className="h-11 rounded-control bg-kelp px-3 text-sm text-foam"
+            onClick={() => setDrawer(true)}
+          >
+            Logs
+          </button>
+          <button
+            type="button"
+            className="h-11 rounded-control bg-cta px-4 text-sm font-medium text-abyss"
+            onClick={() => openTrade(focus.id, "5")}
+          >
+            Lock $5
+          </button>
+        </div>
+      </div>
 
       <AnimatePresence>
         {connectOpen ? (
           <Sheet key="connect" onClose={() => setConnectOpen(false)} title="Connect">
-            <p className="text-sm text-mute">
-              Phantom and Solflare sign the Devnet escrow if the extension is in this browser. Otherwise the desk
-              signs with a Solana key kept on this device. The Polygon address is derived from that key. You still
-              don't hold gas or bridge.
+            <p className="text-sm">
+              Phantom, Solflare, and Backpack sign the Devnet escrow when the extension is in this browser. Google and X
+              use a Solana key kept on this device. That is not a Privy login. The Polygon address uses the NEAR
+              path solana, then the pubkey. You don't hold gas or bridge.
             </p>
             <div className="mt-4 grid grid-cols-2 gap-2">
-              {CONNECTS.map((label) => (
+              {CONNECTS.map((choice) => (
                 <button
-                  key={label}
+                  key={choice.id}
                   type="button"
-                  onClick={() => void chooseConnect(label)}
-                  className="h-12 rounded-xl border border-line bg-ink text-sm font-medium hover:border-mint"
+                  onClick={() => void chooseConnect(choice)}
+                  className="h-14 rounded-control bg-kelp px-3 text-left text-sm hover:bg-tide"
                 >
-                  {label}
+                  <span className="block font-medium text-platinum">{choice.label}</span>
+                  <span className="block text-xs text-mist">{choice.hint}</span>
                 </button>
               ))}
             </div>
             {connected || wallet ? (
               <button
                 type="button"
-                className="mt-3 h-11 text-sm text-mute"
+                className="mt-3 h-11 text-sm text-mist"
                 onClick={() => {
                   void wallet?.provider.disconnect?.();
                   setWallet(null);
@@ -735,9 +734,63 @@ export function Desk() {
                 Disconnect
               </button>
             ) : null}
-            <p className="mt-3 font-mono text-xs text-cyan">
-              {polygon ? `Polygon ${shortHex(polygon)} · moxie-intents` : "Polygon address appears after you connect"}
+            <p className="mt-3 text-xs text-foam">
+              {polygon ? `Polygon ${shortHex(polygon)} · solana path` : "Polygon address appears after you connect"}
             </p>
+          </Sheet>
+        ) : null}
+        {settings ? (
+          <Sheet key="settings" onClose={() => setSettings(false)} title="Settings">
+            <p className="kicker text-xs text-slate">Price room</p>
+            <div className="mt-3 flex flex-wrap gap-2" role="group" aria-label="Price room">
+              {[25, 50, 100].map((bps) => (
+                <button
+                  key={bps}
+                  type="button"
+                  aria-pressed={slippage === bps}
+                  onClick={() => setSlippage(bps)}
+                  className={`h-11 rounded-control px-3 text-sm ${slippage === bps ? "bg-cta font-medium text-abyss" : "bg-kelp text-mist"}`}
+                >
+                  {(bps / 100).toFixed(2)}% room
+                </button>
+              ))}
+            </div>
+            <p className="kicker mt-6 text-xs text-slate">Practice</p>
+            <div className="mt-3 flex flex-wrap gap-2" role="group" aria-label="Practice modes">
+              {DRILLS.map((item) => (
+                <button
+                  key={item.id}
+                  type="button"
+                  aria-pressed={drill === item.id}
+                  onClick={() => setDrill(item.id)}
+                  className={`h-11 rounded-control px-3 text-sm ${drill === item.id ? "bg-foam font-medium text-abyss" : "bg-kelp text-mist"}`}
+                >
+                  {item.label}
+                </button>
+              ))}
+            </div>
+          </Sheet>
+        ) : null}
+        {drawer ? (
+          <Sheet key="logs" onClose={() => setDrawer(false)} title="Dev console">
+            <p className="text-xs text-phosphor">intents · Devnet DiiRjj…CwK5g · Amoy</p>
+            <ul className="mt-3 space-y-2">
+              {rows.length === 0 ? <li className="text-xs text-mist">no rows yet</li> : null}
+              {rows.map((row) => (
+                <li key={row.id} className="text-xs text-platinum">
+                  {row.status} · nonce {row.nonce} · {row.usdc_amount_in} USDC
+                  {row.polygon_order_hash ? ` · ${shortHex(row.polygon_order_hash)}` : ""}
+                </li>
+              ))}
+            </ul>
+            <ul className="mt-4 space-y-1">
+              {logs.length === 0 ? <li className="text-xs text-mist">rpc log is empty</li> : null}
+              {logs.map((line, index) => (
+                <li key={`${line}-${index}`} className="break-all text-xs text-mist">
+                  {line}
+                </li>
+              ))}
+            </ul>
           </Sheet>
         ) : null}
         {trade && market && book ? (
@@ -750,7 +803,7 @@ export function Desk() {
                 {live && !busy && (live.phase === "escrow_locked" || live.phase === "solver_matched") ? (
                   <button
                     type="button"
-                    className="h-12 flex-1 rounded-full border border-line text-sm"
+                    className="h-12 flex-1 rounded-control bg-kelp text-sm text-foam"
                     onClick={() => {
                       const now = live.phase === "solver_matched" ? live.intent.expiryUnix + 1 : Math.floor(Date.now() / 1000);
                       useDesk.getState().refundOrder(live.id, now);
@@ -767,7 +820,7 @@ export function Desk() {
                   type="button"
                   disabled={busy || live?.phase === "settled"}
                   onClick={() => void runTrade()}
-                  className="h-12 flex-1 rounded-full bg-mint font-semibold text-ink disabled:opacity-50"
+                  className="h-12 flex-1 rounded-control bg-cta text-sm font-medium text-abyss disabled:opacity-50"
                 >
                   {busy ? "Routing…" : live?.phase === "settled" ? "Bought" : "Lock deposit"}
                 </button>
@@ -787,13 +840,13 @@ export function Desk() {
                     sfx.tap();
                     setTrade({ marketId: market.id, amount: index === 3 ? String(Math.floor(maxDollars)) : amount });
                   }}
-                  className={`h-11 flex-1 rounded-full text-sm ${trade.amount === (index === 3 ? String(Math.floor(maxDollars)) : amount) ? "bg-mint text-ink" : "border border-line"}`}
+                  className={`h-11 flex-1 rounded-control text-sm ${trade.amount === (index === 3 ? String(Math.floor(maxDollars)) : amount) ? "bg-cta font-medium text-abyss" : "bg-kelp text-foam"}`}
                 >
                   {index === 3 ? "Max" : `$${amount}`}
                 </button>
               ))}
             </div>
-            <label className="mt-3 block text-xs uppercase tracking-widest text-mute" htmlFor="ticket">
+            <label className="kicker mt-4 block text-xs text-slate" htmlFor="ticket">
               Dollars
             </label>
             <input
@@ -801,14 +854,14 @@ export function Desk() {
               inputMode="decimal"
               value={trade.amount}
               onChange={(event) => setTrade({ ...trade, amount: event.target.value })}
-              className="mt-2 h-12 w-full rounded-xl border border-line bg-ink px-3 font-mono text-cream outline-none"
+              className="mt-2 h-12 w-full rounded-control bg-abyss px-3 text-platinum outline-none"
             />
-            <p className="mt-2 text-sm text-mute">
+            <p className="mt-2 text-sm">
               {wallet
-                ? "This locks Devnet USDC in the escrow. Keep the wallet on Devnet."
+                ? "This locks Devnet USDC in the escrow. Keep the wallet on Devnet. One escrow account per maker."
                 : `Ceiling ${formatCents(maxPrice(side === "yes" ? book.yes : book.no, drill === "slip" ? 0 : slippage))}¢ · pays from Solana USDC`}
             </p>
-            <ol className="mt-4 space-y-3">
+            <ol className="mt-4 space-y-4">
               {TRACK.map((step, index) => {
                 const visual = trackState(live);
                 const mark = !live ? "wait" : index < visual.index ? "done" : index === visual.index ? visual.mark : "wait";
@@ -816,24 +869,24 @@ export function Desk() {
                   <li key={step.title} className="flex gap-3">
                     <span
                       className={`mt-1 size-2.5 shrink-0 rounded-full ${
-                        mark === "done" ? "bg-mint" : mark === "run" ? "pulse-dot bg-cyan" : mark === "fail" ? "bg-violet" : "bg-line"
+                        mark === "done" ? "bg-foam" : mark === "run" ? "node-live pulse-dot bg-tide" : mark === "fail" ? "bg-phosphor" : "bg-kelp"
                       }`}
                     />
                     <span>
-                      <span className={`block text-sm ${mark === "wait" ? "text-mute" : "text-cream"}`}>{step.title}</span>
-                      <span className="block text-xs text-mute">{step.hint}</span>
+                      <span className={`block text-sm ${mark === "wait" ? "text-slate" : "text-platinum"}`}>{step.title}</span>
+                      <span className="block text-xs text-mist">{step.hint}</span>
                     </span>
                   </li>
                 );
               })}
             </ol>
-            {live?.error ? <p className="mt-3 rounded-xl bg-violet/15 px-3 py-2 text-sm text-cream">{friendly(live)}</p> : null}
+            {live?.error ? <p className="mt-3 rounded-card bg-kelp px-3 py-2 text-sm text-foam">{friendly(live)}</p> : null}
             {live?.phase === "settled" ? (
-              <p className="mt-3 text-sm text-mint">Bought {live.intent.side.toUpperCase()}. Shares are on your Polygon address.</p>
+              <p className="mt-3 text-sm text-foam">Bought {live.intent.side.toUpperCase()}. Shares are on your Polygon address.</p>
             ) : null}
             {chainSig ? (
               <a
-                className="mt-3 block font-mono text-xs text-cyan"
+                className="mt-3 block text-xs text-foam"
                 href={`https://explorer.solana.com/tx/${chainSig}?cluster=devnet`}
                 target="_blank"
                 rel="noreferrer"
@@ -843,7 +896,7 @@ export function Desk() {
             ) : null}
             {chainHash ? (
               <a
-                className="mt-1 block font-mono text-xs text-mint"
+                className="mt-1 block text-xs text-phosphor"
                 href={`https://amoy.polygonscan.com/tx/${chainHash}`}
                 target="_blank"
                 rel="noreferrer"
@@ -875,35 +928,40 @@ function MarketCard({
   onSide: (side: Side) => void;
   onChip: (dollars: string) => void;
 }) {
+  const reduce = useReducedMotion();
   const yesPct = Math.max(8, Math.min(92, Number(pct(yes))));
   return (
-    <article className="rounded-2xl border border-line bg-panel p-4">
-      <p className="text-xs uppercase tracking-widest text-mute">
+    <motion.article
+      className="rounded-card bg-kelp p-5"
+      whileHover={reduce ? undefined : { scale: 1.02 }}
+      whileTap={reduce ? undefined : { scale: 0.98 }}
+    >
+      <p className="kicker text-xs text-slate">
         {market.venue} · {market.resolves} · 24h {market.volume}
       </p>
-      <h2 className="mt-2 text-lg font-semibold leading-snug">{market.question}</h2>
-      <div className="mt-4 flex h-1.5 overflow-hidden rounded-full bg-line" aria-hidden="true">
-        <div className="h-full bg-mint" style={{ width: `${yesPct}%` }} />
-        <div className="h-full flex-1 bg-cyan" />
+      <h2 className="mt-3 text-lg leading-snug text-platinum">{market.question}</h2>
+      <div className="mt-4 flex h-1.5 overflow-hidden rounded-control bg-deep" aria-hidden="true">
+        <div className="h-full bg-tide" style={{ width: `${yesPct}%` }} />
+        <div className="h-full flex-1 bg-foam" />
       </div>
-      <div className="mt-3 grid grid-cols-2 gap-2">
+      <div className="mt-4 grid grid-cols-2 gap-2">
         <button
           type="button"
           aria-pressed={side === "yes"}
           onClick={() => onSide("yes")}
-          className={`h-14 rounded-xl border px-3 text-left ${side === "yes" ? "border-mint bg-mint/10" : "border-line"}`}
+          className={`h-14 rounded-control px-3 text-left ${side === "yes" ? "bg-deep" : "bg-abyss"}`}
         >
-          <span className="block text-xs text-mute">Yes</span>
-          <span className="font-mono text-lg text-mint">{pct(yes)}%</span>
+          <span className="block text-xs text-mist">Yes</span>
+          <span className="stat text-lg">{pct(yes)}%</span>
         </button>
         <button
           type="button"
           aria-pressed={side === "no"}
           onClick={() => onSide("no")}
-          className={`h-14 rounded-xl border px-3 text-left ${side === "no" ? "border-cyan bg-cyan/10" : "border-line"}`}
+          className={`h-14 rounded-control px-3 text-left ${side === "no" ? "bg-deep" : "bg-abyss"}`}
         >
-          <span className="block text-xs text-mute">No</span>
-          <span className="font-mono text-lg text-cyan">{pct(no)}%</span>
+          <span className="block text-xs text-mist">No</span>
+          <span className="stat text-lg">{pct(no)}%</span>
         </button>
       </div>
       <div className="mt-3 flex gap-2">
@@ -912,13 +970,13 @@ function MarketCard({
             key={chip}
             type="button"
             onClick={() => onChip(chip === "max" ? String(Math.max(1, Math.floor(maxDollars))) : chip)}
-            className="h-11 flex-1 rounded-full border border-line text-sm hover:border-mint"
+            className="h-11 flex-1 rounded-control bg-deep text-sm text-foam"
           >
             {chip === "max" ? "Max" : `$${chip}`}
           </button>
         ))}
       </div>
-    </article>
+    </motion.article>
   );
 }
 
@@ -938,10 +996,10 @@ function SidePick({
       type="button"
       aria-pressed={pressed}
       onClick={onClick}
-      className={`h-14 rounded-xl border px-3 text-left ${pressed ? "border-mint" : "border-line"}`}
+      className={`h-14 rounded-control px-3 text-left ${pressed ? "bg-deep" : "bg-kelp"}`}
     >
-      <span className="block text-xs text-mute">{label}</span>
-      <span className="font-mono">{cents}¢</span>
+      <span className="block text-xs text-mist">{label}</span>
+      <span className="stat">{cents}¢</span>
     </button>
   );
 }
@@ -960,7 +1018,7 @@ function Sheet({
   const reduce = useReducedMotion();
   return (
     <motion.div
-      className="fixed inset-0 z-50 flex items-end justify-center bg-ink/70 p-3 sm:items-center"
+      className="fixed inset-0 z-50 flex items-end justify-center bg-abyss/80 p-3 sm:items-center"
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
@@ -974,12 +1032,12 @@ function Sheet({
         initial={reduce ? false : { y: 28, opacity: 0 }}
         animate={{ y: 0, opacity: 1 }}
         exit={reduce ? undefined : { y: 20, opacity: 0 }}
-        transition={{ type: "spring", stiffness: 420, damping: 34 }}
-        className="relative z-10 flex max-h-[85vh] w-full max-w-lg flex-col overflow-hidden rounded-2xl border border-line bg-panel p-5"
+        transition={{ type: "spring", stiffness: 280, damping: 26 }}
+        className="relative z-10 flex max-h-[85vh] w-full max-w-lg flex-col overflow-hidden rounded-card bg-deep p-5"
       >
         <div className="mb-3 flex items-start justify-between gap-3">
-          <h2 className="text-lg font-semibold leading-snug">{title}</h2>
-          <button type="button" aria-label="Close dialog" onClick={onClose} className="flex size-11 shrink-0 items-center justify-center rounded-full border border-line">
+          <h2 className="text-lg leading-snug text-platinum">{title}</h2>
+          <button type="button" aria-label="Close dialog" onClick={onClose} className="flex size-11 shrink-0 items-center justify-center rounded-control bg-kelp">
             <X className="size-4" />
           </button>
         </div>

@@ -1,0 +1,39 @@
+{
+  "url": "http://127.0.0.1:8080/",
+  "viewports": {
+    "desktop": {
+      "width": 1280,
+      "height": 800,
+      "status": 200,
+      "title": "Markets · Moxie",
+      "hasCanvas": true,
+      "bodyTextLen": 1015,
+      "bodyTextHash": "a7170b3c1a059834b7e751523e60c254d84b9e0f6a865b13a5f21f6b6358ab07",
+      "bodyTextPrefix": "Moxie Markets Portfolio Privacy Terms SOLANA · NEAR · POLYGON Co",
+      "horizontalOverflow": false,
+      "consoleErrors": [],
+      "pageErrors": [],
+      "screenshot": "/workspace/screenshots/auros-preview.png"
+    },
+    "mobile": {
+      "width": 390,
+      "height": 844,
+      "status": 200,
+      "title": "Markets · Moxie",
+      "hasCanvas": true,
+      "bodyTextLen": 1064,
+      "bodyTextHash": "9a7878100113b508b2300fe4493c9da04d58882fdd5d9938177e1e6f1a27af56",
+      "bodyTextPrefix": "Moxie Markets Portfolio Privacy Terms Connect MARKETS Lock once.",
+      "horizontalOverflow": false,
+      "consoleErrors": [],
+      "pageErrors": [],
+      "screenshot": "/workspace/screenshots/auros-preview-mobile.png"
+    }
+  },
+  "brandWarnings": [
+    "BRAND WARNING: this looks like a game/canvas app but src/lib/og/site.json is missing \"type\": \"x:game\". X uses og:type=x:game to present the unfurl as a game card — set it in /workspace/src/lib/og/site.json per /workspace/.grok/skills/og/SKILL.md. Do not invent x:type or overload twitter:card as the game signal.",
+    "BRAND WARNING: this looks like a game/canvas app but /workspace/public/x-banner.jpg is missing. Games need a 50:11 X feed card (1200×264 JPEG) at public/x-banner.jpg — open /workspace/.grok/skills/og/SKILL.md and finish the brand-asset pass."
+  ],
+  "authWarnings": [],
+  "verdictFile": "/workspace/screenshots/auros-preview.json"
+}

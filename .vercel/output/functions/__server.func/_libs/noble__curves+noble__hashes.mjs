@@ -1009,6 +1009,2108 @@ var sha256$2 = /* @__PURE__ */ createHasher$1(() => new _SHA256(), /* @__PURE__ 
 */
 var sha512$1 = /* @__PURE__ */ createHasher$1(() => new _SHA512(), /* @__PURE__ */ oidNist(3));
 //#endregion
+//#region node_modules/@noble/curves/utils.js
+/**
+* Hex, bytes and number utilities.
+* @module
+*/
+/*! noble-curves - MIT License (c) 2022 Paul Miller (paulmillr.com) */
+/**
+* Validates that a value is an array, optionally validating each element.
+* @param item - Value to validate.
+* @param title - Label included in thrown errors.
+* @param inner - Optional per-element validator, called with the element and its label.
+* @returns The validated array.
+* @example
+* Validate an array of points before batch processing.
+*
+* ```ts
+* aarray([1n, 2n], 'scalars');
+* ```
+*/
+function aarray(item, title, inner = () => {}) {
+	if (!Array.isArray(item)) throw new TypeError(`"${title}" expected array, got type=${typeof item}`);
+	for (let i = 0; i < item.length; i++) inner(item[i], `${title}[${i}]`);
+	return item;
+}
+/**
+* Validates that a value is a byte array.
+* @param value - Value to validate.
+* @param length - Optional exact byte length.
+* @param title - Optional field name.
+* @returns Original byte array.
+* @example
+* Reject non-byte input before passing data into curve code.
+*
+* ```ts
+* abytes(new Uint8Array(1));
+* ```
+*/
+var abytes$1 = (value, length, title) => abytes$2(value, length, title);
+/**
+* Validates that a value is a non-negative safe integer.
+* @param n - Value to validate.
+* @param title - Optional field name.
+* @returns The validated number.
+* @example
+* Validate a numeric length before allocating buffers.
+*
+* ```ts
+* anumber(1);
+* ```
+*/
+var anumber$1 = anumber$2;
+/**
+* Asserts something is a plain object-ish value, not null or array.
+* @param value - Value to validate.
+* @param title - Label included in thrown errors.
+* @returns The validated object.
+* @throws On wrong argument types. {@link TypeError}
+* @example
+* Validate an options object before checking fields.
+*
+* ```ts
+* aobject({ flag: true });
+* ```
+*/
+function aobject(value, title = "object") {
+	if (value === null || typeof value !== "object" || Array.isArray(value)) throw new TypeError(title === "object" ? "expected valid options object" : `"${title}" expected object, got type=${typeof value}`);
+	return value;
+}
+/**
+* Asserts something is a function.
+* @param value - Value to validate.
+* @param title - Label included in thrown errors.
+* @returns The validated function.
+* @throws On wrong argument types. {@link TypeError}
+* @example
+* Validate a required method before calling it.
+*
+* ```ts
+* afunction(() => true, 'predicate');
+* ```
+*/
+function afunction(value, title) {
+	if (typeof value !== "function") throw new TypeError(`"${title}" is invalid: expected function, got ${typeof value}`);
+	return value;
+}
+/**
+* Encodes bytes as lowercase hex.
+* @param bytes - Bytes to encode.
+* @returns Lowercase hex string.
+* @example
+* Serialize bytes as hex for logging or fixtures.
+*
+* ```ts
+* bytesToHex(Uint8Array.of(1, 2, 3));
+* ```
+*/
+var bytesToHex$2 = bytesToHex$3;
+/**
+* Concatenates byte arrays.
+* @param arrays - Byte arrays to join.
+* @returns Concatenated bytes.
+* @example
+* Join domain-separated chunks into one buffer.
+*
+* ```ts
+* concatBytes(Uint8Array.of(1), Uint8Array.of(2));
+* ```
+*/
+var concatBytes$3 = (...arrays) => concatBytes$4(...arrays);
+/**
+* Decodes lowercase or uppercase hex into bytes.
+* @param hex - Hex string to decode.
+* @returns Decoded bytes.
+* @example
+* Parse fixture hex into bytes before hashing.
+*
+* ```ts
+* hexToBytes('0102');
+* ```
+*/
+var hexToBytes$2 = (hex) => hexToBytes$3(hex);
+/**
+* Checks whether a value is a Uint8Array.
+* @param a - Value to inspect.
+* @returns `true` when `a` is a Uint8Array.
+* @example
+* Branch on byte input before decoding it.
+*
+* ```ts
+* isBytes(new Uint8Array(1));
+* ```
+*/
+var isBytes$1 = isBytes$2;
+/**
+* Reads random bytes from the platform CSPRNG.
+* @param bytesLength - Number of random bytes to read.
+* @returns Fresh random bytes.
+* @example
+* Generate a random seed for a keypair.
+*
+* ```ts
+* randomBytes(2);
+* ```
+*/
+var randomBytes$2 = (bytesLength) => randomBytes$3(bytesLength);
+var _0n$13 = /* @__PURE__ */ BigInt(0);
+var _1n$15 = /* @__PURE__ */ BigInt(1);
+var atitle = (title) => title ? `"${title}" ` : "";
+/**
+* Validates that a flag is boolean.
+* @param value - Value to validate.
+* @param title - Optional field name.
+* @returns Original value.
+* @throws On wrong argument types. {@link TypeError}
+* @example
+* Reject non-boolean option flags early.
+*
+* ```ts
+* abool(true);
+* ```
+*/
+function abool(value, title = "") {
+	if (typeof value !== "boolean") throw new TypeError(atitle(title) + "expected boolean, got type=" + typeof value);
+	return value;
+}
+/**
+* Validates that a value is a non-negative bigint or safe integer.
+* @param n - Value to validate.
+* @returns The same validated value.
+* @throws On wrong argument ranges or values. {@link RangeError}
+* @example
+* Validate one integer-like value before serializing it.
+*
+* ```ts
+* abignumber(1n);
+* ```
+*/
+function abignumber(n) {
+	if (typeof n === "bigint") {
+		if (!isPosBig$1(n)) throw new RangeError("positive bigint expected, got " + n);
+	} else anumber$1(n);
+	return n;
+}
+/**
+* Validates that a value is a safe integer.
+* @param value - Integer to validate.
+* @param title - Optional field name.
+* @throws On wrong argument types. {@link TypeError}
+* @throws On wrong argument ranges or values. {@link RangeError}
+* @example
+* Validate a window size before scalar arithmetic uses it.
+*
+* ```ts
+* asafenumber(1);
+* ```
+*/
+function asafenumber(value, title = "") {
+	if (typeof value !== "number") {
+		const prefix = title && `"${title}" `;
+		throw new TypeError(prefix + "expected number, got type=" + typeof value);
+	}
+	if (!Number.isSafeInteger(value)) {
+		const prefix = title && `"${title}" `;
+		throw new RangeError(prefix + "expected safe integer, got " + value);
+	}
+}
+/**
+* Parses a big-endian hex string into bigint.
+* Accepts odd-length hex through the native `BigInt('0x' + hex)` parser and currently surfaces the
+* same native `SyntaxError` for malformed hex instead of wrapping it in a library-specific error.
+* @param hex - Hex string without `0x`.
+* @returns Parsed bigint value.
+* @throws On wrong argument types. {@link TypeError}
+* @example
+* Parse a scalar from fixture hex.
+*
+* ```ts
+* hexToNumber('ff');
+* ```
+*/
+function hexToNumber$2(hex) {
+	if (typeof hex !== "string") throw new TypeError("hex string expected, got " + typeof hex);
+	return hex === "" ? _0n$13 : BigInt("0x" + hex);
+}
+/**
+* Parses big-endian bytes into bigint.
+* @param bytes - Bytes in big-endian order.
+* @returns Parsed bigint value.
+* @throws On wrong argument types. {@link TypeError}
+* @example
+* Read a scalar encoded in network byte order.
+*
+* ```ts
+* bytesToNumberBE(Uint8Array.of(1, 0));
+* ```
+*/
+function bytesToNumberBE$2(bytes) {
+	return hexToNumber$2(bytesToHex$3(bytes));
+}
+/**
+* Parses little-endian bytes into bigint.
+* @param bytes - Bytes in little-endian order.
+* @returns Parsed bigint value.
+* @throws On wrong argument types. {@link TypeError}
+* @example
+* Read a scalar encoded in little-endian form.
+*
+* ```ts
+* bytesToNumberLE(Uint8Array.of(1, 0));
+* ```
+*/
+function bytesToNumberLE$2(bytes) {
+	return hexToNumber$2(bytesToHex$3(copyBytes$1(abytes$2(bytes)).reverse()));
+}
+/**
+* Encodes a bigint into fixed-length big-endian bytes.
+* @param n - Number to encode.
+* @param len - Output length in bytes. Must be greater than zero.
+* @returns Big-endian byte array.
+* @throws On wrong argument ranges or values. {@link RangeError}
+* @throws If a documented runtime validation or state check fails. {@link Error}
+* @example
+* Serialize a scalar into a 32-byte field element.
+*
+* ```ts
+* numberToBytesBE(255n, 2);
+* ```
+*/
+function numberToBytesBE$2(n, len) {
+	anumber$2(len);
+	if (len === 0) throw new Error("zero output length is invalid");
+	n = abignumber(n);
+	const expectedLen = len * 2;
+	const hex = n.toString(16);
+	if (hex.length > expectedLen) throw new RangeError("number is too large");
+	return hexToBytes$3(hex.padStart(expectedLen, "0"));
+}
+/**
+* Encodes a bigint into fixed-length little-endian bytes.
+* @param n - Number to encode.
+* @param len - Output length in bytes.
+* @returns Little-endian byte array.
+* @throws On wrong argument ranges or values. {@link RangeError}
+* @throws If a documented runtime validation or state check fails. {@link Error}
+* @example
+* Serialize a scalar for little-endian protocols.
+*
+* ```ts
+* numberToBytesLE(255n, 2);
+* ```
+*/
+function numberToBytesLE$2(n, len) {
+	return numberToBytesBE$2(n, len).reverse();
+}
+/**
+* Copies Uint8Array. We can't use u8a.slice(), because u8a can be Buffer,
+* and Buffer#slice creates mutable copy. Never use Buffers!
+* @param bytes - Bytes to copy.
+* @returns Detached copy.
+* @example
+* Make an isolated copy before mutating serialized bytes.
+*
+* ```ts
+* copyBytes(Uint8Array.of(1, 2, 3));
+* ```
+*/
+function copyBytes$1(bytes) {
+	return Uint8Array.from(abytes$1(bytes));
+}
+/**
+* Checks whether n is non-negative bigint. Historical name.
+* @param n - candidate value
+* @returns `true` when the value is bigint and 0 or larger
+* @example
+* Check a candidate scalar before range validation.
+*
+* ```ts
+* isPosBig(2n);
+* ```
+*/
+function isPosBig$1(n) {
+	return typeof n === "bigint" && _0n$13 <= n;
+}
+/**
+* Checks whether a bigint lies inside a half-open range.
+* @param n - Candidate value.
+* @param min - Inclusive lower bound.
+* @param max - Exclusive upper bound.
+* @returns `true` when the value is inside the range.
+* @example
+* Check whether a candidate scalar fits the field order.
+*
+* ```ts
+* inRange(2n, 1n, 3n);
+* ```
+*/
+function inRange$1(n, min, max) {
+	return isPosBig$1(n) && isPosBig$1(min) && isPosBig$1(max) && min <= n && n < max;
+}
+/**
+* Asserts `min <= n < max`. NOTE: upper bound is exclusive.
+* @param title - Value label for error messages.
+* @param n - Candidate value.
+* @param min - Inclusive lower bound.
+* @param max - Exclusive upper bound.
+* Wrong-type inputs are not separated from out-of-range values here: they still flow through the
+* shared `RangeError` path because this is only a throwing wrapper around `inRange(...)`.
+* @throws On wrong argument ranges or values. {@link RangeError}
+* @example
+* Assert that a bigint stays within one half-open range.
+*
+* ```ts
+* aInRange('x', 2n, 1n, 256n);
+* ```
+*/
+function aInRange$1(title, n, min, max) {
+	if (!inRange$1(n, min, max)) throw new RangeError("expected valid " + title + ": " + min + " <= n < " + max + ", got " + n);
+}
+/**
+* Calculates amount of bits in a bigint.
+* Same as `n.toString(2).length`
+* TODO: merge with nLength in modular
+* @param n - Value to inspect.
+* @returns Bit length.
+* @throws If the value is negative. {@link Error}
+* @example
+* Measure the bit length of a scalar before serialization.
+*
+* ```ts
+* bitLen(8n);
+* ```
+*/
+function bitLen$2(n) {
+	if (n < _0n$13) throw new Error("expected non-negative bigint, got " + n);
+	return n === _0n$13 ? 0 : n.toString(2).length;
+}
+/**
+* Calculate mask for N bits. Not using ** operator with bigints because of old engines.
+* Same as BigInt(`0b${Array(i).fill('1').join('')}`)
+* @param n - Number of bits. Negative widths are currently passed through to raw bigint shift
+*   semantics and therefore produce `-1n`.
+* @returns Bitmask value.
+* @example
+* Calculate mask for N bits.
+*
+* ```ts
+* bitMask(4);
+* ```
+*/
+var bitMask$2 = (n) => {
+	asafenumber(n, "n");
+	return (_1n$15 << BigInt(n)) - _1n$15;
+};
+/**
+* Validates declared required and optional field types on a plain object.
+* Extra keys are intentionally ignored because many callers validate only the subset they use from
+* richer option bags or runtime objects.
+* This walks field schemas and formats detailed errors, so avoid it on hot paths; use direct
+* one-line guards such as `aobject()`, `afunction()`, `abool()`, or `asafenumber()` instead.
+* @param object - Object to validate.
+* @param fields - Required field types.
+* @param optFields - Optional field types.
+* @param title - Object label included in thrown errors.
+* @throws On wrong argument types. {@link TypeError}
+* @example
+* Check user options before building a curve helper.
+*
+* ```ts
+* validateObject({ flag: true }, { flag: 'boolean' });
+* ```
+*/
+function validateObject$1(object, fields = {}, optFields = {}, title = "object") {
+	aobject(object, title);
+	aobject(fields, "fields");
+	aobject(optFields, "optFields");
+	function checkField(fieldName, expectedType, isOpt) {
+		const label = title === "object" ? `param "${String(fieldName)}"` : `"${title}.${String(fieldName)}"`;
+		const val = object[fieldName];
+		if (!Object.hasOwn(object, fieldName) && (isOpt ? val !== void 0 : expectedType !== "function")) throw new TypeError(`${label} is invalid: expected own property`);
+		if (isOpt && val === void 0) return;
+		const current = typeof val;
+		if (current !== expectedType || val === null) throw new TypeError(`${label} is invalid: expected ${expectedType}, got ${current}`);
+	}
+	const iter = (f, isOpt) => Object.entries(f).forEach(([k, v]) => checkField(k, v, isOpt));
+	iter(fields, false);
+	iter(optFields, true);
+}
+//#endregion
+//#region node_modules/@noble/curves/abstract/modular.js
+/**
+* Utils for modular division and fields.
+* Field over 11 is a finite (Galois) field is integer number operations `mod 11`.
+* There is no division: it is replaced by modular multiplicative inverse.
+* @module
+*/
+/*! noble-curves - MIT License (c) 2022 Paul Miller (paulmillr.com) */
+var _0n$12 = /* @__PURE__ */ BigInt(0);
+var _1n$14 = /* @__PURE__ */ BigInt(1);
+var _2n$10 = /* @__PURE__ */ BigInt(2);
+var _3n$4 = /* @__PURE__ */ BigInt(3);
+var _4n$5 = /* @__PURE__ */ BigInt(4);
+var _5n$4 = /* @__PURE__ */ BigInt(5);
+var _7n$1 = /* @__PURE__ */ BigInt(7);
+var _8n$6 = /* @__PURE__ */ BigInt(8);
+var _9n$2 = /* @__PURE__ */ BigInt(9);
+var _15n = /* @__PURE__ */ BigInt(15);
+var _16n$2 = /* @__PURE__ */ BigInt(16);
+var POW_WINDOWED_MIN = /* @__PURE__ */ BigInt("0x10000000000000000");
+/**
+* @param a - Dividend value.
+* @param b - Positive modulus.
+* @returns Reduced value in `[0, b)` only when `b` is positive.
+* @throws If the modulus is not positive. {@link Error}
+* @example
+* Normalize a bigint into one field residue.
+*
+* ```ts
+* mod(-1n, 5n);
+* ```
+*/
+function mod$2(a, b) {
+	if (b <= _0n$12) throw new Error("mod: expected positive modulus, got " + b);
+	const result = a % b;
+	return result >= _0n$12 ? result : b + result;
+}
+/**
+* Efficiently raise num to a power with modular reduction.
+* Unsafe in some contexts: uses ladder, so can expose bigint bits.
+* Low-level helper: callers that need canonical residues must pass a valid `num` for the chosen
+* modulus instead of relying on the `power===0/1` fast paths to normalize it.
+* @param num - Base value.
+* @param power - Exponent value.
+* @param modulo - Reduction modulus.
+* @returns Modular exponentiation result.
+* @throws If the modulus or exponent is invalid. {@link Error}
+* @example
+* Raise one bigint to a modular power.
+*
+* ```ts
+* pow(2n, 6n, 11n) // 64n % 11n == 9n
+* ```
+*/
+function pow$1(num, power, modulo) {
+	if (modulo <= _1n$14) throw new Error("pow: expected modulus > 1, got " + modulo);
+	if (typeof power !== "bigint") throw new TypeError("invalid exponent: expected bigint, got " + typeof power);
+	if (power < _0n$12) throw new Error("invalid exponent, negatives unsupported");
+	if (power === _0n$12) return _1n$14;
+	if (power === _1n$14) return num;
+	let d = num % modulo;
+	if (d < _0n$12) d += modulo;
+	if (power < POW_WINDOWED_MIN) {
+		let p = _1n$14;
+		while (power > _0n$12) {
+			if (power & _1n$14) p = p * d % modulo;
+			d = d * d % modulo;
+			power >>= _1n$14;
+		}
+		return p;
+	}
+	const digits = [];
+	while (power > _0n$12) {
+		digits.push(Number(power & _15n));
+		power >>= _4n$5;
+	}
+	const table = new Array(16);
+	table[0] = _1n$14;
+	table[1] = d;
+	for (let i = 2; i < 16; i++) table[i] = table[i - 1] * d % modulo;
+	let p = table[digits[digits.length - 1]];
+	for (let w = digits.length - 2; w >= 0; w--) {
+		p = p * p % modulo;
+		p = p * p % modulo;
+		p = p * p % modulo;
+		p = p * p % modulo;
+		const digit = digits[w];
+		if (digit !== 0) p = p * table[digit] % modulo;
+	}
+	return p;
+}
+/**
+* Does `x^(2^power)` mod p. `pow2(30, 4)` == `30^(2^4)`.
+* Low-level helper: callers that need canonical residues must pass a valid `x` for the chosen
+* modulus; the `power===0` fast path intentionally returns the input unchanged.
+* @param x - Base value.
+* @param power - Number of squarings.
+* @param modulo - Reduction modulus.
+* @returns Repeated-squaring result.
+* @throws If the exponent is negative. {@link Error}
+* @example
+* Apply repeated squaring inside one field.
+*
+* ```ts
+* pow2(3n, 2n, 11n);
+* ```
+*/
+function pow2$2(x, power, modulo) {
+	if (modulo <= _1n$14) throw new Error("pow2: expected modulus > 1, got " + modulo);
+	if (power < _0n$12) throw new Error("pow2: expected non-negative exponent, got " + power);
+	let res = x;
+	while (power-- > _0n$12) {
+		res *= res;
+		res %= modulo;
+	}
+	return res;
+}
+/**
+* Inverses number over modulo.
+* Implemented using the {@link https://brilliant.org/wiki/extended-euclidean-algorithm/ | extended Euclidean algorithm}.
+* @param number - Value to invert.
+* @param modulo - Modulus greater than 1.
+* @returns Multiplicative inverse.
+* @throws If the modulus is invalid or the inverse does not exist. {@link Error}
+* @example
+* Compute one modular inverse with the extended Euclidean algorithm.
+*
+* ```ts
+* invert(3n, 11n);
+* ```
+*/
+function invert$2(number, modulo) {
+	if (number === _0n$12) throw new Error("invert: expected non-zero number");
+	if (modulo <= _1n$14) throw new Error("invert: expected modulus > 1, got " + modulo);
+	let a = mod$2(number, modulo);
+	let b = modulo;
+	let x = _0n$12, u = _1n$14;
+	while (a !== _0n$12) {
+		const q = b / a;
+		const r = b - a * q;
+		const m = x - u * q;
+		b = a, a = r, x = u, u = m;
+	}
+	if (b !== _1n$14) throw new Error("invert: does not exist");
+	return mod$2(x, modulo);
+}
+function assertIsSquare$1(Fp, root, n) {
+	const F = Fp;
+	if (!F.eql(F.sqr(root), n)) throw new Error("Cannot find square root");
+}
+function aoddModulus(order, fnName) {
+	if ((order & _1n$14) === _0n$12) throw new Error(fnName + ": expected odd modulus, got " + order);
+}
+function sqrt3mod4$1(Fp, n) {
+	const F = Fp;
+	const p1div4 = (F.ORDER + _1n$14) / _4n$5;
+	const root = F.pow(n, p1div4);
+	assertIsSquare$1(F, root, n);
+	return root;
+}
+function sqrt5mod8$1(Fp, n) {
+	const F = Fp;
+	const p5div8 = (F.ORDER - _5n$4) / _8n$6;
+	const n2 = F.mul(n, _2n$10);
+	const v = F.pow(n2, p5div8);
+	const nv = F.mul(n, v);
+	const i = F.mul(F.mul(nv, _2n$10), v);
+	const root = F.mul(nv, F.sub(i, F.ONE));
+	assertIsSquare$1(F, root, n);
+	return root;
+}
+function sqrt9mod16$1(P) {
+	const Fp_ = Field$2(P);
+	const tn = tonelliShanks$2(P);
+	const c1 = tn(Fp_, Fp_.neg(Fp_.ONE));
+	const c2 = tn(Fp_, c1);
+	const c3 = tn(Fp_, Fp_.neg(c1));
+	const c4 = (P + _7n$1) / _16n$2;
+	return ((Fp, n) => {
+		const F = Fp;
+		let tv1 = F.pow(n, c4);
+		let tv2 = F.mul(tv1, c1);
+		const tv3 = F.mul(tv1, c2);
+		const tv4 = F.mul(tv1, c3);
+		const e1 = F.eql(F.sqr(tv2), n);
+		const e2 = F.eql(F.sqr(tv3), n);
+		tv1 = F.cmov(tv1, tv2, e1);
+		tv2 = F.cmov(tv4, tv3, e2);
+		const e3 = F.eql(F.sqr(tv2), n);
+		const root = F.cmov(tv1, tv2, e3);
+		assertIsSquare$1(F, root, n);
+		return root;
+	});
+}
+/**
+* Tonelli-Shanks square root search algorithm.
+* This implementation is variable-time: it searches data-dependently for the first non-residue `Z`
+* and for the smallest `i` in the main loop, unlike RFC 9380 Appendix I.4's constant-time shape.
+* 1. {@link https://eprint.iacr.org/2012/685.pdf | eprint 2012/685}, page 12
+* 2. Square Roots from 1; 24, 51, 10 to Dan Shanks
+* @param P - field order
+* @returns function that takes field Fp (created from P) and number n
+* @throws If the field is too small, non-prime, or the square root does not exist. {@link Error}
+* @example
+* Construct a square-root helper for primes that need Tonelli-Shanks.
+*
+* ```ts
+* import { Field, tonelliShanks } from '@noble/curves/abstract/modular.js';
+* const Fp = Field(17n);
+* const sqrt = tonelliShanks(17n)(Fp, 4n);
+* ```
+*/
+function tonelliShanks$2(P) {
+	if (P < _3n$4) throw new Error("sqrt is not defined for small field");
+	aoddModulus(P, "tonelliShanks");
+	let Q = P - _1n$14;
+	let S = 0;
+	while (Q % _2n$10 === _0n$12) {
+		Q /= _2n$10;
+		S++;
+	}
+	let Z = _2n$10;
+	const _Fp = Field$2(P);
+	while (FpLegendre$1(_Fp, Z) === 1) if (Z++ > 1e3) throw new Error("Cannot find square root: probably non-prime P");
+	if (S === 1) return sqrt3mod4$1;
+	let cc = _Fp.pow(Z, Q);
+	const Q1div2 = (Q + _1n$14) / _2n$10;
+	return function tonelliSlow(Fp, n) {
+		const F = Fp;
+		if (F.is0(n)) return n;
+		if (FpLegendre$1(F, n) !== 1) throw new Error("Cannot find square root");
+		let M = S;
+		let c = F.mul(F.ONE, cc);
+		let t = F.pow(n, Q);
+		let R = F.pow(n, Q1div2);
+		while (!F.eql(t, F.ONE)) {
+			if (F.is0(t)) throw new Error("Cannot find square root: probably non-prime P");
+			let i = 1;
+			let t_tmp = F.sqr(t);
+			while (!F.eql(t_tmp, F.ONE)) {
+				i++;
+				t_tmp = F.sqr(t_tmp);
+				if (i === M) throw new Error("Cannot find square root");
+			}
+			const exponent = _1n$14 << BigInt(M - i - 1);
+			const b = F.pow(c, exponent);
+			M = i;
+			c = F.sqr(b);
+			t = F.mul(t, c);
+			R = F.mul(R, b);
+		}
+		return R;
+	};
+}
+/**
+* Square root for a finite field. Will try optimized versions first:
+*
+* 1. P ≡ 3 (mod 4)
+* 2. P ≡ 5 (mod 8)
+* 3. P ≡ 9 (mod 16)
+* 4. Tonelli-Shanks algorithm
+*
+* Different algorithms can give different roots, it is up to user to decide which one they want.
+* For example there is FpSqrtOdd/FpSqrtEven to choose a root by oddness
+* (used for hash-to-curve).
+* @param P - Field order.
+* @returns Square-root helper. The generic fallback inherits Tonelli-Shanks' variable-time
+*   behavior and this selector assumes prime-field-style integer moduli.
+* @throws If the field is unsupported or the square root does not exist. {@link Error}
+* @example
+* Choose the square-root helper appropriate for one field modulus.
+*
+* ```ts
+* import { Field, FpSqrt } from '@noble/curves/abstract/modular.js';
+* const Fp = Field(17n);
+* const sqrt = FpSqrt(17n)(Fp, 4n);
+* ```
+*/
+function FpSqrt$2(P) {
+	aoddModulus(P, "Fp.sqrt");
+	if (P % _4n$5 === _3n$4) return sqrt3mod4$1;
+	if (P % _8n$6 === _5n$4) return sqrt5mod8$1;
+	if (P % _16n$2 === _9n$2) return sqrt9mod16$1(P);
+	return tonelliShanks$2(P);
+}
+/**
+* @param num - Value to inspect.
+* @param modulo - Field modulus.
+* @returns `true` when the least-significant little-endian bit is set.
+* @throws If the modulus is invalid for `mod(...)`. {@link Error}
+* @example
+* Inspect the low bit used by little-endian sign conventions.
+*
+* ```ts
+* isNegativeLE(3n, 11n);
+* ```
+*/
+var isNegativeLE$1 = (num, modulo) => (mod$2(num, modulo) & _1n$14) === _1n$14;
+var FIELD_FIELDS$2 = [
+	"create",
+	"isValid",
+	"is0",
+	"neg",
+	"inv",
+	"sqrt",
+	"sqr",
+	"eql",
+	"add",
+	"sub",
+	"mul",
+	"pow",
+	"div",
+	"addN",
+	"subN",
+	"mulN",
+	"sqrN"
+];
+/**
+* @param field - Field implementation.
+* @returns Validated field. This only checks the arithmetic subset needed by generic helpers; it
+*   does not guarantee full runtime-method coverage for serialization, batching, `cmov`, or
+*   field-specific extras beyond positive `BYTES` / `BITS`.
+* @throws If the field shape or numeric metadata are invalid. {@link Error}
+* @example
+* Check that a field implementation exposes the operations curve code expects.
+*
+* ```ts
+* import { Field, validateField } from '@noble/curves/abstract/modular.js';
+* const Fp = validateField(Field(17n));
+* ```
+*/
+function validateField$2(field) {
+	aobject(field, "field");
+	if (typeof field.ORDER !== "bigint") throw new TypeError("param \"ORDER\" is invalid: expected bigint, got " + typeof field.ORDER);
+	asafenumber(field.BYTES, "BYTES");
+	asafenumber(field.BITS, "BITS");
+	for (const name of FIELD_FIELDS$2) afunction(field[name], "field." + name);
+	if (field.BYTES < 1 || field.BITS < 1) throw new Error("invalid field: expected BYTES/BITS > 0");
+	if (field.ORDER <= _1n$14) throw new Error("invalid field: expected ORDER > 1, got " + field.ORDER);
+	return field;
+}
+function FpInvertBatch$2(Fp, nums, passZero = false) {
+	validateField$2(Fp);
+	aarray(nums, "nums");
+	abool(passZero, "passZero");
+	const F = Fp;
+	const inverted = new Array(nums.length).fill(passZero ? F.ZERO : void 0);
+	const multipliedAcc = nums.reduce((acc, num, i) => {
+		if (F.is0(num)) return acc;
+		inverted[i] = acc;
+		return F.mul(acc, num);
+	}, F.ONE);
+	const invertedAcc = F.inv(multipliedAcc);
+	nums.reduceRight((acc, num, i) => {
+		if (F.is0(num)) return acc;
+		inverted[i] = F.mul(acc, inverted[i]);
+		return F.mul(acc, num);
+	}, invertedAcc);
+	return inverted;
+}
+/**
+* Legendre symbol.
+* Legendre constant is used to calculate Legendre symbol (a | p)
+* which denotes the value of a^((p-1)/2) (mod p).
+*
+* * (a | p) ≡ 1    if a is a square (mod p), quadratic residue
+* * (a | p) ≡ -1   if a is not a square (mod p), quadratic non residue
+* * (a | p) ≡ 0    if a ≡ 0 (mod p)
+* @param Fp - Field implementation.
+* @param n - Value to inspect.
+* @returns Legendre symbol.
+* @throws If the powered value does not match a valid Legendre symbol. {@link Error}
+* @example
+* Compute the Legendre symbol of one field element.
+*
+* ```ts
+* import { Field, FpLegendre } from '@noble/curves/abstract/modular.js';
+* const Fp = Field(17n);
+* const symbol = FpLegendre(Fp, 4n);
+* ```
+*/
+function FpLegendre$1(Fp, n) {
+	validateField$2(Fp);
+	const F = Fp;
+	aoddModulus(F.ORDER, "FpLegendre");
+	const p1mod2 = (F.ORDER - _1n$14) / _2n$10;
+	const powered = F.pow(n, p1mod2);
+	const yes = F.eql(powered, F.ONE);
+	const zero = F.eql(powered, F.ZERO);
+	const no = F.eql(powered, F.neg(F.ONE));
+	if (!yes && !zero && !no) throw new Error("invalid Legendre symbol result");
+	return yes ? 1 : zero ? 0 : -1;
+}
+/**
+* @param n - Curve order. Callers are expected to pass a positive order.
+* @param nBitLength - Optional cached bit length. Callers are expected to pass a positive cached
+*   value when overriding the derived bit length.
+* @returns Byte and bit lengths.
+* @throws If the order or cached bit length is invalid. {@link Error}
+* @example
+* Measure the encoding sizes needed for one modulus.
+*
+* ```ts
+* nLength(255n);
+* ```
+*/
+function nLength$2(n, nBitLength) {
+	if (nBitLength !== void 0) anumber$1(nBitLength);
+	if (n <= _0n$12) throw new Error("invalid n length: expected positive n, got " + n);
+	if (nBitLength !== void 0 && nBitLength < 1) throw new Error("invalid n length: expected positive bit length, got " + nBitLength);
+	const bits = bitLen$2(n);
+	if (nBitLength !== void 0 && nBitLength < bits) throw new Error(`invalid n length: expected nBitLength (${nBitLength}) >= bitLen(n) (${bits})`);
+	const _nBitLength = nBitLength !== void 0 ? nBitLength : bits;
+	return {
+		nBitLength: _nBitLength,
+		nByteLength: Math.ceil(_nBitLength / 8)
+	};
+}
+var FIELD_SQRT = /* @__PURE__ */ new WeakMap();
+var _Field = class {
+	ORDER;
+	BITS;
+	BYTES;
+	isLE;
+	ZERO = _0n$12;
+	ONE = _1n$14;
+	_lengths;
+	_mod;
+	constructor(ORDER, opts = {}) {
+		if (ORDER <= _1n$14) throw new Error("invalid field: expected ORDER > 1, got " + ORDER);
+		let _nbitLength = void 0;
+		this.isLE = false;
+		if (opts != null && typeof opts === "object") {
+			if (typeof opts.BITS === "number") _nbitLength = opts.BITS;
+			if (typeof opts.sqrt === "function") Object.defineProperty(this, "sqrt", {
+				value: opts.sqrt,
+				enumerable: true
+			});
+			if (typeof opts.isLE === "boolean") this.isLE = opts.isLE;
+			if (opts.allowedLengths) this._lengths = Object.freeze(opts.allowedLengths.slice());
+			if (typeof opts.modFromBytes === "boolean") this._mod = opts.modFromBytes;
+		}
+		const { nBitLength, nByteLength } = nLength$2(ORDER, _nbitLength);
+		if (nByteLength > 2048) throw new Error("invalid field: expected ORDER of <= 2048 bytes");
+		this.ORDER = ORDER;
+		this.BITS = nBitLength;
+		this.BYTES = nByteLength;
+		Object.freeze(this);
+	}
+	create(num) {
+		return mod$2(num, this.ORDER);
+	}
+	isValid(num) {
+		if (typeof num !== "bigint") throw new TypeError("invalid field element: expected bigint, got " + typeof num);
+		return _0n$12 <= num && num < this.ORDER;
+	}
+	is0(num) {
+		return num === _0n$12;
+	}
+	isValidNot0(num) {
+		return !this.is0(num) && this.isValid(num);
+	}
+	isOdd(num) {
+		return (num & _1n$14) === _1n$14;
+	}
+	neg(num) {
+		return mod$2(-num, this.ORDER);
+	}
+	eql(lhs, rhs) {
+		return lhs === rhs;
+	}
+	sqr(num) {
+		return mod$2(num * num, this.ORDER);
+	}
+	add(lhs, rhs) {
+		return mod$2(lhs + rhs, this.ORDER);
+	}
+	sub(lhs, rhs) {
+		return mod$2(lhs - rhs, this.ORDER);
+	}
+	mul(lhs, rhs) {
+		return mod$2(lhs * rhs, this.ORDER);
+	}
+	pow(num, power) {
+		return pow$1(num, power, this.ORDER);
+	}
+	div(lhs, rhs) {
+		return mod$2(lhs * invert$2(rhs, this.ORDER), this.ORDER);
+	}
+	sqrN(num) {
+		return num * num;
+	}
+	addN(lhs, rhs) {
+		return lhs + rhs;
+	}
+	subN(lhs, rhs) {
+		return lhs - rhs;
+	}
+	mulN(lhs, rhs) {
+		return lhs * rhs;
+	}
+	inv(num) {
+		return invert$2(num, this.ORDER);
+	}
+	sqrt(num) {
+		let sqrt = FIELD_SQRT.get(this);
+		if (!sqrt) FIELD_SQRT.set(this, sqrt = FpSqrt$2(this.ORDER));
+		return sqrt(this, num);
+	}
+	toBytes(num) {
+		return this.isLE ? numberToBytesLE$2(num, this.BYTES) : numberToBytesBE$2(num, this.BYTES);
+	}
+	fromBytes(bytes, skipValidation = false) {
+		abytes$1(bytes);
+		const { _lengths: allowedLengths, BYTES, isLE, ORDER, _mod: modFromBytes } = this;
+		if (allowedLengths) {
+			if (bytes.length < 1 || !allowedLengths.includes(bytes.length) || bytes.length > BYTES) throw new Error("Field.fromBytes: expected " + allowedLengths + " bytes, got " + bytes.length);
+			const padded = new Uint8Array(BYTES);
+			padded.set(bytes, isLE ? 0 : padded.length - bytes.length);
+			bytes = padded;
+		}
+		if (bytes.length !== BYTES) throw new Error("Field.fromBytes: expected " + BYTES + " bytes, got " + bytes.length);
+		let scalar = isLE ? bytesToNumberLE$2(bytes) : bytesToNumberBE$2(bytes);
+		if (modFromBytes) scalar = mod$2(scalar, ORDER);
+		if (!skipValidation) {
+			if (!this.isValid(scalar)) throw new Error("invalid field element: outside of range 0..ORDER");
+		}
+		return scalar;
+	}
+	invertBatch(lst) {
+		return FpInvertBatch$2(this, lst, true);
+	}
+	cmov(a, b, condition) {
+		abool(condition, "condition");
+		return condition ? b : a;
+	}
+};
+/**
+* Creates a finite field. Major performance optimizations:
+* * 1. Denormalized operations like mulN instead of mul.
+* * 2. Identical object shape: never add or remove keys.
+* * 3. Frozen stable object shape; the lazy sqrt cache lives in a module-level `WeakMap`.
+* Fragile: always run a benchmark on a change.
+* Security note: operations and low-level serializers like `toBytes` don't check `isValid` for
+* all elements for performance and protocol-flexibility reasons; callers are responsible for
+* supplying valid elements when they need canonical field behavior.
+* This is low-level code, please make sure you know what you're doing.
+*
+* Note about field properties:
+* * CHARACTERISTIC p = prime number, number of elements in main subgroup.
+* * ORDER q = similar to cofactor in curves, may be composite `q = p^m`.
+*
+* @param ORDER - field order, probably prime, or could be composite
+* @param opts - Field options such as bit length or endianness. See {@link FieldOpts}.
+* @returns Frozen field instance with a stable object shape. This wrapper forwards `opts` straight
+*   into `_Field`, so it inherits `_Field`'s assumptions about cached sizes and `allowedLengths`.
+* @example
+* Construct one prime field with optional overrides.
+*
+* ```ts
+* Field(11n);
+* ```
+*/
+function Field$2(ORDER, opts = {}) {
+	Object.freeze(_Field.prototype);
+	return new _Field(ORDER, opts);
+}
+//#endregion
+//#region node_modules/@noble/curves/abstract/curve.js
+/**
+* Methods for elliptic curve multiplication by scalars.
+* Contains wNAF-based ScalarMultiplier, pippenger.
+* @module
+*/
+/*! noble-curves - MIT License (c) 2022 Paul Miller (paulmillr.com) */
+var _0n$11 = /* @__PURE__ */ BigInt(0);
+var _1n$13 = /* @__PURE__ */ BigInt(1);
+var _4n$4 = /* @__PURE__ */ BigInt(4);
+var BLIND_BYTES = 16;
+var BLIND_BITS = 128;
+var FW_WINDOW = 5;
+var TABLE_BYTES_MAX = /* @__PURE__ */ (() => 2 ** 31)();
+/**
+* Validates the static surface of a point constructor.
+* This is only a cheap sanity check for the constructor hooks and fields consumed by generic
+* factories; it does not certify `BASE`/`ZERO` semantics or prove the curve implementation itself.
+* @param Point - Runtime point constructor.
+* @throws On missing constructor hooks or malformed field metadata. {@link TypeError}
+* @example
+* Check that one point constructor exposes the static hooks generic helpers need.
+*
+* ```ts
+* import { ed25519 } from '@noble/curves/ed25519.js';
+* import { validatePointCons } from '@noble/curves/abstract/curve.js';
+* validatePointCons(ed25519.Point);
+* ```
+*/
+function validatePointCons(Point) {
+	const pc = Point;
+	if (typeof pc !== "function") throw new TypeError("\"Point\" expected constructor, got type=" + typeof Point);
+	afunction(pc.fromAffine, "Point.fromAffine");
+	afunction(pc.fromBytes, "Point.fromBytes");
+	afunction(pc.fromHex, "Point.fromHex");
+	aobject(pc.BASE, "Point.BASE");
+	aobject(pc.ZERO, "Point.ZERO");
+	validateField$2(pc.Fp);
+	validateField$2(pc.Fn);
+}
+/**
+* Takes a bunch of Projective Points but executes only one
+* inversion on all of them. Inversion is very slow operation,
+* so this improves performance massively.
+* Optimization: converts a list of projective points to a list of identical points with Z=1.
+* Input points are left unchanged; the normalized points are returned as fresh instances.
+* @param c - Point constructor.
+* @param points - Projective points.
+* @returns Fresh projective points reconstructed from normalized affine coordinates.
+* @example
+* Batch-normalize projective points with a single shared inversion.
+*
+* ```ts
+* import { normalizeZ } from '@noble/curves/abstract/curve.js';
+* import { p256 } from '@noble/curves/nist.js';
+* const points = normalizeZ(p256.Point, [p256.Point.BASE, p256.Point.BASE.double()]);
+* ```
+*/
+function normalizeZ$1(c, points) {
+	validatePointCons(c);
+	validateMSMPoints$1(points, c);
+	const invertedZs = FpInvertBatch$2(c.Fp, points.map((p) => p.Z));
+	return points.map((p, i) => c.fromAffine(p.toAffine(invertedZs[i])));
+}
+function validateW$1(W, bits, min = 1) {
+	if (!Number.isSafeInteger(W) || W < min || W > bits) throw new Error("invalid window size, expected [" + min + ".." + bits + "], got W=" + W);
+}
+function validateTableBytes(numPoints, fpBytes) {
+	const bytes = numPoints * (4 * fpBytes + 128);
+	if (bytes > TABLE_BYTES_MAX) throw new Error("invalid window size: table would need ~" + Math.ceil(bytes / 2 ** 20) + " MiB, max " + TABLE_BYTES_MAX / 2 ** 20 + " MiB");
+}
+/**
+* Probes an RNG once, at construction time: returns `undefined` when it is unavailable —
+* throws or returns malformed bytes — so callers can downgrade to their unblinded /
+* deterministic constant-time fallback. Blinding is defense-in-depth (DPA/template
+* hardening), not a correctness or key-secrecy requirement, so availability-based
+* downgrade is acceptable.
+*
+* The downgrade decision is deliberately static. After a successful probe the RNG becomes
+* part of the trusted contract: later misbehavior must fail closed in per-call validation
+* (throw), never downgrade — a dynamic fallback would let a tampered RNG silently strip
+* blinding on demand. A probe can only ever classify broken environments, not adversarial
+* RNGs: a stateful RNG can always behave while probed and misbehave later.
+* @param randomBytes - RNG to probe, or `undefined` when the environment provides none.
+* @param length - Byte length requested from the probe call.
+* @returns The RNG when the probe produced `length` valid bytes; `undefined` otherwise.
+* @example
+* Probe an RNG once before enabling scalar blinding.
+*
+* ```ts
+* import { probeRandomBytes } from '@noble/curves/abstract/curve.js';
+* import { randomBytes } from '@noble/hashes/utils.js';
+* const rng = probeRandomBytes(randomBytes, 16);
+* ```
+*/
+function probeRandomBytes(randomBytes, length) {
+	if (randomBytes === void 0) return void 0;
+	afunction(randomBytes, "randomBytes");
+	try {
+		const probe = randomBytes(length);
+		if (!isBytes$1(probe) || probe.length !== length) return void 0;
+	} catch {
+		return;
+	}
+	return randomBytes;
+}
+function validateMSMPoints$1(points, c) {
+	aarray(points, "points");
+	points.forEach((p, i) => {
+		if (!(p instanceof c)) throw new Error("invalid point at index " + i);
+	});
+}
+function validateMSMScalars$1(scalars, field, maxScalar) {
+	if (!Array.isArray(scalars)) throw new Error("array of scalars expected");
+	scalars.forEach((s, i) => {
+		if (!(maxScalar === void 0 ? field.isValid(s) : isPosBig$1(s) && s < maxScalar)) throw new Error("invalid scalar at index " + i);
+	});
+}
+var pointWindowSizes$1 = /* @__PURE__ */ new WeakMap();
+function getWindowSize(P) {
+	return pointWindowSizes$1.get(P) || 1;
+}
+/** Table of odd multiples [1P, 3P, ..., (2⋅size−1)P]; width-W wNAF uses size = 2^(W−2). */
+function oddMultiples(p, size) {
+	const dbl = p.double();
+	const t = [p];
+	for (let j = 1; j < size; j++) t.push(t[j - 1].add(dbl));
+	return t;
+}
+/**
+* Width-W wNAF signed-digit recoding (W >= 2), LSB-first: digits are 0 or odd with
+* |digit| < 2^(W−1); nonzero density ~1/(W+1) (a nonzero digit is followed by W−1 zeros).
+*/
+function wnafDigits(n, W) {
+	const size = 2 ** W;
+	const half = size / 2;
+	const mask = BigInt(size - 1);
+	const d = [];
+	while (n > _0n$11) {
+		let w = 0;
+		if (n & _1n$13) {
+			w = Number(n & mask);
+			if (w >= half) w -= size;
+			n -= BigInt(w);
+		}
+		d.push(w);
+		n >>= _1n$13;
+	}
+	return d;
+}
+/**
+* Fixed-position signed-window recoding for precomputed wNAF: `n = Σ digits[w]⋅2^(w⋅W)` with
+* digits in `[−2^(W−1)+1, 2^(W−1)]`. Digit count is fixed by `windows` (callers reserve one
+* extra window for the final carry), so recoding length does not depend on the scalar.
+*/
+function signedWindowDigits(n, W, windows) {
+	const size = 2 ** W;
+	const half = size / 2;
+	const mask = BigInt(size - 1);
+	const shiftBy = BigInt(W);
+	const d = [];
+	for (let w = 0; w < windows; w++) {
+		let v = Number(n & mask);
+		n >>= shiftBy;
+		if (v > half) {
+			v -= size;
+			n += _1n$13;
+		}
+		d.push(v);
+	}
+	if (n !== _0n$11) throw new Error("invalid wnaf");
+	return d;
+}
+/**
+* Shared vartime walk over per-scalar wNAF digit streams: one doubling of a single shared
+* accumulator per bit position of the longest recoding, one signed table addition per
+* nonzero digit. `tables[i]` must hold the odd multiples of the i-th point.
+*/
+function wnafWalk(zero, tables, digits) {
+	let max = 0;
+	for (const d of digits) max = Math.max(max, d.length);
+	let acc = zero;
+	for (let bit = max - 1; bit >= 0; bit--) {
+		if (bit !== max - 1) acc = acc.double();
+		for (let i = 0; i < digits.length; i++) {
+			const w = digits[i][bit];
+			if (w) {
+				const item = tables[i][Math.abs(w) - 1 >> 1];
+				acc = acc.add(w < 0 ? item.negate() : item);
+			}
+		}
+	}
+	return acc;
+}
+/**
+* Elliptic curve multiplication of Point by scalar.
+* Routes between cached-table, fixed-window, and one-shot wNAF paths; entry points validate
+* their own scalars (`mulCT`/`mulCTBlinded`: `1 <= s < Fn.ORDER`; `mulUnsafe`: up to the
+* `Fn.ORDER^4` DoS cap via {@link mulAddUnsafe}).
+* Table generation is expensive and happens on first call of `multiply()`
+* (or eagerly via `precompute(W, false)`). By default, `BASE` point is precomputed.
+*
+* Cached algorithm is signed fixed-window wNAF:
+* - table stores, for every window w, the multiples `[1..2^(W−1)]⋅2^(w⋅W)⋅P` — all doublings
+*   are baked in, so a multiplication is exactly one table addition per window
+* - window count is fixed (`ceil(bits/W) + 1`), so the point-operation count is scalar-independent
+*   (basis of the constant-time path)
+* - for a 256-bit curve and W=6: 44⋅32 = 1408 table points, 44 additions per multiply
+* - secret scalars are additionally blinded (see {@link ScalarMultiplier.mulCTBlinded}), which
+*   widens tables by 128 bits
+* @param Point - Point constructor.
+* @param randomBytes - RNG used for scalar blinding; required by the blinded secret path.
+* @example
+* Elliptic curve multiplication of Point by scalar.
+*
+* ```ts
+* import { ScalarMultiplier } from '@noble/curves/abstract/curve.js';
+* import { p256 } from '@noble/curves/nist.js';
+* const mul = new ScalarMultiplier(p256.Point);
+* ```
+*/
+var ScalarMultiplier = class {
+	Point;
+	BASE;
+	ZERO;
+	randomBytes;
+	wnafPrecomputes = /* @__PURE__ */ new WeakMap();
+	baseCanBeBlinded;
+	bits;
+	constructor(Point, randomBytes) {
+		validatePointCons(Point);
+		this.randomBytes = probeRandomBytes(randomBytes, BLIND_BYTES);
+		this.Point = Point;
+		this.BASE = Point.BASE;
+		this.ZERO = Point.ZERO;
+		this.bits = Point.Fn.BITS;
+	}
+	/**
+	* Creates a signed fixed-window wNAF precomputation table: for every window w, the
+	* multiples `[1..2^(W−1)]⋅2^(w⋅W)⋅P`, flattened. All doublings are baked into the table,
+	* so cached multiplication is additions-only. `windows = ceil(bits/W) + 1`: the extra
+	* window absorbs the final carry of signed-digit recoding.
+	* For a 256-bit curve and W=6, the table is 44⋅32 = 1408 points.
+	* @param point - Point instance
+	* @param W - window size
+	* @param bits - scalar bitlength the table must cover
+	*/
+	buildWnafTable(point, W, bits) {
+		const windows = Math.ceil(bits / W) + 1;
+		const half = 2 ** (W - 1);
+		const comp = [];
+		let base = point;
+		for (let w = 0; w < windows; w++) {
+			let acc = base;
+			for (let i = 0; i < half; i++) {
+				comp.push(acc);
+				acc = acc.add(base);
+			}
+			base = comp[comp.length - 1].double();
+		}
+		return {
+			W,
+			bits,
+			windows,
+			comp
+		};
+	}
+	/**
+	* Implements ec multiplication using precomputed signed fixed-window wNAF tables.
+	* Constant-time: fixed window count with one table addition per window — zero digits feed
+	* the fake accumulator — and no doublings; the lookup scans the whole window slice.
+	* Scalar bounds are validated by the public entry points ({@link ScalarMultiplier.mulCT},
+	* {@link ScalarMultiplier.mulCTBlinded}, {@link ScalarMultiplier.mulUnsafe});
+	* signedWindowDigits throws if `n` exceeds the table.
+	* @returns real and fake (for const-time) points
+	*/
+	wnafCachedCT(precomputes, n) {
+		const { W, windows, comp } = precomputes;
+		const half = 2 ** (W - 1);
+		const digits = signedWindowDigits(n, W, windows);
+		let p = this.ZERO;
+		let f = this.BASE;
+		for (let w = 0; w < windows; w++) {
+			const digit = digits[w];
+			const start = w * half;
+			const idx = Math.abs(digit) - 1;
+			let sel = comp[start];
+			for (let i = 1; i < half; i++) sel = i === idx ? comp[start + i] : sel;
+			const neg = sel.negate();
+			if (digit === 0) f = f.add(comp[start]);
+			else p = p.add(digit < 0 ? neg : sel);
+		}
+		return {
+			p,
+			f
+		};
+	}
+	getWnafPrecomputes(W, point, bits, transform) {
+		let entries = this.wnafPrecomputes.get(point);
+		let comp = entries?.find((entry) => entry.W === W && entry.bits === bits);
+		if (!comp) {
+			comp = this.buildWnafTable(point, W, bits);
+			if (typeof transform === "function") comp = {
+				...comp,
+				comp: transform(comp.comp)
+			};
+			if (!entries) {
+				entries = [];
+				this.wnafPrecomputes.set(point, entries);
+			}
+			entries.push(comp);
+		}
+		return comp;
+	}
+	assertPoint(point) {
+		if (!(point instanceof this.Point)) throw new TypeError("\"point\" expected Point instance, got type=" + typeof point);
+	}
+	validateMulInput(point, scalar) {
+		this.assertPoint(point);
+		if (!inRange$1(scalar, _1n$13, this.Point.Fn.ORDER)) throw new Error("invalid scalar");
+	}
+	runCT(point, n, bits, transform) {
+		const W = getWindowSize(point);
+		if (W === 1) return this.fixedWindowCT(point, n, bits);
+		return this.wnafCachedCT(this.getWnafPrecomputes(W, point, bits, transform), n);
+	}
+	mulCT(point, scalar, transform) {
+		this.validateMulInput(point, scalar);
+		return this.runCT(point, scalar, this.bits, transform);
+	}
+	mulCTBlinded(point, scalar, transform) {
+		this.validateMulInput(point, scalar);
+		if (this.randomBytes === void 0) throw new Error("randomBytes is required for scalar blinding");
+		const bits = this.Point.Fn.BITS + BLIND_BITS;
+		const blind = this.randomBytes(BLIND_BYTES);
+		if (!isBytes$1(blind) || blind.length !== BLIND_BYTES) throw new Error("randomBytes returned invalid byte array");
+		blind[0] = blind[0] & 63 | 128;
+		const n = scalar + bytesToNumberBE$2(blind) * this.Point.Fn.ORDER;
+		return this.runCT(point, n, bits, transform);
+	}
+	/**
+	* Constant-time multiplication `n*point` for an un-precomputed point, via a small fixed window.
+	* A cached wNAF table only pays off when reused; a flat 2^FW_WINDOW table (`size-1` adds) is
+	* far cheaper to build for a single use. The point-operation sequence is independent of `n`:
+	* build the table, then per window exactly FW_WINDOW doublings, a data-oblivious scan over
+	* every table entry, and one addition (adds the identity when the window digit is 0 — never
+	* skipped).
+	*
+	* `n` must be `< 2^bits`. Assumes complete addition (adding the identity costs the same as any
+	* add), which holds for the Weierstrass/Edwards point types used here. The table is left in
+	* projective form (no normalizeZ): normalizing this small a table costs more than the
+	* mixed-add savings it would buy for a single multiply.
+	* @returns real point `p`; `f` duplicates it only to match {@link wnafCachedCT}'s return shape
+	* (this path needs no fake accumulator — its op-count is already scalar-independent).
+	*/
+	fixedWindowCT(point, n, bits) {
+		const W = FW_WINDOW;
+		const size = 32;
+		const mask = bitMask$2(W);
+		const table = new Array(size);
+		table[0] = this.ZERO;
+		for (let i = 1; i < size; i++) table[i] = table[i - 1].add(point);
+		const windows = Math.ceil(bits / W);
+		let acc = this.ZERO;
+		for (let window = windows - 1; window >= 0; window--) {
+			if (window !== windows - 1) for (let d = 0; d < W; d++) acc = acc.double();
+			const digit = Number(n >> BigInt(window * W) & mask);
+			let sel = table[0];
+			for (let i = 1; i < size; i++) sel = i === digit ? table[i] : sel;
+			acc = acc.add(sel);
+		}
+		return {
+			p: acc,
+			f: acc
+		};
+	}
+	shouldBlind(point, cofactor) {
+		if (this.randomBytes === void 0) return false;
+		if (cofactor === _1n$13) return true;
+		if (point !== this.BASE) return false;
+		if (this.baseCanBeBlinded === void 0) this.baseCanBeBlinded = this.mulUnsafe(this.BASE, this.Point.Fn.ORDER).is0();
+		return this.baseCanBeBlinded;
+	}
+	mulSecret(point, scalar, cofactor, transform) {
+		return this.shouldBlind(point, cofactor) ? this.mulCTBlinded(point, scalar, transform) : this.mulCT(point, scalar, transform);
+	}
+	mulUnsafe(point, scalar, transform) {
+		this.assertPoint(point);
+		if (!isPosBig$1(scalar)) throw new Error("invalid scalar");
+		const W = getWindowSize(point);
+		if (W === 1 || scalar >= this.Point.Fn.ORDER) return mulAddUnsafe(this.Point, [point], [scalar], true);
+		const precomputes = this.getWnafPrecomputes(W, point, this.bits, transform);
+		return this.wnafCachedCT(precomputes, scalar).p;
+	}
+	setWindowSize(point, W) {
+		this.assertPoint(point);
+		validateW$1(W, this.bits);
+		validateTableBytes((Math.ceil((this.bits + BLIND_BITS) / W) + 1) * 2 ** (W - 1), this.Point.Fp.BYTES);
+		pointWindowSizes$1.set(point, W);
+		this.wnafPrecomputes.delete(point);
+	}
+	hasWindowSize(point) {
+		return getWindowSize(point) !== 1;
+	}
+};
+/**
+* Combined multi-scalar multiplication `Σ scalars[i]⋅points[i]` via interleaved width-4 wNAF
+* (Strauss–Shamir). Every input gets its own table of odd multiples `[1P, 3P, 5P, 7P]` and
+* signed-digit recoding, but all walks share one doubling chain, so total cost is
+* `~bits` doublings + `L⋅bits/5` additions instead of `L⋅bits` doublings for separate
+* multiplications. Intended for the 2-4 point shapes of signature verification
+* (`R = u1⋅G + u2⋅P`); use {@link pippenger} for larger batches.
+*
+* Not constant-time: only for public inputs. Scalars must satisfy `0 <= s < Fn.ORDER`;
+* fold negative signs into the points before calling.
+* @param c - Point constructor.
+* @param points - Array of curve points.
+* @param scalars - Array of non-negative scalars, same length as points.
+* @param allowOversized - Replace the `s < Fn.ORDER` scalar check with a `Fn.ORDER^4` DoS cap.
+*   Off by default. For scalars that must NOT be reduced mod ORDER: torsion checks
+*   (`Fn.ORDER⋅P ≟ O`) and cofactor-clearing multiples. Walk length grows with `bitLen(s)`.
+* @returns Combined multiplication result; identity for empty input.
+* @throws If the point set or scalar set is invalid. {@link Error}
+* @example
+* Combined multi-scalar multiplication via Strauss–Shamir.
+*
+* ```ts
+* import { mulAddUnsafe } from '@noble/curves/abstract/curve.js';
+* import { p256 } from '@noble/curves/nist.js';
+* const G = p256.Point.BASE;
+* const R = mulAddUnsafe(p256.Point, [G, G.double()], [2n, 3n]); // 2⋅G + 3⋅(2⋅G)
+* ```
+*/
+function mulAddUnsafe(c, points, scalars, allowOversized = false) {
+	validatePointCons(c);
+	validateMSMPoints$1(points, c);
+	abool(allowOversized, "allowOversized");
+	validateMSMScalars$1(scalars, c.Fn, allowOversized ? c.Fn.ORDER ** _4n$4 : void 0);
+	if (points.length !== scalars.length) throw new Error("arrays of points and scalars must have equal length");
+	const tables = points.map((p) => oddMultiples(p, 4));
+	const digits = scalars.map((n) => wnafDigits(n, 4));
+	return wnafWalk(c.ZERO, tables, digits);
+}
+function createField$1(order, field, isLE) {
+	if (field) {
+		if (field.ORDER !== order) throw new Error("Field.ORDER must match order: Fp == p, Fn == n");
+		validateField$2(field);
+		return field;
+	} else return Field$2(order, { isLE });
+}
+/**
+* Validates basic CURVE shape and field membership, then creates fields.
+* This does not prove that the generator is on-curve, that subgroup/order data are consistent, or
+* that the curve equation itself is otherwise sane.
+* @param type - Curve family.
+* @param CURVE - Curve parameters.
+* @param curveOpts - Optional field overrides. See {@link FpFn}:
+*   - `Fp` (optional): Optional base-field override.
+*   - `Fn` (optional): Optional scalar-field override.
+* @param FpFnLE - Whether field encoding is little-endian.
+* @returns Frozen curve parameters and fields.
+* @throws If the curve parameters or field overrides are invalid. {@link Error}
+* @example
+* Build curve fields from raw constants before constructing a curve instance.
+*
+* ```ts
+* const curve = createCurveFields('weierstrass', {
+*   p: 17n,
+*   n: 19n,
+*   h: 1n,
+*   a: 2n,
+*   b: 2n,
+*   Gx: 5n,
+*   Gy: 1n,
+* });
+* ```
+*/
+function createCurveFields(type, CURVE, curveOpts = {}, FpFnLE) {
+	if (type !== "weierstrass" && type !== "edwards") throw new Error("expected curve type \"weierstrass\" or \"edwards\"");
+	if (FpFnLE === void 0) FpFnLE = type === "edwards";
+	if (!CURVE || typeof CURVE !== "object") throw new Error(`expected valid ${type} CURVE object`);
+	validateObject$1(curveOpts);
+	for (const p of [
+		"p",
+		"n",
+		"h"
+	]) {
+		const val = CURVE[p];
+		if (!(isPosBig$1(val) && val !== _0n$11)) throw new Error(`CURVE.${p} must be positive bigint`);
+	}
+	const Fp = createField$1(CURVE.p, curveOpts.Fp, FpFnLE);
+	const Fn = createField$1(CURVE.n, curveOpts.Fn, FpFnLE);
+	const params = [
+		"Gx",
+		"Gy",
+		"a",
+		type === "weierstrass" ? "b" : "d"
+	];
+	for (const p of params) if (!Fp.isValid(CURVE[p])) throw new Error(`CURVE.${p} must be valid field element of CURVE.Fp`);
+	CURVE = Object.freeze(Object.assign({}, CURVE));
+	return {
+		CURVE,
+		Fp,
+		Fn
+	};
+}
+/**
+* @param randomSecretKey - Secret-key generator.
+* @param getPublicKey - Public-key derivation helper.
+* @returns Keypair generator.
+* @example
+* Build a `keygen()` helper from existing secret-key and public-key primitives.
+*
+* ```ts
+* import { createKeygen } from '@noble/curves/abstract/curve.js';
+* import { p256 } from '@noble/curves/nist.js';
+* const keygen = createKeygen(p256.utils.randomSecretKey, p256.getPublicKey);
+* const pair = keygen();
+* ```
+*/
+function createKeygen(randomSecretKey, getPublicKey) {
+	return function keygen(seed) {
+		const secretKey = randomSecretKey(seed);
+		return {
+			secretKey,
+			publicKey: getPublicKey(secretKey)
+		};
+	};
+}
+//#endregion
+//#region node_modules/@noble/curves/abstract/edwards.js
+/**
+* Twisted Edwards curve. The formula is: ax² + y² = 1 + dx²y².
+* For design rationale of types / exports, see weierstrass module documentation.
+* Untwisted Edwards curves exist, but they aren't used in real-world protocols.
+* @module
+*/
+/*! noble-curves - MIT License (c) 2022 Paul Miller (paulmillr.com) */
+var _0n$10 = /* @__PURE__ */ BigInt(0);
+var _1n$12 = /* @__PURE__ */ BigInt(1);
+var _2n$9 = /* @__PURE__ */ BigInt(2);
+var _4n$3 = /* @__PURE__ */ BigInt(4);
+var _8n$5 = /* @__PURE__ */ BigInt(8);
+function isEdValidXY$1(Fp, CURVE, x, y) {
+	const x2 = Fp.sqr(x);
+	const y2 = Fp.sqr(y);
+	const left = Fp.add(Fp.mul(CURVE.a, x2), y2);
+	const right = Fp.add(Fp.ONE, Fp.mul(CURVE.d, Fp.mul(x2, y2)));
+	return Fp.eql(left, right);
+}
+/**
+* @param params - Curve parameters. See {@link EdwardsOpts}.
+* @param extraOpts - Optional helpers and overrides. See {@link EdwardsExtraOpts}.
+* @returns Edwards point constructor. Generator validation here only checks
+*   that `(Gx, Gy)` satisfies the affine Edwards equation.
+*   RFC 8032 base-point constraints like `B != (0,1)` and `[L]B = 0`
+*   are left to the caller's chosen parameters, since eager subgroup
+*   validation here adds about 10-15ms to heavyweight imports like ed448.
+*   The returned constructor also eagerly marks `Point.BASE` for W=6
+*   precompute caching. Some code paths still assume
+*   `Fp.BYTES === Fn.BYTES`, so mismatched byte lengths are not fully audited here.
+* @throws If the curve parameters or Edwards overrides are invalid. {@link Error}
+* @example
+* ```ts
+* import { edwards } from '@noble/curves/abstract/edwards.js';
+* import { jubjub } from '@noble/curves/misc.js';
+* // Build a point constructor from explicit curve parameters, then use its base point.
+* const Point = edwards(jubjub.Point.CURVE());
+* Point.BASE.toHex();
+* ```
+*/
+function edwards$1(params, extraOpts = {}) {
+	validateObject$1(extraOpts, {}, {}, "extraOpts");
+	const opts = extraOpts;
+	const validated = createCurveFields("edwards", params, opts, opts.FpFnLE);
+	const { Fp, Fn } = validated;
+	let CURVE = validated.CURVE;
+	const { h: cofactor } = CURVE;
+	if (FpLegendre$1(Fp, CURVE.a) !== 1) throw new Error("edwards: CURVE.a must be a square in Fp for complete addition formulas");
+	if (FpLegendre$1(Fp, CURVE.d) !== -1) throw new Error("edwards: CURVE.d must be a non-square in Fp for complete addition formulas");
+	validateObject$1(opts, {}, {
+		uvRatio: "function",
+		randomBytes: "function"
+	});
+	const randomBytes = opts.randomBytes === void 0 ? randomBytes$2 : opts.randomBytes;
+	const MASK = _2n$9 << BigInt(Fp.BYTES * 8) - _1n$12;
+	function isOdd(n) {
+		if (!Fp.isOdd) throw new Error("Field does not have .isOdd()");
+		return Fp.isOdd(n);
+	}
+	const uvRatio = opts.uvRatio === void 0 ? (u, v) => {
+		try {
+			return {
+				isValid: true,
+				value: Fp.sqrt(Fp.div(u, v))
+			};
+		} catch (e) {
+			return {
+				isValid: false,
+				value: _0n$10
+			};
+		}
+	} : opts.uvRatio;
+	if (!isEdValidXY$1(Fp, CURVE, CURVE.Gx, CURVE.Gy)) throw new Error("bad curve params: generator point");
+	const mulA = Fp.eql(CURVE.a, Fp.neg(Fp.ONE)) ? (x) => Fp.neg(x) : Fp.eql(CURVE.a, Fp.ONE) ? (x) => x : (x) => Fp.mul(CURVE.a, x);
+	/**
+	* Asserts coordinate is valid: 0 <= n < MASK.
+	* Coordinates >= Fp.ORDER are allowed for zip215.
+	*/
+	function acoord(title, n, banZero = false) {
+		const min = banZero ? _1n$12 : _0n$10;
+		aInRange$1("coordinate " + title, n, min, MASK);
+		return n;
+	}
+	function aedpoint(other) {
+		if (!(other instanceof Point)) throw new Error("EdwardsPoint expected");
+	}
+	class Point {
+		static BASE = new Point(CURVE.Gx, CURVE.Gy, Fp.ONE, Fp.mul(CURVE.Gx, CURVE.Gy));
+		static ZERO = new Point(Fp.ZERO, Fp.ONE, Fp.ONE, Fp.ZERO);
+		static Fp = Fp;
+		static Fn = Fn;
+		X;
+		Y;
+		Z;
+		T;
+		constructor(X, Y, Z, T) {
+			this.X = acoord("x", X);
+			this.Y = acoord("y", Y);
+			this.Z = acoord("z", Z, true);
+			this.T = acoord("t", T);
+			Object.freeze(this);
+		}
+		static CURVE() {
+			return CURVE;
+		}
+		/**
+		* Create one extended Edwards point from affine coordinates.
+		* Does NOT validate that the point is on-curve or torsion-free.
+		* Use `.assertValidity()` on adversarial inputs.
+		*/
+		static fromAffine(p) {
+			if (p instanceof Point) throw new Error("extended point not allowed");
+			const { x, y } = p || {};
+			acoord("x", x);
+			acoord("y", y);
+			return new Point(x, y, Fp.ONE, Fp.mul(x, y));
+		}
+		static fromBytes(bytes, zip215 = false) {
+			const len = Fp.BYTES;
+			const { a, d } = CURVE;
+			bytes = copyBytes$1(abytes$1(bytes, len, "point"));
+			abool(zip215, "zip215");
+			const normed = copyBytes$1(bytes);
+			const lastByte = bytes[len - 1];
+			normed[len - 1] = lastByte & -129;
+			const y = bytesToNumberLE$2(normed);
+			aInRange$1("point.y", y, _0n$10, zip215 ? MASK : Fp.ORDER);
+			const y2 = Fp.sqr(y);
+			const u = Fp.sub(y2, Fp.ONE);
+			const v = Fp.sub(Fp.mulN(d, y2), a);
+			let { isValid, value: x } = uvRatio(u, v);
+			if (!isValid) throw new Error("bad point: invalid y coordinate");
+			const isXOdd = isOdd(x);
+			const isLastByteOdd = (lastByte & 128) !== 0;
+			if (!zip215 && Fp.is0(x) && isLastByteOdd) throw new Error("bad point: x=0 and x_0=1");
+			if (isLastByteOdd !== isXOdd) x = Fp.neg(x);
+			return Point.fromAffine({
+				x,
+				y
+			});
+		}
+		static fromHex(hex, zip215 = false) {
+			return Point.fromBytes(hexToBytes$2(hex), zip215);
+		}
+		get x() {
+			return this.toAffine().x;
+		}
+		get y() {
+			return this.toAffine().y;
+		}
+		precompute(windowSize = 6, isLazy = true) {
+			wnaf.setWindowSize(this, windowSize);
+			if (!isLazy) this.multiply(_2n$9);
+			return this;
+		}
+		assertValidity() {
+			const p = this;
+			const { a, d } = CURVE;
+			if (p.is0()) throw new Error("bad point: ZERO");
+			const { X, Y, Z, T } = p;
+			const X2 = Fp.sqr(X);
+			const Y2 = Fp.sqr(Y);
+			const Z2 = Fp.sqr(Z);
+			const Z4 = Fp.sqr(Z2);
+			const aX2 = Fp.mul(X2, a);
+			const left = Fp.mul(Fp.add(aX2, Y2), Z2);
+			const right = Fp.add(Z4, Fp.mul(d, Fp.mul(X2, Y2)));
+			if (!Fp.eql(left, right)) throw new Error("bad point: equation left != right (1)");
+			const XY = Fp.mul(X, Y);
+			const ZT = Fp.mul(Z, T);
+			if (!Fp.eql(XY, ZT)) throw new Error("bad point: equation left != right (2)");
+		}
+		equals(other) {
+			aedpoint(other);
+			const { X: X1, Y: Y1, Z: Z1 } = this;
+			const { X: X2, Y: Y2, Z: Z2 } = other;
+			const X1Z2 = Fp.mul(X1, Z2);
+			const X2Z1 = Fp.mul(X2, Z1);
+			const Y1Z2 = Fp.mul(Y1, Z2);
+			const Y2Z1 = Fp.mul(Y2, Z1);
+			return Fp.eql(X1Z2, X2Z1) && Fp.eql(Y1Z2, Y2Z1);
+		}
+		is0() {
+			return this.equals(Point.ZERO);
+		}
+		negate() {
+			return new Point(Fp.neg(this.X), this.Y, this.Z, Fp.neg(this.T));
+		}
+		double() {
+			const { X: X1, Y: Y1, Z: Z1 } = this;
+			const A = Fp.sqr(X1);
+			const B = Fp.sqr(Y1);
+			const C = Fp.mul(Fp.sqr(Z1), _2n$9);
+			const D = mulA(A);
+			const x1y1 = Fp.addN(X1, Y1);
+			const E = Fp.sub(Fp.subN(Fp.sqr(x1y1), A), B);
+			const G = Fp.addN(D, B);
+			const F = Fp.subN(G, C);
+			const H = Fp.subN(D, B);
+			const X3 = Fp.mul(E, F);
+			const Y3 = Fp.mul(G, H);
+			const T3 = Fp.mul(E, H);
+			const Z3 = Fp.mul(F, G);
+			return new Point(X3, Y3, Z3, T3);
+		}
+		add(other) {
+			aedpoint(other);
+			const { d } = CURVE;
+			const { X: X1, Y: Y1, Z: Z1, T: T1 } = this;
+			const { X: X2, Y: Y2, Z: Z2, T: T2 } = other;
+			const A = Fp.mul(X1, X2);
+			const B = Fp.mul(Y1, Y2);
+			const C = Fp.mul(Fp.mulN(T1, d), T2);
+			const D = Fp.mul(Z1, Z2);
+			const E = Fp.sub(Fp.subN(Fp.mulN(Fp.addN(X1, Y1), Fp.addN(X2, Y2)), A), B);
+			const F = Fp.subN(D, C);
+			const G = Fp.addN(D, C);
+			const H = Fp.sub(B, mulA(A));
+			const X3 = Fp.mul(E, F);
+			const Y3 = Fp.mul(G, H);
+			const T3 = Fp.mul(E, H);
+			const Z3 = Fp.mul(F, G);
+			return new Point(X3, Y3, Z3, T3);
+		}
+		subtract(other) {
+			aedpoint(other);
+			return this.add(other.negate());
+		}
+		multiply(scalar) {
+			if (!Fn.isValidNot0(scalar)) throw new RangeError("invalid scalar: expected 1 <= sc < curve.n");
+			const { p, f } = wnaf.mulSecret(this, scalar, cofactor, normalize);
+			return normalize([p, f])[0];
+		}
+		multiplyUnsafe(scalar) {
+			if (!Fn.isValid(scalar)) throw new RangeError("invalid scalar: expected 0 <= sc < curve.n");
+			if (scalar === _0n$10) return Point.ZERO;
+			if (this.is0() || scalar === _1n$12) return this;
+			return wnaf.mulUnsafe(this, scalar, normalize);
+		}
+		isSmallOrder() {
+			return this.clearCofactor().is0();
+		}
+		isTorsionFree() {
+			return wnaf.mulUnsafe(this, CURVE.n).is0();
+		}
+		toAffine(invertedZ) {
+			const p = this;
+			let iz = invertedZ;
+			if (iz != null && typeof iz !== "bigint") throw new TypeError("\"invertedZ\" expected bigint, got type=" + typeof iz);
+			const { X, Y, Z } = p;
+			const is0 = p.is0();
+			if (iz == null) iz = is0 ? Fp.create(_8n$5) : Fp.inv(Z);
+			const x = Fp.mul(X, iz);
+			const y = Fp.mul(Y, iz);
+			const zz = Fp.mul(Z, iz);
+			if (is0) return {
+				x: Fp.ZERO,
+				y: Fp.ONE
+			};
+			if (!Fp.eql(zz, Fp.ONE)) throw new Error("invZ was invalid");
+			return {
+				x,
+				y
+			};
+		}
+		clearCofactor() {
+			if (cofactor === _1n$12) return this;
+			if (cofactor === _2n$9) return this.double();
+			if (cofactor === _4n$3) return this.double().double();
+			if (cofactor === _8n$5) return this.double().double().double();
+			return this.multiplyUnsafe(cofactor);
+		}
+		toBytes() {
+			const { x, y } = this.toAffine();
+			const bytes = Fp.toBytes(y);
+			bytes[bytes.length - 1] |= isOdd(x) ? 128 : 0;
+			return bytes;
+		}
+		toHex() {
+			return bytesToHex$2(this.toBytes());
+		}
+		toString() {
+			return `<Point ${this.is0() ? "ZERO" : this.toHex()}>`;
+		}
+	}
+	const normalize = (points) => normalizeZ$1(Point, points);
+	const wnaf = new ScalarMultiplier(Point, randomBytes);
+	if (wnaf.bits >= 6) Point.BASE.precompute(6);
+	Object.freeze(Point.prototype);
+	Object.freeze(Point);
+	return Point;
+}
+/**
+* Initializes EdDSA signatures over given Edwards curve.
+* @param Point - Edwards point constructor.
+* @param cHash - Hash function.
+* @param eddsaOpts - Optional signature helpers. See {@link EdDSAOpts}.
+* @returns EdDSA helper namespace.
+* @throws If the hash function, options, or derived point operations are invalid. {@link Error}
+* @example
+* Initializes EdDSA signatures over given Edwards curve.
+*
+* ```ts
+* import { eddsa } from '@noble/curves/abstract/edwards.js';
+* import { jubjub } from '@noble/curves/misc.js';
+* import { sha512 } from '@noble/hashes/sha2.js';
+* const sigs = eddsa(jubjub.Point, sha512);
+* const { secretKey, publicKey } = sigs.keygen();
+* const msg = new TextEncoder().encode('hello noble');
+* const sig = sigs.sign(msg, secretKey);
+* const isValid = sigs.verify(sig, msg, publicKey);
+* ```
+*/
+function eddsa$1(Point, cHash, eddsaOpts = {}) {
+	validatePointCons(Point);
+	if (typeof cHash !== "function") throw new Error("\"hash\" function param is required");
+	const hash = cHash;
+	const opts = eddsaOpts;
+	validateObject$1(opts, {}, {
+		adjustScalarBytes: "function",
+		randomBytes: "function",
+		domain: "function",
+		prehash: "function",
+		zip215: "boolean",
+		mapToCurve: "function",
+		toMontgomery: "function",
+		toMontgomerySecret: "function"
+	});
+	const { prehash } = opts;
+	const { BASE, Fp, Fn } = Point;
+	const outputLen = hash.outputLen;
+	const expectedLen = 2 * Fp.BYTES;
+	if (outputLen !== void 0) {
+		asafenumber(outputLen, "hash.outputLen");
+		if (outputLen !== expectedLen) throw new Error(`hash.outputLen must be ${expectedLen}, got ${outputLen}`);
+	}
+	const randomBytes = opts.randomBytes === void 0 ? randomBytes$2 : opts.randomBytes;
+	const toMontgomery = opts.toMontgomery;
+	const toMontgomerySecret = opts.toMontgomerySecret;
+	const adjustScalarBytes = opts.adjustScalarBytes === void 0 ? (bytes) => bytes : opts.adjustScalarBytes;
+	const domain = opts.domain === void 0 ? (data, ctx, phflag) => {
+		abool(phflag, "phflag");
+		if (ctx.length || phflag) throw new Error("Contexts/pre-hash are not supported");
+		return data;
+	} : opts.domain;
+	function modN_LE(hash) {
+		return Fn.create(bytesToNumberLE$2(hash));
+	}
+	function getPrivateScalar(key) {
+		const len = lengths.secretKey;
+		abytes$1(key, lengths.secretKey, "secretKey");
+		const hashed = abytes$1(hash(key), 2 * len, "hashedSecretKey");
+		const head = adjustScalarBytes(hashed.slice(0, len));
+		return {
+			head,
+			prefix: hashed.slice(len, 2 * len),
+			scalar: modN_LE(head)
+		};
+	}
+	/** Convenience method that creates public key from scalar. RFC8032 5.1.5
+	* Also exposes the derived scalar/prefix tuple and point form reused by sign().
+	*/
+	function getExtendedPublicKey(secretKey) {
+		const { head, prefix, scalar } = getPrivateScalar(secretKey);
+		const point = BASE.multiply(scalar);
+		return {
+			head,
+			prefix,
+			scalar,
+			point,
+			pointBytes: point.toBytes()
+		};
+	}
+	/** Calculates EdDSA pub key. RFC8032 5.1.5. */
+	function getPublicKey(secretKey) {
+		return getExtendedPublicKey(secretKey).pointBytes;
+	}
+	function hashDomainToScalar(context = Uint8Array.of(), ...msgs) {
+		const msg = concatBytes$3(...msgs);
+		return modN_LE(hash(domain(msg, abytes$1(context, void 0, "context"), !!prehash)));
+	}
+	/** Signs message with secret key. RFC8032 5.1.6 */
+	function sign(msg, secretKey, options = {}) {
+		validateObject$1(options, {}, {}, "options");
+		msg = copyBytes$1(abytes$1(msg, void 0, "message"));
+		if (prehash) msg = prehash(msg);
+		const { prefix, scalar, pointBytes } = getExtendedPublicKey(secretKey);
+		const r = hashDomainToScalar(options.context, prefix, msg);
+		const R = BASE.multiply(r).toBytes();
+		const k = hashDomainToScalar(options.context, R, pointBytes, msg);
+		const s = Fn.create(r + k * scalar);
+		if (!Fn.isValid(s)) throw new Error("sign failed: invalid s");
+		return abytes$1(concatBytes$3(R, Fn.toBytes(s)), lengths.signature, "result");
+	}
+	const verifyOpts = { zip215: opts.zip215 };
+	/**
+	* Verifies EdDSA signature against message and public key. RFC 8032 §§5.1.7 and 5.2.7.
+	* A cofactored verification equation is checked.
+	*/
+	function verify(sig, msg, publicKey, options = verifyOpts) {
+		validateObject$1(options);
+		const { context } = options;
+		const zip215 = options.zip215 === void 0 ? !!verifyOpts.zip215 : options.zip215;
+		const len = lengths.signature;
+		sig = abytes$1(sig, len, "signature");
+		msg = abytes$1(msg, void 0, "message");
+		publicKey = abytes$1(publicKey, lengths.publicKey, "publicKey");
+		if (zip215 !== void 0) abool(zip215, "zip215");
+		if (prehash) msg = prehash(msg);
+		const mid = len / 2;
+		const r = sig.subarray(0, mid);
+		const s = bytesToNumberLE$2(sig.subarray(mid, len));
+		let A, R, SB;
+		try {
+			A = Point.fromBytes(publicKey, zip215);
+			R = Point.fromBytes(r, zip215);
+			SB = BASE.multiplyUnsafe(s);
+		} catch (error) {
+			return false;
+		}
+		if (!zip215 && A.isSmallOrder()) return false;
+		const k = hashDomainToScalar(context, r, publicKey, msg);
+		return R.add(A.multiplyUnsafe(k)).subtract(SB).clearCofactor().is0();
+	}
+	const _size = Fp.BYTES;
+	const lengths = {
+		secretKey: _size,
+		publicKey: _size,
+		signature: 2 * _size,
+		seed: _size
+	};
+	function randomSecretKey(seed) {
+		seed = seed === void 0 ? randomBytes(lengths.seed) : seed;
+		return abytes$1(seed, lengths.seed, "seed");
+	}
+	function isValidSecretKey(key) {
+		return isBytes$1(key) && key.length === lengths.secretKey;
+	}
+	function isValidPublicKey(key, zip215) {
+		try {
+			return !!Point.fromBytes(key, zip215 === void 0 ? verifyOpts.zip215 : zip215);
+		} catch (error) {
+			return false;
+		}
+	}
+	const utils = {
+		getExtendedPublicKey,
+		randomSecretKey,
+		isValidSecretKey,
+		isValidPublicKey,
+		/** Converts an Edwards public key to a companion Montgomery public key. */
+		toMontgomery(publicKey) {
+			if (toMontgomery === void 0) throw new Error("Montgomery conversion is not supported for this curve");
+			return toMontgomery(Point.fromBytes(publicKey));
+		},
+		toMontgomerySecret(secretKey) {
+			if (toMontgomerySecret === void 0) throw new Error("Montgomery conversion is not supported for this curve");
+			return toMontgomerySecret(secretKey);
+		}
+	};
+	Object.freeze(lengths);
+	Object.freeze(utils);
+	return Object.freeze({
+		keygen: createKeygen(randomSecretKey, getPublicKey),
+		getPublicKey,
+		sign,
+		verify,
+		utils,
+		Point,
+		lengths
+	});
+}
+//#endregion
+//#region node_modules/@noble/curves/ed25519.js
+/**
+* ed25519 Twisted Edwards curve with following addons:
+* - X25519 ECDH
+* - Ristretto cofactor elimination
+* - Elligator hash-to-group / point indistinguishability
+* @module
+*/
+/*! noble-curves - MIT License (c) 2022 Paul Miller (paulmillr.com) */
+var _1n$11 = /* @__PURE__ */ BigInt(1);
+var _2n$8 = /* @__PURE__ */ BigInt(2);
+var _5n$3 = /* @__PURE__ */ BigInt(5);
+var _8n$4 = /* @__PURE__ */ BigInt(8);
+var ed25519_CURVE_p$1 = /* @__PURE__ */ BigInt("0x7fffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffed");
+var ed25519_CURVE$1 = /* @__PURE__ */ (() => ({
+	p: ed25519_CURVE_p$1,
+	n: BigInt("0x1000000000000000000000000000000014def9dea2f79cd65812631a5cf5d3ed"),
+	h: _8n$4,
+	a: BigInt("0x7fffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffec"),
+	d: BigInt("0x52036cee2b6ffe738cc740797779e89800700a4d4141d8ab75eb4dca135978a3"),
+	Gx: BigInt("0x216936d3cd6e53fec0a4e231fdd6dc5c692cc7609525a7b2c9562d608f25d51a"),
+	Gy: BigInt("0x6666666666666666666666666666666666666666666666666666666666666658")
+}))();
+function ed25519_pow_2_252_3$1(x) {
+	const _10n = BigInt(10), _20n = BigInt(20), _40n = BigInt(40), _80n = BigInt(80);
+	const P = ed25519_CURVE_p$1;
+	const b2 = x * x % P * x % P;
+	const b5 = pow2$2(pow2$2(b2, _2n$8, P) * b2 % P, _1n$11, P) * x % P;
+	const b10 = pow2$2(b5, _5n$3, P) * b5 % P;
+	const b20 = pow2$2(b10, _10n, P) * b10 % P;
+	const b40 = pow2$2(b20, _20n, P) * b20 % P;
+	const b80 = pow2$2(b40, _40n, P) * b40 % P;
+	return {
+		pow_p_5_8: pow2$2(pow2$2(pow2$2(pow2$2(b80, _80n, P) * b80 % P, _80n, P) * b80 % P, _10n, P) * b10 % P, _2n$8, P) * x % P,
+		b2
+	};
+}
+function adjustScalarBytes$1(bytes) {
+	bytes[0] &= 248;
+	bytes[31] &= 127;
+	bytes[31] |= 64;
+	return bytes;
+}
+var ED25519_SQRT_M1$1 = /* @__PURE__ */ BigInt("19681161376707505956807079304988542015446066515923890162744021073123829784752");
+function uvRatio$1(u, v) {
+	const P = ed25519_CURVE_p$1;
+	const v3 = mod$2(v * v * v, P);
+	const pow = ed25519_pow_2_252_3$1(u * mod$2(v3 * v3 * v, P)).pow_p_5_8;
+	let x = mod$2(u * v3 * pow, P);
+	const vx2 = mod$2(v * x * x, P);
+	const root1 = x;
+	const root2 = mod$2(x * ED25519_SQRT_M1$1, P);
+	const useRoot1 = vx2 === u;
+	const useRoot2 = vx2 === mod$2(-u, P);
+	const noRoot = vx2 === mod$2(-u * ED25519_SQRT_M1$1, P);
+	if (useRoot1) x = root1;
+	if (useRoot2 || noRoot) x = root2;
+	if (isNegativeLE$1(x, P)) x = mod$2(-x, P);
+	return {
+		isValid: useRoot1 || useRoot2,
+		value: x
+	};
+}
+var ed25519_Point = /* @__PURE__ */ edwards$1(ed25519_CURVE$1, { uvRatio: uvRatio$1 });
+var Fp$2 = /* @__PURE__ */ (() => ed25519_Point.Fp)();
+function toMontgomery(point) {
+	const { y } = point;
+	return Fp$2.toBytes(Fp$2.div(_1n$11 + y, _1n$11 - y));
+}
+function toMontgomerySecret(secretKey) {
+	const size = ed25519_Point.Fp.BYTES;
+	abytes$2(secretKey, size);
+	return adjustScalarBytes$1(sha512$1(secretKey.subarray(0, size))).subarray(0, size);
+}
+function ed(opts) {
+	return eddsa$1(ed25519_Point, sha512$1, Object.assign({
+		adjustScalarBytes: adjustScalarBytes$1,
+		toMontgomery,
+		toMontgomerySecret,
+		zip215: true
+	}, opts));
+}
+/**
+* ed25519 curve with EdDSA signatures.
+* Seeded `keygen(seed)` / `utils.randomSecretKey(seed)` reuse the provided
+* 32-byte seed buffer instead of copying it.
+* @example
+* Generate one Ed25519 keypair, sign a message, and verify it.
+*
+* ```js
+* import { ed25519 } from '@noble/curves/ed25519.js';
+* const { secretKey, publicKey } = ed25519.keygen();
+* // const publicKey = ed25519.getPublicKey(secretKey);
+* const msg = new TextEncoder().encode('hello noble');
+* const sig = ed25519.sign(msg, secretKey);
+* const isValid = ed25519.verify(sig, msg, publicKey); // ZIP215
+* // RFC8032 / FIPS 186-5
+* const isValid2 = ed25519.verify(sig, msg, publicKey, { zip215: false });
+* ```
+*/
+var ed25519$1 = /* @__PURE__ */ ed({});
+//#endregion
 //#region node_modules/ethers/node_modules/@noble/hashes/esm/_assert.js
 function number(n) {
 	if (!Number.isSafeInteger(n) || n < 0) throw new Error(`Wrong positive integer: ${n}`);
@@ -1073,7 +3175,7 @@ function toBytes$1(data) {
 /**
 * Copies several Uint8Arrays into one.
 */
-function concatBytes$3(...arrays) {
+function concatBytes$2(...arrays) {
 	const r = new Uint8Array(arrays.reduce((sum, a) => sum + a.length, 0));
 	let pad = 0;
 	arrays.forEach((a) => {
@@ -1104,7 +3206,7 @@ function wrapConstructor(hashCons) {
 /**
 * Secure PRNG. Uses `crypto.getRandomValues`, which defers to OS.
 */
-function randomBytes$2(bytesLength = 32) {
+function randomBytes$1(bytesLength = 32) {
 	if (crypto$1 && typeof crypto$1.getRandomValues === "function") return crypto$1.getRandomValues(new Uint8Array(bytesLength));
 	throw new Error("crypto.getRandomValues must be defined");
 }
@@ -1435,35 +3537,35 @@ hmac$1.create = (hash, key) => new HMAC$1(hash, key);
 //#region node_modules/ethers/node_modules/@noble/curves/esm/abstract/utils.js
 var utils_exports = /* @__PURE__ */ __exportAll({
 	bitGet: () => bitGet,
-	bitLen: () => bitLen$2,
-	bitMask: () => bitMask$2,
+	bitLen: () => bitLen$1,
+	bitMask: () => bitMask$1,
 	bitSet: () => bitSet,
-	bytesToHex: () => bytesToHex$2,
-	bytesToNumberBE: () => bytesToNumberBE$2,
-	bytesToNumberLE: () => bytesToNumberLE$2,
-	concatBytes: () => concatBytes$2,
+	bytesToHex: () => bytesToHex$1,
+	bytesToNumberBE: () => bytesToNumberBE$1,
+	bytesToNumberLE: () => bytesToNumberLE$1,
+	concatBytes: () => concatBytes$1,
 	createHmacDrbg: () => createHmacDrbg$1,
 	ensureBytes: () => ensureBytes$1,
 	equalBytes: () => equalBytes$1,
-	hexToBytes: () => hexToBytes$2,
-	hexToNumber: () => hexToNumber$2,
-	numberToBytesBE: () => numberToBytesBE$2,
-	numberToBytesLE: () => numberToBytesLE$2,
+	hexToBytes: () => hexToBytes$1,
+	hexToNumber: () => hexToNumber$1,
+	numberToBytesBE: () => numberToBytesBE$1,
+	numberToBytesLE: () => numberToBytesLE$1,
 	numberToHexUnpadded: () => numberToHexUnpadded$1,
 	numberToVarBytesBE: () => numberToVarBytesBE,
 	utf8ToBytes: () => utf8ToBytes$1,
-	validateObject: () => validateObject$1
+	validateObject: () => validateObject
 });
 /*! noble-curves - MIT License (c) 2022 Paul Miller (paulmillr.com) */
-var _0n$13 = BigInt(0);
-var _1n$15 = BigInt(1);
-var _2n$10 = BigInt(2);
+var _0n$9 = BigInt(0);
+var _1n$10 = BigInt(1);
+var _2n$7 = BigInt(2);
 var u8a = (a) => a instanceof Uint8Array;
 var hexes$1 = /* @__PURE__ */ Array.from({ length: 256 }, (_, i) => i.toString(16).padStart(2, "0"));
 /**
 * @example bytesToHex(Uint8Array.from([0xca, 0xfe, 0x01, 0x23])) // 'cafe0123'
 */
-function bytesToHex$2(bytes) {
+function bytesToHex$1(bytes) {
 	if (!u8a(bytes)) throw new Error("Uint8Array expected");
 	let hex = "";
 	for (let i = 0; i < bytes.length; i++) hex += hexes$1[bytes[i]];
@@ -1473,14 +3575,14 @@ function numberToHexUnpadded$1(num) {
 	const hex = num.toString(16);
 	return hex.length & 1 ? `0${hex}` : hex;
 }
-function hexToNumber$2(hex) {
+function hexToNumber$1(hex) {
 	if (typeof hex !== "string") throw new Error("hex string expected, got " + typeof hex);
 	return BigInt(hex === "" ? "0" : `0x${hex}`);
 }
 /**
 * @example hexToBytes('cafe0123') // Uint8Array.from([0xca, 0xfe, 0x01, 0x23])
 */
-function hexToBytes$2(hex) {
+function hexToBytes$1(hex) {
 	if (typeof hex !== "string") throw new Error("hex string expected, got " + typeof hex);
 	const len = hex.length;
 	if (len % 2) throw new Error("padded hex string expected, got unpadded hex of length " + len);
@@ -1494,21 +3596,21 @@ function hexToBytes$2(hex) {
 	}
 	return array;
 }
-function bytesToNumberBE$2(bytes) {
-	return hexToNumber$2(bytesToHex$2(bytes));
+function bytesToNumberBE$1(bytes) {
+	return hexToNumber$1(bytesToHex$1(bytes));
 }
-function bytesToNumberLE$2(bytes) {
+function bytesToNumberLE$1(bytes) {
 	if (!u8a(bytes)) throw new Error("Uint8Array expected");
-	return hexToNumber$2(bytesToHex$2(Uint8Array.from(bytes).reverse()));
+	return hexToNumber$1(bytesToHex$1(Uint8Array.from(bytes).reverse()));
 }
-function numberToBytesBE$2(n, len) {
-	return hexToBytes$2(n.toString(16).padStart(len * 2, "0"));
+function numberToBytesBE$1(n, len) {
+	return hexToBytes$1(n.toString(16).padStart(len * 2, "0"));
 }
-function numberToBytesLE$2(n, len) {
-	return numberToBytesBE$2(n, len).reverse();
+function numberToBytesLE$1(n, len) {
+	return numberToBytesBE$1(n, len).reverse();
 }
 function numberToVarBytesBE(n) {
-	return hexToBytes$2(numberToHexUnpadded$1(n));
+	return hexToBytes$1(numberToHexUnpadded$1(n));
 }
 /**
 * Takes hex string or Uint8Array, converts to Uint8Array.
@@ -1522,7 +3624,7 @@ function numberToVarBytesBE(n) {
 function ensureBytes$1(title, hex, expectedLength) {
 	let res;
 	if (typeof hex === "string") try {
-		res = hexToBytes$2(hex);
+		res = hexToBytes$1(hex);
 	} catch (e) {
 		throw new Error(`${title} must be valid hex string, got "${hex}". Cause: ${e}`);
 	}
@@ -1535,7 +3637,7 @@ function ensureBytes$1(title, hex, expectedLength) {
 /**
 * Copies several Uint8Arrays into one.
 */
-function concatBytes$2(...arrays) {
+function concatBytes$1(...arrays) {
 	const r = new Uint8Array(arrays.reduce((sum, a) => sum + a.length, 0));
 	let pad = 0;
 	arrays.forEach((a) => {
@@ -1561,9 +3663,9 @@ function utf8ToBytes$1(str) {
 * Calculates amount of bits in a bigint.
 * Same as `n.toString(2).length`
 */
-function bitLen$2(n) {
+function bitLen$1(n) {
 	let len = 0;
-	for (; n > _0n$13; n >>= _1n$15, len += 1);
+	for (; n > _0n$9; n >>= _1n$10, len += 1);
 	return len;
 }
 /**
@@ -1572,19 +3674,19 @@ function bitLen$2(n) {
 * Same as `!!+Array.from(n.toString(2)).reverse()[pos]`
 */
 function bitGet(n, pos) {
-	return n >> BigInt(pos) & _1n$15;
+	return n >> BigInt(pos) & _1n$10;
 }
 /**
 * Sets single bit at position.
 */
 var bitSet = (n, pos, value) => {
-	return n | (value ? _1n$15 : _0n$13) << BigInt(pos);
+	return n | (value ? _1n$10 : _0n$9) << BigInt(pos);
 };
 /**
 * Calculate mask for N bits. Not using ** operator with bigints because of old engines.
 * Same as BigInt(`0b${Array(i).fill('1').join('')}`)
 */
-var bitMask$2 = (n) => (_2n$10 << BigInt(n - 1)) - _1n$15;
+var bitMask$1 = (n) => (_2n$7 << BigInt(n - 1)) - _1n$10;
 var u8n = (data) => new Uint8Array(data);
 var u8fr = (arr) => Uint8Array.from(arr);
 /**
@@ -1624,7 +3726,7 @@ function createHmacDrbg$1(hashLen, qByteLen, hmacFn) {
 			out.push(sl);
 			len += v.length;
 		}
-		return concatBytes$2(...out);
+		return concatBytes$1(...out);
 	};
 	const genUntil = (seed, pred) => {
 		reset();
@@ -1647,7 +3749,7 @@ var validatorFns = {
 	field: (val, object) => object.Fp.isValid(val),
 	hash: (val) => typeof val === "function" && Number.isSafeInteger(val.outputLen)
 };
-function validateObject$1(object, validators, optValidators = {}) {
+function validateObject(object, validators, optValidators = {}) {
 	const checkField = (fieldName, type, isOptional) => {
 		const checkVal = validatorFns[type];
 		if (typeof checkVal !== "function") throw new Error(`Invalid validator "${type}", expected function`);
@@ -1662,18 +3764,18 @@ function validateObject$1(object, validators, optValidators = {}) {
 //#endregion
 //#region node_modules/ethers/node_modules/@noble/curves/esm/abstract/modular.js
 /*! noble-curves - MIT License (c) 2022 Paul Miller (paulmillr.com) */
-var _0n$12 = BigInt(0);
-var _1n$14 = BigInt(1);
-var _2n$9 = BigInt(2);
-var _3n$4 = BigInt(3);
-var _4n$5 = BigInt(4);
-var _5n$4 = BigInt(5);
-var _8n$6 = BigInt(8);
-var _9n$2 = BigInt(9);
-var _16n$2 = BigInt(16);
-function mod$2(a, b) {
+var _0n$8 = BigInt(0);
+var _1n$9 = BigInt(1);
+var _2n$6 = BigInt(2);
+var _3n$3 = BigInt(3);
+var _4n$2 = BigInt(4);
+var _5n$2 = BigInt(5);
+var _8n$3 = BigInt(8);
+var _9n$1 = BigInt(9);
+var _16n$1 = BigInt(16);
+function mod$1(a, b) {
 	const result = a % b;
-	return result >= _0n$12 ? result : b + result;
+	return result >= _0n$8 ? result : b + result;
 }
 /**
 * Efficiently raise num to power and do modular division.
@@ -1681,39 +3783,39 @@ function mod$2(a, b) {
 * @example
 * pow(2n, 6n, 11n) // 64n % 11n == 9n
 */
-function pow$1(num, power, modulo) {
-	if (modulo <= _0n$12 || power < _0n$12) throw new Error("Expected power/modulo > 0");
-	if (modulo === _1n$14) return _0n$12;
-	let res = _1n$14;
-	while (power > _0n$12) {
-		if (power & _1n$14) res = res * num % modulo;
+function pow(num, power, modulo) {
+	if (modulo <= _0n$8 || power < _0n$8) throw new Error("Expected power/modulo > 0");
+	if (modulo === _1n$9) return _0n$8;
+	let res = _1n$9;
+	while (power > _0n$8) {
+		if (power & _1n$9) res = res * num % modulo;
 		num = num * num % modulo;
-		power >>= _1n$14;
+		power >>= _1n$9;
 	}
 	return res;
 }
-function pow2$2(x, power, modulo) {
+function pow2$1(x, power, modulo) {
 	let res = x;
-	while (power-- > _0n$12) {
+	while (power-- > _0n$8) {
 		res *= res;
 		res %= modulo;
 	}
 	return res;
 }
-function invert$2(number, modulo) {
-	if (number === _0n$12 || modulo <= _0n$12) throw new Error(`invert: expected positive integers, got n=${number} mod=${modulo}`);
-	let a = mod$2(number, modulo);
+function invert$1(number, modulo) {
+	if (number === _0n$8 || modulo <= _0n$8) throw new Error(`invert: expected positive integers, got n=${number} mod=${modulo}`);
+	let a = mod$1(number, modulo);
 	let b = modulo;
-	let x = _0n$12, y = _1n$14, u = _1n$14, v = _0n$12;
-	while (a !== _0n$12) {
+	let x = _0n$8, y = _1n$9, u = _1n$9, v = _0n$8;
+	while (a !== _0n$8) {
 		const q = b / a;
 		const r = b % a;
 		const m = x - u * q;
 		const n = y - v * q;
 		b = a, a = r, x = u, y = v, u = m, v = n;
 	}
-	if (b !== _1n$14) throw new Error("invert: does not exist");
-	return mod$2(x, modulo);
+	if (b !== _1n$9) throw new Error("invert: does not exist");
+	return mod$1(x, modulo);
 }
 /**
 * Tonelli-Shanks square root search algorithm.
@@ -1723,20 +3825,20 @@ function invert$2(number, modulo) {
 * @param P field order
 * @returns function that takes field Fp (created from P) and number n
 */
-function tonelliShanks$2(P) {
-	const legendreC = (P - _1n$14) / _2n$9;
+function tonelliShanks$1(P) {
+	const legendreC = (P - _1n$9) / _2n$6;
 	let Q, S, Z;
-	for (Q = P - _1n$14, S = 0; Q % _2n$9 === _0n$12; Q /= _2n$9, S++);
-	for (Z = _2n$9; Z < P && pow$1(Z, legendreC, P) !== P - _1n$14; Z++);
+	for (Q = P - _1n$9, S = 0; Q % _2n$6 === _0n$8; Q /= _2n$6, S++);
+	for (Z = _2n$6; Z < P && pow(Z, legendreC, P) !== P - _1n$9; Z++);
 	if (S === 1) {
-		const p1div4 = (P + _1n$14) / _4n$5;
+		const p1div4 = (P + _1n$9) / _4n$2;
 		return function tonelliFast(Fp, n) {
 			const root = Fp.pow(n, p1div4);
 			if (!Fp.eql(Fp.sqr(root), n)) throw new Error("Cannot find square root");
 			return root;
 		};
 	}
-	const Q1div2 = (Q + _1n$14) / _2n$9;
+	const Q1div2 = (Q + _1n$9) / _2n$6;
 	return function tonelliSlow(Fp, n) {
 		if (Fp.pow(n, legendreC) === Fp.neg(Fp.ONE)) throw new Error("Cannot find square root");
 		let r = S;
@@ -1750,7 +3852,7 @@ function tonelliShanks$2(P) {
 				if (Fp.eql(t2, Fp.ONE)) break;
 				t2 = Fp.sqr(t2);
 			}
-			const ge = Fp.pow(g, _1n$14 << BigInt(r - m - 1));
+			const ge = Fp.pow(g, _1n$9 << BigInt(r - m - 1));
 			g = Fp.sqr(ge);
 			x = Fp.mul(x, ge);
 			b = Fp.mul(b, g);
@@ -1759,31 +3861,31 @@ function tonelliShanks$2(P) {
 		return x;
 	};
 }
-function FpSqrt$2(P) {
-	if (P % _4n$5 === _3n$4) {
-		const p1div4 = (P + _1n$14) / _4n$5;
+function FpSqrt$1(P) {
+	if (P % _4n$2 === _3n$3) {
+		const p1div4 = (P + _1n$9) / _4n$2;
 		return function sqrt3mod4(Fp, n) {
 			const root = Fp.pow(n, p1div4);
 			if (!Fp.eql(Fp.sqr(root), n)) throw new Error("Cannot find square root");
 			return root;
 		};
 	}
-	if (P % _8n$6 === _5n$4) {
-		const c1 = (P - _5n$4) / _8n$6;
+	if (P % _8n$3 === _5n$2) {
+		const c1 = (P - _5n$2) / _8n$3;
 		return function sqrt5mod8(Fp, n) {
-			const n2 = Fp.mul(n, _2n$9);
+			const n2 = Fp.mul(n, _2n$6);
 			const v = Fp.pow(n2, c1);
 			const nv = Fp.mul(n, v);
-			const i = Fp.mul(Fp.mul(nv, _2n$9), v);
+			const i = Fp.mul(Fp.mul(nv, _2n$6), v);
 			const root = Fp.mul(nv, Fp.sub(i, Fp.ONE));
 			if (!Fp.eql(Fp.sqr(root), n)) throw new Error("Cannot find square root");
 			return root;
 		};
 	}
-	if (P % _16n$2 === _9n$2) {}
-	return tonelliShanks$2(P);
+	if (P % _16n$1 === _9n$1) {}
+	return tonelliShanks$1(P);
 }
-var FIELD_FIELDS$2 = [
+var FIELD_FIELDS$1 = [
 	"create",
 	"isValid",
 	"is0",
@@ -1802,8 +3904,8 @@ var FIELD_FIELDS$2 = [
 	"mulN",
 	"sqrN"
 ];
-function validateField$2(field) {
-	return validateObject$1(field, FIELD_FIELDS$2.reduce((map, val) => {
+function validateField$1(field) {
+	return validateObject(field, FIELD_FIELDS$1.reduce((map, val) => {
 		map[val] = "function";
 		return map;
 	}, {
@@ -1818,15 +3920,15 @@ function validateField$2(field) {
 * Unsafe in some contexts: uses ladder, so can expose bigint bits.
 */
 function FpPow$1(f, num, power) {
-	if (power < _0n$12) throw new Error("Expected power > 0");
-	if (power === _0n$12) return f.ONE;
-	if (power === _1n$14) return num;
+	if (power < _0n$8) throw new Error("Expected power > 0");
+	if (power === _0n$8) return f.ONE;
+	if (power === _1n$9) return num;
 	let p = f.ONE;
 	let d = num;
-	while (power > _0n$12) {
-		if (power & _1n$14) p = f.mul(p, d);
+	while (power > _0n$8) {
+		if (power & _1n$9) p = f.mul(p, d);
 		d = f.sqr(d);
-		power >>= _1n$14;
+		power >>= _1n$9;
 	}
 	return p;
 }
@@ -1834,7 +3936,7 @@ function FpPow$1(f, num, power) {
 * Efficiently invert an array of Field elements.
 * `inv(0)` will return `undefined` here: make sure to throw an error.
 */
-function FpInvertBatch$2(f, nums) {
+function FpInvertBatch$1(f, nums) {
 	const tmp = new Array(nums.length);
 	const lastMultiplied = nums.reduce((acc, num, i) => {
 		if (f.is0(num)) return acc;
@@ -1849,7 +3951,7 @@ function FpInvertBatch$2(f, nums) {
 	}, inverted);
 	return tmp;
 }
-function nLength$2(n, nBitLength) {
+function nLength$1(n, nBitLength) {
 	const _nBitLength = nBitLength !== void 0 ? nBitLength : n.toString(2).length;
 	return {
 		nBitLength: _nBitLength,
@@ -1868,45 +3970,45 @@ function nLength$2(n, nBitLength) {
 * @param isLE (def: false) if encoding / decoding should be in little-endian
 * @param redef optional faster redefinitions of sqrt and other methods
 */
-function Field$2(ORDER, bitLen, isLE = false, redef = {}) {
-	if (ORDER <= _0n$12) throw new Error(`Expected Field ORDER > 0, got ${ORDER}`);
-	const { nBitLength: BITS, nByteLength: BYTES } = nLength$2(ORDER, bitLen);
+function Field$1(ORDER, bitLen, isLE = false, redef = {}) {
+	if (ORDER <= _0n$8) throw new Error(`Expected Field ORDER > 0, got ${ORDER}`);
+	const { nBitLength: BITS, nByteLength: BYTES } = nLength$1(ORDER, bitLen);
 	if (BYTES > 2048) throw new Error("Field lengths over 2048 bytes are not supported");
-	const sqrtP = FpSqrt$2(ORDER);
+	const sqrtP = FpSqrt$1(ORDER);
 	const f = Object.freeze({
 		ORDER,
 		BITS,
 		BYTES,
-		MASK: bitMask$2(BITS),
-		ZERO: _0n$12,
-		ONE: _1n$14,
-		create: (num) => mod$2(num, ORDER),
+		MASK: bitMask$1(BITS),
+		ZERO: _0n$8,
+		ONE: _1n$9,
+		create: (num) => mod$1(num, ORDER),
 		isValid: (num) => {
 			if (typeof num !== "bigint") throw new Error(`Invalid field element: expected bigint, got ${typeof num}`);
-			return _0n$12 <= num && num < ORDER;
+			return _0n$8 <= num && num < ORDER;
 		},
-		is0: (num) => num === _0n$12,
-		isOdd: (num) => (num & _1n$14) === _1n$14,
-		neg: (num) => mod$2(-num, ORDER),
+		is0: (num) => num === _0n$8,
+		isOdd: (num) => (num & _1n$9) === _1n$9,
+		neg: (num) => mod$1(-num, ORDER),
 		eql: (lhs, rhs) => lhs === rhs,
-		sqr: (num) => mod$2(num * num, ORDER),
-		add: (lhs, rhs) => mod$2(lhs + rhs, ORDER),
-		sub: (lhs, rhs) => mod$2(lhs - rhs, ORDER),
-		mul: (lhs, rhs) => mod$2(lhs * rhs, ORDER),
+		sqr: (num) => mod$1(num * num, ORDER),
+		add: (lhs, rhs) => mod$1(lhs + rhs, ORDER),
+		sub: (lhs, rhs) => mod$1(lhs - rhs, ORDER),
+		mul: (lhs, rhs) => mod$1(lhs * rhs, ORDER),
 		pow: (num, power) => FpPow$1(f, num, power),
-		div: (lhs, rhs) => mod$2(lhs * invert$2(rhs, ORDER), ORDER),
+		div: (lhs, rhs) => mod$1(lhs * invert$1(rhs, ORDER), ORDER),
 		sqrN: (num) => num * num,
 		addN: (lhs, rhs) => lhs + rhs,
 		subN: (lhs, rhs) => lhs - rhs,
 		mulN: (lhs, rhs) => lhs * rhs,
-		inv: (num) => invert$2(num, ORDER),
+		inv: (num) => invert$1(num, ORDER),
 		sqrt: redef.sqrt || ((n) => sqrtP(f, n)),
-		invertBatch: (lst) => FpInvertBatch$2(f, lst),
+		invertBatch: (lst) => FpInvertBatch$1(f, lst),
 		cmov: (a, b, c) => c ? b : a,
-		toBytes: (num) => isLE ? numberToBytesLE$2(num, BYTES) : numberToBytesBE$2(num, BYTES),
+		toBytes: (num) => isLE ? numberToBytesLE$1(num, BYTES) : numberToBytesBE$1(num, BYTES),
 		fromBytes: (bytes) => {
 			if (bytes.length !== BYTES) throw new Error(`Fp.fromBytes: expected ${BYTES}, got ${bytes.length}`);
-			return isLE ? bytesToNumberLE$2(bytes) : bytesToNumberBE$2(bytes);
+			return isLE ? bytesToNumberLE$1(bytes) : bytesToNumberBE$1(bytes);
 		}
 	});
 	return Object.freeze(f);
@@ -1951,14 +4053,14 @@ function mapHashToField$1(key, fieldOrder, isLE = false) {
 	const fieldLen = getFieldBytesLength$1(fieldOrder);
 	const minLen = getMinHashLength$1(fieldOrder);
 	if (len < 16 || len < minLen || len > 1024) throw new Error(`expected ${minLen}-1024 bytes of input, got ${len}`);
-	const reduced = mod$2(isLE ? bytesToNumberBE$2(key) : bytesToNumberLE$2(key), fieldOrder - _1n$14) + _1n$14;
-	return isLE ? numberToBytesLE$2(reduced, fieldLen) : numberToBytesBE$2(reduced, fieldLen);
+	const reduced = mod$1(isLE ? bytesToNumberBE$1(key) : bytesToNumberLE$1(key), fieldOrder - _1n$9) + _1n$9;
+	return isLE ? numberToBytesLE$1(reduced, fieldLen) : numberToBytesBE$1(reduced, fieldLen);
 }
 //#endregion
 //#region node_modules/ethers/node_modules/@noble/curves/esm/abstract/curve.js
 /*! noble-curves - MIT License (c) 2022 Paul Miller (paulmillr.com) */
-var _0n$11 = BigInt(0);
-var _1n$13 = BigInt(1);
+var _0n$7 = BigInt(0);
+var _1n$8 = BigInt(1);
 function wNAF$1(c, bits) {
 	const constTimeNegate = (condition, item) => {
 		const neg = item.negate();
@@ -1975,10 +4077,10 @@ function wNAF$1(c, bits) {
 		unsafeLadder(elm, n) {
 			let p = c.ZERO;
 			let d = elm;
-			while (n > _0n$11) {
-				if (n & _1n$13) p = p.add(d);
+			while (n > _0n$7) {
+				if (n & _1n$8) p = p.add(d);
 				d = d.double();
-				n >>= _1n$13;
+				n >>= _1n$8;
 			}
 			return p;
 		},
@@ -2028,7 +4130,7 @@ function wNAF$1(c, bits) {
 				n >>= shiftBy;
 				if (wbits > windowSize) {
 					wbits -= maxNumber;
-					n += _1n$13;
+					n += _1n$8;
 				}
 				const offset1 = offset;
 				const offset2 = offset + Math.abs(wbits) - 1;
@@ -2054,8 +4156,8 @@ function wNAF$1(c, bits) {
 	};
 }
 function validateBasic(curve) {
-	validateField$2(curve.Fp);
-	validateObject$1(curve, {
+	validateField$1(curve.Fp);
+	validateObject(curve, {
 		n: "bigint",
 		h: "bigint",
 		Gx: "field",
@@ -2065,7 +4167,7 @@ function validateBasic(curve) {
 		nByteLength: "isSafeInteger"
 	});
 	return Object.freeze({
-		...nLength$2(curve.n, curve.nBitLength),
+		...nLength$1(curve.n, curve.nBitLength),
 		...curve,
 		p: curve.Fp.ORDER
 	});
@@ -2075,7 +4177,7 @@ function validateBasic(curve) {
 /*! noble-curves - MIT License (c) 2022 Paul Miller (paulmillr.com) */
 function validatePointOpts(curve) {
 	const opts = validateBasic(curve);
-	validateObject$1(opts, {
+	validateObject(opts, {
 		a: "field",
 		b: "field"
 	}, {
@@ -2144,15 +4246,15 @@ var DER$1 = {
 		return `30${h(rhl + shl + 4)}02${rl}${r}02${sl}${s}`;
 	}
 };
-var _0n$10 = BigInt(0);
-var _1n$12 = BigInt(1);
-var _3n$3 = BigInt(3);
+var _0n$6 = BigInt(0);
+var _1n$7 = BigInt(1);
+var _3n$2 = BigInt(3);
 function weierstrassPoints(opts) {
 	const CURVE = validatePointOpts(opts);
 	const { Fp } = CURVE;
 	const toBytes = CURVE.toBytes || ((_c, point, _isCompressed) => {
 		const a = point.toAffine();
-		return concatBytes$2(Uint8Array.from([4]), Fp.toBytes(a.x), Fp.toBytes(a.y));
+		return concatBytes$1(Uint8Array.from([4]), Fp.toBytes(a.x), Fp.toBytes(a.y));
 	});
 	const fromBytes = CURVE.fromBytes || ((bytes) => {
 		const tail = bytes.subarray(1);
@@ -2173,7 +4275,7 @@ function weierstrassPoints(opts) {
 	}
 	if (!Fp.eql(Fp.sqr(CURVE.Gy), weierstrassEquation(CURVE.Gx))) throw new Error("bad generator point: equation left != right");
 	function isWithinCurveOrder(num) {
-		return typeof num === "bigint" && _0n$10 < num && num < CURVE.n;
+		return typeof num === "bigint" && _0n$6 < num && num < CURVE.n;
 	}
 	function assertGE(num) {
 		if (!isWithinCurveOrder(num)) throw new Error("Expected valid bigint: 0 < bigint < curve.n");
@@ -2181,17 +4283,17 @@ function weierstrassPoints(opts) {
 	function normPrivateKeyToScalar(key) {
 		const { allowedPrivateKeyLengths: lengths, nByteLength, wrapPrivateKey, n } = CURVE;
 		if (lengths && typeof key !== "bigint") {
-			if (key instanceof Uint8Array) key = bytesToHex$2(key);
+			if (key instanceof Uint8Array) key = bytesToHex$1(key);
 			if (typeof key !== "string" || !lengths.includes(key.length)) throw new Error("Invalid key");
 			key = key.padStart(nByteLength * 2, "0");
 		}
 		let num;
 		try {
-			num = typeof key === "bigint" ? key : bytesToNumberBE$2(ensureBytes$1("private key", key, nByteLength));
+			num = typeof key === "bigint" ? key : bytesToNumberBE$1(ensureBytes$1("private key", key, nByteLength));
 		} catch (error) {
 			throw new Error(`private key must be ${nByteLength} bytes, hex or bigint, not ${typeof key}`);
 		}
-		if (wrapPrivateKey) num = mod$2(num, n);
+		if (wrapPrivateKey) num = mod$1(num, n);
 		assertGE(num);
 		return num;
 	}
@@ -2289,7 +4391,7 @@ function weierstrassPoints(opts) {
 		}
 		double() {
 			const { a, b } = CURVE;
-			const b3 = Fp.mul(b, _3n$3);
+			const b3 = Fp.mul(b, _3n$2);
 			const { px: X1, py: Y1, pz: Z1 } = this;
 			let X3 = Fp.ZERO, Y3 = Fp.ZERO, Z3 = Fp.ZERO;
 			let t0 = Fp.mul(X1, X1);
@@ -2331,7 +4433,7 @@ function weierstrassPoints(opts) {
 			const { px: X2, py: Y2, pz: Z2 } = other;
 			let X3 = Fp.ZERO, Y3 = Fp.ZERO, Z3 = Fp.ZERO;
 			const a = CURVE.a;
-			const b3 = Fp.mul(CURVE.b, _3n$3);
+			const b3 = Fp.mul(CURVE.b, _3n$2);
 			let t0 = Fp.mul(X1, X2);
 			let t1 = Fp.mul(Y1, Y2);
 			let t2 = Fp.mul(Z1, Z2);
@@ -2393,21 +4495,21 @@ function weierstrassPoints(opts) {
 		*/
 		multiplyUnsafe(n) {
 			const I = Point.ZERO;
-			if (n === _0n$10) return I;
+			if (n === _0n$6) return I;
 			assertGE(n);
-			if (n === _1n$12) return this;
+			if (n === _1n$7) return this;
 			const { endo } = CURVE;
 			if (!endo) return wnaf.unsafeLadder(this, n);
 			let { k1neg, k1, k2neg, k2 } = endo.splitScalar(n);
 			let k1p = I;
 			let k2p = I;
 			let d = this;
-			while (k1 > _0n$10 || k2 > _0n$10) {
-				if (k1 & _1n$12) k1p = k1p.add(d);
-				if (k2 & _1n$12) k2p = k2p.add(d);
+			while (k1 > _0n$6 || k2 > _0n$6) {
+				if (k1 & _1n$7) k1p = k1p.add(d);
+				if (k2 & _1n$7) k2p = k2p.add(d);
 				d = d.double();
-				k1 >>= _1n$12;
-				k2 >>= _1n$12;
+				k1 >>= _1n$7;
+				k2 >>= _1n$7;
 			}
 			if (k1neg) k1p = k1p.negate();
 			if (k2neg) k2p = k2p.negate();
@@ -2452,7 +4554,7 @@ function weierstrassPoints(opts) {
 		*/
 		multiplyAndAddUnsafe(Q, a, b) {
 			const G = Point.BASE;
-			const mul = (P, a) => a === _0n$10 || a === _1n$12 || !P.equals(G) ? P.multiplyUnsafe(a) : P.multiply(a);
+			const mul = (P, a) => a === _0n$6 || a === _1n$7 || !P.equals(G) ? P.multiplyUnsafe(a) : P.multiply(a);
 			const sum = mul(this, a).add(mul(Q, b));
 			return sum.is0() ? void 0 : sum;
 		}
@@ -2475,13 +4577,13 @@ function weierstrassPoints(opts) {
 		}
 		isTorsionFree() {
 			const { h: cofactor, isTorsionFree } = CURVE;
-			if (cofactor === _1n$12) return true;
+			if (cofactor === _1n$7) return true;
 			if (isTorsionFree) return isTorsionFree(Point, this);
 			throw new Error("isTorsionFree() has not been declared for the elliptic curve");
 		}
 		clearCofactor() {
 			const { h: cofactor, clearCofactor } = CURVE;
-			if (cofactor === _1n$12) return this;
+			if (cofactor === _1n$7) return this;
 			if (clearCofactor) return clearCofactor(Point, this);
 			return this.multiplyUnsafe(CURVE.h);
 		}
@@ -2490,7 +4592,7 @@ function weierstrassPoints(opts) {
 			return toBytes(Point, this, isCompressed);
 		}
 		toHex(isCompressed = true) {
-			return bytesToHex$2(this.toRawBytes(isCompressed));
+			return bytesToHex$1(this.toRawBytes(isCompressed));
 		}
 	}
 	Point.BASE = new Point(CURVE.Gx, CURVE.Gy, Fp.ONE);
@@ -2507,7 +4609,7 @@ function weierstrassPoints(opts) {
 }
 function validateOpts(curve) {
 	const opts = validateBasic(curve);
-	validateObject$1(opts, {
+	validateObject(opts, {
 		hash: "hash",
 		hmac: "function",
 		randomBytes: "function"
@@ -2527,20 +4629,20 @@ function weierstrass$1(curveDef) {
 	const compressedLen = Fp.BYTES + 1;
 	const uncompressedLen = 2 * Fp.BYTES + 1;
 	function isValidFieldElement(num) {
-		return _0n$10 < num && num < Fp.ORDER;
+		return _0n$6 < num && num < Fp.ORDER;
 	}
 	function modN(a) {
-		return mod$2(a, CURVE_ORDER);
+		return mod$1(a, CURVE_ORDER);
 	}
 	function invN(a) {
-		return invert$2(a, CURVE_ORDER);
+		return invert$1(a, CURVE_ORDER);
 	}
 	const { ProjectivePoint: Point, normPrivateKeyToScalar, weierstrassEquation, isWithinCurveOrder } = weierstrassPoints({
 		...CURVE,
 		toBytes(_c, point, isCompressed) {
 			const a = point.toAffine();
 			const x = Fp.toBytes(a.x);
-			const cat = concatBytes$2;
+			const cat = concatBytes$1;
 			if (isCompressed) return cat(Uint8Array.from([point.hasEvenY() ? 2 : 3]), x);
 			else return cat(Uint8Array.from([4]), x, Fp.toBytes(a.y));
 		},
@@ -2549,11 +4651,11 @@ function weierstrass$1(curveDef) {
 			const head = bytes[0];
 			const tail = bytes.subarray(1);
 			if (len === compressedLen && (head === 2 || head === 3)) {
-				const x = bytesToNumberBE$2(tail);
+				const x = bytesToNumberBE$1(tail);
 				if (!isValidFieldElement(x)) throw new Error("Point is not on curve");
 				const y2 = weierstrassEquation(x);
 				let y = Fp.sqrt(y2);
-				const isYOdd = (y & _1n$12) === _1n$12;
+				const isYOdd = (y & _1n$7) === _1n$7;
 				if ((head & 1) === 1 !== isYOdd) y = Fp.neg(y);
 				return {
 					x,
@@ -2566,14 +4668,14 @@ function weierstrass$1(curveDef) {
 			else throw new Error(`Point of length ${len} was invalid. Expected ${compressedLen} compressed bytes or ${uncompressedLen} uncompressed bytes`);
 		}
 	});
-	const numToNByteStr = (num) => bytesToHex$2(numberToBytesBE$2(num, CURVE.nByteLength));
+	const numToNByteStr = (num) => bytesToHex$1(numberToBytesBE$1(num, CURVE.nByteLength));
 	function isBiggerThanHalfOrder(number) {
-		return number > CURVE_ORDER >> _1n$12;
+		return number > CURVE_ORDER >> _1n$7;
 	}
 	function normalizeS(s) {
 		return isBiggerThanHalfOrder(s) ? modN(-s) : s;
 	}
-	const slcNum = (b, from, to) => bytesToNumberBE$2(b.slice(from, to));
+	const slcNum = (b, from, to) => bytesToNumberBE$1(b.slice(from, to));
 	/**
 	* ECDSA signature with its (r, s) properties. Supports DER & compact representations.
 	*/
@@ -2628,7 +4730,7 @@ function weierstrass$1(curveDef) {
 			return this.hasHighS() ? new Signature(this.r, modN(-this.s), this.recovery) : this;
 		}
 		toDERRawBytes() {
-			return hexToBytes$2(this.toDERHex());
+			return hexToBytes$1(this.toDERHex());
 		}
 		toDERHex() {
 			return DER$1.hexFromSig({
@@ -2637,7 +4739,7 @@ function weierstrass$1(curveDef) {
 			});
 		}
 		toCompactRawBytes() {
-			return hexToBytes$2(this.toCompactHex());
+			return hexToBytes$1(this.toCompactHex());
 		}
 		toCompactHex() {
 			return numToNByteStr(this.r) + numToNByteStr(this.s);
@@ -2712,21 +4814,21 @@ function weierstrass$1(curveDef) {
 		return Point.fromHex(publicB).multiply(normPrivateKeyToScalar(privateA)).toRawBytes(isCompressed);
 	}
 	const bits2int = CURVE.bits2int || function(bytes) {
-		const num = bytesToNumberBE$2(bytes);
+		const num = bytesToNumberBE$1(bytes);
 		const delta = bytes.length * 8 - CURVE.nBitLength;
 		return delta > 0 ? num >> BigInt(delta) : num;
 	};
 	const bits2int_modN = CURVE.bits2int_modN || function(bytes) {
 		return modN(bits2int(bytes));
 	};
-	const ORDER_MASK = bitMask$2(CURVE.nBitLength);
+	const ORDER_MASK = bitMask$1(CURVE.nBitLength);
 	/**
 	* Converts to bytes. Checks if num in `[0..ORDER_MASK-1]` e.g.: `[0..2^256-1]`.
 	*/
 	function int2octets(num) {
 		if (typeof num !== "bigint") throw new Error("bigint expected");
-		if (!(_0n$10 <= num && num < ORDER_MASK)) throw new Error(`bigint expected < 2^${CURVE.nBitLength}`);
-		return numberToBytesBE$2(num, CURVE.nByteLength);
+		if (!(_0n$6 <= num && num < ORDER_MASK)) throw new Error(`bigint expected < 2^${CURVE.nBitLength}`);
+		return numberToBytesBE$1(num, CURVE.nByteLength);
 	}
 	function prepSig(msgHash, privateKey, opts = defaultSigOpts) {
 		if (["recovered", "canonical"].some((k) => k in opts)) throw new Error("sign() legacy options not supported");
@@ -2742,7 +4844,7 @@ function weierstrass$1(curveDef) {
 			const e = ent === true ? randomBytes(Fp.BYTES) : ent;
 			seedArgs.push(ensureBytes$1("extraEntropy", e));
 		}
-		const seed = concatBytes$2(...seedArgs);
+		const seed = concatBytes$1(...seedArgs);
 		const m = h1int;
 		function k2sig(kBytes) {
 			const k = bits2int(kBytes);
@@ -2750,10 +4852,10 @@ function weierstrass$1(curveDef) {
 			const ik = invN(k);
 			const q = Point.BASE.multiply(k).toAffine();
 			const r = modN(q.x);
-			if (r === _0n$10) return;
+			if (r === _0n$6) return;
 			const s = modN(ik * modN(m + r * d));
-			if (s === _0n$10) return;
-			let recovery = (q.x === r ? 0 : 2) | Number(q.y & _1n$12);
+			if (s === _0n$6) return;
+			let recovery = (q.x === r ? 0 : 2) | Number(q.y & _1n$7);
 			let normS = s;
 			if (lowS && isBiggerThanHalfOrder(s)) {
 				normS = normalizeS(s);
@@ -2858,8 +4960,8 @@ function weierstrass$1(curveDef) {
 function getHash(hash) {
 	return {
 		hash,
-		hmac: (key, ...msgs) => hmac$1(hash, key, concatBytes$3(...msgs)),
-		randomBytes: randomBytes$2
+		hmac: (key, ...msgs) => hmac$1(hash, key, concatBytes$2(...msgs)),
+		randomBytes: randomBytes$1
 	};
 }
 function createCurve$1(curveDef, defHash) {
@@ -2877,9 +4979,9 @@ function createCurve$1(curveDef, defHash) {
 /*! noble-curves - MIT License (c) 2022 Paul Miller (paulmillr.com) */
 var secp256k1P = BigInt("0xfffffffffffffffffffffffffffffffffffffffffffffffffffffffefffffc2f");
 var secp256k1N = BigInt("0xfffffffffffffffffffffffffffffffebaaedce6af48a03bbfd25e8cd0364141");
-var _1n$11 = BigInt(1);
-var _2n$8 = BigInt(2);
-var divNearest$1 = (a, b) => (a + b / _2n$8) / b;
+var _1n$6 = BigInt(1);
+var _2n$5 = BigInt(2);
+var divNearest$1 = (a, b) => (a + b / _2n$5) / b;
 /**
 * √n = n^((p+1)/4) for fields p = 3 mod 4. We unwrap the loop and multiply bit-by-bit.
 * (P+1n/4n).toString(2) would produce bits [223x 1, 0, 22x 1, 4x 0, 11, 00]
@@ -2890,19 +4992,19 @@ function sqrtMod$1(y) {
 	const _23n = BigInt(23), _44n = BigInt(44), _88n = BigInt(88);
 	const b2 = y * y * y % P;
 	const b3 = b2 * b2 * y % P;
-	const b11 = pow2$2(pow2$2(pow2$2(b3, _3n, P) * b3 % P, _3n, P) * b3 % P, _2n$8, P) * b2 % P;
-	const b22 = pow2$2(b11, _11n, P) * b11 % P;
-	const b44 = pow2$2(b22, _22n, P) * b22 % P;
-	const b88 = pow2$2(b44, _44n, P) * b44 % P;
-	const root = pow2$2(pow2$2(pow2$2(pow2$2(pow2$2(pow2$2(b88, _88n, P) * b88 % P, _44n, P) * b44 % P, _3n, P) * b3 % P, _23n, P) * b22 % P, _6n, P) * b2 % P, _2n$8, P);
-	if (!Fp$2.eql(Fp$2.sqr(root), y)) throw new Error("Cannot find square root");
+	const b11 = pow2$1(pow2$1(pow2$1(b3, _3n, P) * b3 % P, _3n, P) * b3 % P, _2n$5, P) * b2 % P;
+	const b22 = pow2$1(b11, _11n, P) * b11 % P;
+	const b44 = pow2$1(b22, _22n, P) * b22 % P;
+	const b88 = pow2$1(b44, _44n, P) * b44 % P;
+	const root = pow2$1(pow2$1(pow2$1(pow2$1(pow2$1(pow2$1(b88, _88n, P) * b88 % P, _44n, P) * b44 % P, _3n, P) * b3 % P, _23n, P) * b22 % P, _6n, P) * b2 % P, _2n$5, P);
+	if (!Fp$1.eql(Fp$1.sqr(root), y)) throw new Error("Cannot find square root");
 	return root;
 }
-var Fp$2 = Field$2(secp256k1P, void 0, void 0, { sqrt: sqrtMod$1 });
+var Fp$1 = Field$1(secp256k1P, void 0, void 0, { sqrt: sqrtMod$1 });
 var secp256k1$1 = createCurve$1({
 	a: BigInt(0),
 	b: BigInt(7),
-	Fp: Fp$2,
+	Fp: Fp$1,
 	n: secp256k1N,
 	Gx: BigInt("55066263022277343669578718895168534326250603453777594175500187360389116729240"),
 	Gy: BigInt("32670510020758816978083085130507043184471273380659243275938904335757337482424"),
@@ -2919,14 +5021,14 @@ var secp256k1$1 = createCurve$1({
 		splitScalar: (k) => {
 			const n = secp256k1N;
 			const a1 = BigInt("0x3086d221a7d46bcde86c90e49284eb15");
-			const b1 = -_1n$11 * BigInt("0xe4437ed6010e88286f547fa90abfe4c3");
+			const b1 = -_1n$6 * BigInt("0xe4437ed6010e88286f547fa90abfe4c3");
 			const a2 = BigInt("0x114ca50f7a8e2f3f657c1108d9d44cfd8");
 			const b2 = a1;
 			const POW_2_128 = BigInt("0x100000000000000000000000000000000");
 			const c1 = divNearest$1(b2 * k, n);
 			const c2 = divNearest$1(-b1 * k, n);
-			let k1 = mod$2(k - c1 * a1 - c2 * a2, n);
-			let k2 = mod$2(-c1 * b1 - c2 * b2, n);
+			let k1 = mod$1(k - c1 * a1 - c2 * a2, n);
+			let k2 = mod$1(-c1 * b1 - c2 * b2, n);
 			const k1neg = k1 > POW_2_128;
 			const k2neg = k2 > POW_2_128;
 			if (k1neg) k1 = n - k1;
@@ -2942,2108 +5044,6 @@ var secp256k1$1 = createCurve$1({
 	}
 }, sha256$1);
 secp256k1$1.ProjectivePoint;
-//#endregion
-//#region node_modules/@noble/curves/utils.js
-/**
-* Hex, bytes and number utilities.
-* @module
-*/
-/*! noble-curves - MIT License (c) 2022 Paul Miller (paulmillr.com) */
-/**
-* Validates that a value is an array, optionally validating each element.
-* @param item - Value to validate.
-* @param title - Label included in thrown errors.
-* @param inner - Optional per-element validator, called with the element and its label.
-* @returns The validated array.
-* @example
-* Validate an array of points before batch processing.
-*
-* ```ts
-* aarray([1n, 2n], 'scalars');
-* ```
-*/
-function aarray(item, title, inner = () => {}) {
-	if (!Array.isArray(item)) throw new TypeError(`"${title}" expected array, got type=${typeof item}`);
-	for (let i = 0; i < item.length; i++) inner(item[i], `${title}[${i}]`);
-	return item;
-}
-/**
-* Validates that a value is a byte array.
-* @param value - Value to validate.
-* @param length - Optional exact byte length.
-* @param title - Optional field name.
-* @returns Original byte array.
-* @example
-* Reject non-byte input before passing data into curve code.
-*
-* ```ts
-* abytes(new Uint8Array(1));
-* ```
-*/
-var abytes$1 = (value, length, title) => abytes$2(value, length, title);
-/**
-* Validates that a value is a non-negative safe integer.
-* @param n - Value to validate.
-* @param title - Optional field name.
-* @returns The validated number.
-* @example
-* Validate a numeric length before allocating buffers.
-*
-* ```ts
-* anumber(1);
-* ```
-*/
-var anumber$1 = anumber$2;
-/**
-* Asserts something is a plain object-ish value, not null or array.
-* @param value - Value to validate.
-* @param title - Label included in thrown errors.
-* @returns The validated object.
-* @throws On wrong argument types. {@link TypeError}
-* @example
-* Validate an options object before checking fields.
-*
-* ```ts
-* aobject({ flag: true });
-* ```
-*/
-function aobject(value, title = "object") {
-	if (value === null || typeof value !== "object" || Array.isArray(value)) throw new TypeError(title === "object" ? "expected valid options object" : `"${title}" expected object, got type=${typeof value}`);
-	return value;
-}
-/**
-* Asserts something is a function.
-* @param value - Value to validate.
-* @param title - Label included in thrown errors.
-* @returns The validated function.
-* @throws On wrong argument types. {@link TypeError}
-* @example
-* Validate a required method before calling it.
-*
-* ```ts
-* afunction(() => true, 'predicate');
-* ```
-*/
-function afunction(value, title) {
-	if (typeof value !== "function") throw new TypeError(`"${title}" is invalid: expected function, got ${typeof value}`);
-	return value;
-}
-/**
-* Encodes bytes as lowercase hex.
-* @param bytes - Bytes to encode.
-* @returns Lowercase hex string.
-* @example
-* Serialize bytes as hex for logging or fixtures.
-*
-* ```ts
-* bytesToHex(Uint8Array.of(1, 2, 3));
-* ```
-*/
-var bytesToHex$1 = bytesToHex$3;
-/**
-* Concatenates byte arrays.
-* @param arrays - Byte arrays to join.
-* @returns Concatenated bytes.
-* @example
-* Join domain-separated chunks into one buffer.
-*
-* ```ts
-* concatBytes(Uint8Array.of(1), Uint8Array.of(2));
-* ```
-*/
-var concatBytes$1 = (...arrays) => concatBytes$4(...arrays);
-/**
-* Decodes lowercase or uppercase hex into bytes.
-* @param hex - Hex string to decode.
-* @returns Decoded bytes.
-* @example
-* Parse fixture hex into bytes before hashing.
-*
-* ```ts
-* hexToBytes('0102');
-* ```
-*/
-var hexToBytes$1 = (hex) => hexToBytes$3(hex);
-/**
-* Checks whether a value is a Uint8Array.
-* @param a - Value to inspect.
-* @returns `true` when `a` is a Uint8Array.
-* @example
-* Branch on byte input before decoding it.
-*
-* ```ts
-* isBytes(new Uint8Array(1));
-* ```
-*/
-var isBytes$1 = isBytes$2;
-/**
-* Reads random bytes from the platform CSPRNG.
-* @param bytesLength - Number of random bytes to read.
-* @returns Fresh random bytes.
-* @example
-* Generate a random seed for a keypair.
-*
-* ```ts
-* randomBytes(2);
-* ```
-*/
-var randomBytes$1 = (bytesLength) => randomBytes$3(bytesLength);
-var _0n$9 = /* @__PURE__ */ BigInt(0);
-var _1n$10 = /* @__PURE__ */ BigInt(1);
-var atitle = (title) => title ? `"${title}" ` : "";
-/**
-* Validates that a flag is boolean.
-* @param value - Value to validate.
-* @param title - Optional field name.
-* @returns Original value.
-* @throws On wrong argument types. {@link TypeError}
-* @example
-* Reject non-boolean option flags early.
-*
-* ```ts
-* abool(true);
-* ```
-*/
-function abool(value, title = "") {
-	if (typeof value !== "boolean") throw new TypeError(atitle(title) + "expected boolean, got type=" + typeof value);
-	return value;
-}
-/**
-* Validates that a value is a non-negative bigint or safe integer.
-* @param n - Value to validate.
-* @returns The same validated value.
-* @throws On wrong argument ranges or values. {@link RangeError}
-* @example
-* Validate one integer-like value before serializing it.
-*
-* ```ts
-* abignumber(1n);
-* ```
-*/
-function abignumber(n) {
-	if (typeof n === "bigint") {
-		if (!isPosBig$1(n)) throw new RangeError("positive bigint expected, got " + n);
-	} else anumber$1(n);
-	return n;
-}
-/**
-* Validates that a value is a safe integer.
-* @param value - Integer to validate.
-* @param title - Optional field name.
-* @throws On wrong argument types. {@link TypeError}
-* @throws On wrong argument ranges or values. {@link RangeError}
-* @example
-* Validate a window size before scalar arithmetic uses it.
-*
-* ```ts
-* asafenumber(1);
-* ```
-*/
-function asafenumber(value, title = "") {
-	if (typeof value !== "number") {
-		const prefix = title && `"${title}" `;
-		throw new TypeError(prefix + "expected number, got type=" + typeof value);
-	}
-	if (!Number.isSafeInteger(value)) {
-		const prefix = title && `"${title}" `;
-		throw new RangeError(prefix + "expected safe integer, got " + value);
-	}
-}
-/**
-* Parses a big-endian hex string into bigint.
-* Accepts odd-length hex through the native `BigInt('0x' + hex)` parser and currently surfaces the
-* same native `SyntaxError` for malformed hex instead of wrapping it in a library-specific error.
-* @param hex - Hex string without `0x`.
-* @returns Parsed bigint value.
-* @throws On wrong argument types. {@link TypeError}
-* @example
-* Parse a scalar from fixture hex.
-*
-* ```ts
-* hexToNumber('ff');
-* ```
-*/
-function hexToNumber$1(hex) {
-	if (typeof hex !== "string") throw new TypeError("hex string expected, got " + typeof hex);
-	return hex === "" ? _0n$9 : BigInt("0x" + hex);
-}
-/**
-* Parses big-endian bytes into bigint.
-* @param bytes - Bytes in big-endian order.
-* @returns Parsed bigint value.
-* @throws On wrong argument types. {@link TypeError}
-* @example
-* Read a scalar encoded in network byte order.
-*
-* ```ts
-* bytesToNumberBE(Uint8Array.of(1, 0));
-* ```
-*/
-function bytesToNumberBE$1(bytes) {
-	return hexToNumber$1(bytesToHex$3(bytes));
-}
-/**
-* Parses little-endian bytes into bigint.
-* @param bytes - Bytes in little-endian order.
-* @returns Parsed bigint value.
-* @throws On wrong argument types. {@link TypeError}
-* @example
-* Read a scalar encoded in little-endian form.
-*
-* ```ts
-* bytesToNumberLE(Uint8Array.of(1, 0));
-* ```
-*/
-function bytesToNumberLE$1(bytes) {
-	return hexToNumber$1(bytesToHex$3(copyBytes$1(abytes$2(bytes)).reverse()));
-}
-/**
-* Encodes a bigint into fixed-length big-endian bytes.
-* @param n - Number to encode.
-* @param len - Output length in bytes. Must be greater than zero.
-* @returns Big-endian byte array.
-* @throws On wrong argument ranges or values. {@link RangeError}
-* @throws If a documented runtime validation or state check fails. {@link Error}
-* @example
-* Serialize a scalar into a 32-byte field element.
-*
-* ```ts
-* numberToBytesBE(255n, 2);
-* ```
-*/
-function numberToBytesBE$1(n, len) {
-	anumber$2(len);
-	if (len === 0) throw new Error("zero output length is invalid");
-	n = abignumber(n);
-	const expectedLen = len * 2;
-	const hex = n.toString(16);
-	if (hex.length > expectedLen) throw new RangeError("number is too large");
-	return hexToBytes$3(hex.padStart(expectedLen, "0"));
-}
-/**
-* Encodes a bigint into fixed-length little-endian bytes.
-* @param n - Number to encode.
-* @param len - Output length in bytes.
-* @returns Little-endian byte array.
-* @throws On wrong argument ranges or values. {@link RangeError}
-* @throws If a documented runtime validation or state check fails. {@link Error}
-* @example
-* Serialize a scalar for little-endian protocols.
-*
-* ```ts
-* numberToBytesLE(255n, 2);
-* ```
-*/
-function numberToBytesLE$1(n, len) {
-	return numberToBytesBE$1(n, len).reverse();
-}
-/**
-* Copies Uint8Array. We can't use u8a.slice(), because u8a can be Buffer,
-* and Buffer#slice creates mutable copy. Never use Buffers!
-* @param bytes - Bytes to copy.
-* @returns Detached copy.
-* @example
-* Make an isolated copy before mutating serialized bytes.
-*
-* ```ts
-* copyBytes(Uint8Array.of(1, 2, 3));
-* ```
-*/
-function copyBytes$1(bytes) {
-	return Uint8Array.from(abytes$1(bytes));
-}
-/**
-* Checks whether n is non-negative bigint. Historical name.
-* @param n - candidate value
-* @returns `true` when the value is bigint and 0 or larger
-* @example
-* Check a candidate scalar before range validation.
-*
-* ```ts
-* isPosBig(2n);
-* ```
-*/
-function isPosBig$1(n) {
-	return typeof n === "bigint" && _0n$9 <= n;
-}
-/**
-* Checks whether a bigint lies inside a half-open range.
-* @param n - Candidate value.
-* @param min - Inclusive lower bound.
-* @param max - Exclusive upper bound.
-* @returns `true` when the value is inside the range.
-* @example
-* Check whether a candidate scalar fits the field order.
-*
-* ```ts
-* inRange(2n, 1n, 3n);
-* ```
-*/
-function inRange$1(n, min, max) {
-	return isPosBig$1(n) && isPosBig$1(min) && isPosBig$1(max) && min <= n && n < max;
-}
-/**
-* Asserts `min <= n < max`. NOTE: upper bound is exclusive.
-* @param title - Value label for error messages.
-* @param n - Candidate value.
-* @param min - Inclusive lower bound.
-* @param max - Exclusive upper bound.
-* Wrong-type inputs are not separated from out-of-range values here: they still flow through the
-* shared `RangeError` path because this is only a throwing wrapper around `inRange(...)`.
-* @throws On wrong argument ranges or values. {@link RangeError}
-* @example
-* Assert that a bigint stays within one half-open range.
-*
-* ```ts
-* aInRange('x', 2n, 1n, 256n);
-* ```
-*/
-function aInRange$1(title, n, min, max) {
-	if (!inRange$1(n, min, max)) throw new RangeError("expected valid " + title + ": " + min + " <= n < " + max + ", got " + n);
-}
-/**
-* Calculates amount of bits in a bigint.
-* Same as `n.toString(2).length`
-* TODO: merge with nLength in modular
-* @param n - Value to inspect.
-* @returns Bit length.
-* @throws If the value is negative. {@link Error}
-* @example
-* Measure the bit length of a scalar before serialization.
-*
-* ```ts
-* bitLen(8n);
-* ```
-*/
-function bitLen$1(n) {
-	if (n < _0n$9) throw new Error("expected non-negative bigint, got " + n);
-	return n === _0n$9 ? 0 : n.toString(2).length;
-}
-/**
-* Calculate mask for N bits. Not using ** operator with bigints because of old engines.
-* Same as BigInt(`0b${Array(i).fill('1').join('')}`)
-* @param n - Number of bits. Negative widths are currently passed through to raw bigint shift
-*   semantics and therefore produce `-1n`.
-* @returns Bitmask value.
-* @example
-* Calculate mask for N bits.
-*
-* ```ts
-* bitMask(4);
-* ```
-*/
-var bitMask$1 = (n) => {
-	asafenumber(n, "n");
-	return (_1n$10 << BigInt(n)) - _1n$10;
-};
-/**
-* Validates declared required and optional field types on a plain object.
-* Extra keys are intentionally ignored because many callers validate only the subset they use from
-* richer option bags or runtime objects.
-* This walks field schemas and formats detailed errors, so avoid it on hot paths; use direct
-* one-line guards such as `aobject()`, `afunction()`, `abool()`, or `asafenumber()` instead.
-* @param object - Object to validate.
-* @param fields - Required field types.
-* @param optFields - Optional field types.
-* @param title - Object label included in thrown errors.
-* @throws On wrong argument types. {@link TypeError}
-* @example
-* Check user options before building a curve helper.
-*
-* ```ts
-* validateObject({ flag: true }, { flag: 'boolean' });
-* ```
-*/
-function validateObject(object, fields = {}, optFields = {}, title = "object") {
-	aobject(object, title);
-	aobject(fields, "fields");
-	aobject(optFields, "optFields");
-	function checkField(fieldName, expectedType, isOpt) {
-		const label = title === "object" ? `param "${String(fieldName)}"` : `"${title}.${String(fieldName)}"`;
-		const val = object[fieldName];
-		if (!Object.hasOwn(object, fieldName) && (isOpt ? val !== void 0 : expectedType !== "function")) throw new TypeError(`${label} is invalid: expected own property`);
-		if (isOpt && val === void 0) return;
-		const current = typeof val;
-		if (current !== expectedType || val === null) throw new TypeError(`${label} is invalid: expected ${expectedType}, got ${current}`);
-	}
-	const iter = (f, isOpt) => Object.entries(f).forEach(([k, v]) => checkField(k, v, isOpt));
-	iter(fields, false);
-	iter(optFields, true);
-}
-//#endregion
-//#region node_modules/@noble/curves/abstract/modular.js
-/**
-* Utils for modular division and fields.
-* Field over 11 is a finite (Galois) field is integer number operations `mod 11`.
-* There is no division: it is replaced by modular multiplicative inverse.
-* @module
-*/
-/*! noble-curves - MIT License (c) 2022 Paul Miller (paulmillr.com) */
-var _0n$8 = /* @__PURE__ */ BigInt(0);
-var _1n$9 = /* @__PURE__ */ BigInt(1);
-var _2n$7 = /* @__PURE__ */ BigInt(2);
-var _3n$2 = /* @__PURE__ */ BigInt(3);
-var _4n$4 = /* @__PURE__ */ BigInt(4);
-var _5n$3 = /* @__PURE__ */ BigInt(5);
-var _7n$1 = /* @__PURE__ */ BigInt(7);
-var _8n$5 = /* @__PURE__ */ BigInt(8);
-var _9n$1 = /* @__PURE__ */ BigInt(9);
-var _15n = /* @__PURE__ */ BigInt(15);
-var _16n$1 = /* @__PURE__ */ BigInt(16);
-var POW_WINDOWED_MIN = /* @__PURE__ */ BigInt("0x10000000000000000");
-/**
-* @param a - Dividend value.
-* @param b - Positive modulus.
-* @returns Reduced value in `[0, b)` only when `b` is positive.
-* @throws If the modulus is not positive. {@link Error}
-* @example
-* Normalize a bigint into one field residue.
-*
-* ```ts
-* mod(-1n, 5n);
-* ```
-*/
-function mod$1(a, b) {
-	if (b <= _0n$8) throw new Error("mod: expected positive modulus, got " + b);
-	const result = a % b;
-	return result >= _0n$8 ? result : b + result;
-}
-/**
-* Efficiently raise num to a power with modular reduction.
-* Unsafe in some contexts: uses ladder, so can expose bigint bits.
-* Low-level helper: callers that need canonical residues must pass a valid `num` for the chosen
-* modulus instead of relying on the `power===0/1` fast paths to normalize it.
-* @param num - Base value.
-* @param power - Exponent value.
-* @param modulo - Reduction modulus.
-* @returns Modular exponentiation result.
-* @throws If the modulus or exponent is invalid. {@link Error}
-* @example
-* Raise one bigint to a modular power.
-*
-* ```ts
-* pow(2n, 6n, 11n) // 64n % 11n == 9n
-* ```
-*/
-function pow(num, power, modulo) {
-	if (modulo <= _1n$9) throw new Error("pow: expected modulus > 1, got " + modulo);
-	if (typeof power !== "bigint") throw new TypeError("invalid exponent: expected bigint, got " + typeof power);
-	if (power < _0n$8) throw new Error("invalid exponent, negatives unsupported");
-	if (power === _0n$8) return _1n$9;
-	if (power === _1n$9) return num;
-	let d = num % modulo;
-	if (d < _0n$8) d += modulo;
-	if (power < POW_WINDOWED_MIN) {
-		let p = _1n$9;
-		while (power > _0n$8) {
-			if (power & _1n$9) p = p * d % modulo;
-			d = d * d % modulo;
-			power >>= _1n$9;
-		}
-		return p;
-	}
-	const digits = [];
-	while (power > _0n$8) {
-		digits.push(Number(power & _15n));
-		power >>= _4n$4;
-	}
-	const table = new Array(16);
-	table[0] = _1n$9;
-	table[1] = d;
-	for (let i = 2; i < 16; i++) table[i] = table[i - 1] * d % modulo;
-	let p = table[digits[digits.length - 1]];
-	for (let w = digits.length - 2; w >= 0; w--) {
-		p = p * p % modulo;
-		p = p * p % modulo;
-		p = p * p % modulo;
-		p = p * p % modulo;
-		const digit = digits[w];
-		if (digit !== 0) p = p * table[digit] % modulo;
-	}
-	return p;
-}
-/**
-* Does `x^(2^power)` mod p. `pow2(30, 4)` == `30^(2^4)`.
-* Low-level helper: callers that need canonical residues must pass a valid `x` for the chosen
-* modulus; the `power===0` fast path intentionally returns the input unchanged.
-* @param x - Base value.
-* @param power - Number of squarings.
-* @param modulo - Reduction modulus.
-* @returns Repeated-squaring result.
-* @throws If the exponent is negative. {@link Error}
-* @example
-* Apply repeated squaring inside one field.
-*
-* ```ts
-* pow2(3n, 2n, 11n);
-* ```
-*/
-function pow2$1(x, power, modulo) {
-	if (modulo <= _1n$9) throw new Error("pow2: expected modulus > 1, got " + modulo);
-	if (power < _0n$8) throw new Error("pow2: expected non-negative exponent, got " + power);
-	let res = x;
-	while (power-- > _0n$8) {
-		res *= res;
-		res %= modulo;
-	}
-	return res;
-}
-/**
-* Inverses number over modulo.
-* Implemented using the {@link https://brilliant.org/wiki/extended-euclidean-algorithm/ | extended Euclidean algorithm}.
-* @param number - Value to invert.
-* @param modulo - Modulus greater than 1.
-* @returns Multiplicative inverse.
-* @throws If the modulus is invalid or the inverse does not exist. {@link Error}
-* @example
-* Compute one modular inverse with the extended Euclidean algorithm.
-*
-* ```ts
-* invert(3n, 11n);
-* ```
-*/
-function invert$1(number, modulo) {
-	if (number === _0n$8) throw new Error("invert: expected non-zero number");
-	if (modulo <= _1n$9) throw new Error("invert: expected modulus > 1, got " + modulo);
-	let a = mod$1(number, modulo);
-	let b = modulo;
-	let x = _0n$8, u = _1n$9;
-	while (a !== _0n$8) {
-		const q = b / a;
-		const r = b - a * q;
-		const m = x - u * q;
-		b = a, a = r, x = u, u = m;
-	}
-	if (b !== _1n$9) throw new Error("invert: does not exist");
-	return mod$1(x, modulo);
-}
-function assertIsSquare$1(Fp, root, n) {
-	const F = Fp;
-	if (!F.eql(F.sqr(root), n)) throw new Error("Cannot find square root");
-}
-function aoddModulus(order, fnName) {
-	if ((order & _1n$9) === _0n$8) throw new Error(fnName + ": expected odd modulus, got " + order);
-}
-function sqrt3mod4$1(Fp, n) {
-	const F = Fp;
-	const p1div4 = (F.ORDER + _1n$9) / _4n$4;
-	const root = F.pow(n, p1div4);
-	assertIsSquare$1(F, root, n);
-	return root;
-}
-function sqrt5mod8$1(Fp, n) {
-	const F = Fp;
-	const p5div8 = (F.ORDER - _5n$3) / _8n$5;
-	const n2 = F.mul(n, _2n$7);
-	const v = F.pow(n2, p5div8);
-	const nv = F.mul(n, v);
-	const i = F.mul(F.mul(nv, _2n$7), v);
-	const root = F.mul(nv, F.sub(i, F.ONE));
-	assertIsSquare$1(F, root, n);
-	return root;
-}
-function sqrt9mod16$1(P) {
-	const Fp_ = Field$1(P);
-	const tn = tonelliShanks$1(P);
-	const c1 = tn(Fp_, Fp_.neg(Fp_.ONE));
-	const c2 = tn(Fp_, c1);
-	const c3 = tn(Fp_, Fp_.neg(c1));
-	const c4 = (P + _7n$1) / _16n$1;
-	return ((Fp, n) => {
-		const F = Fp;
-		let tv1 = F.pow(n, c4);
-		let tv2 = F.mul(tv1, c1);
-		const tv3 = F.mul(tv1, c2);
-		const tv4 = F.mul(tv1, c3);
-		const e1 = F.eql(F.sqr(tv2), n);
-		const e2 = F.eql(F.sqr(tv3), n);
-		tv1 = F.cmov(tv1, tv2, e1);
-		tv2 = F.cmov(tv4, tv3, e2);
-		const e3 = F.eql(F.sqr(tv2), n);
-		const root = F.cmov(tv1, tv2, e3);
-		assertIsSquare$1(F, root, n);
-		return root;
-	});
-}
-/**
-* Tonelli-Shanks square root search algorithm.
-* This implementation is variable-time: it searches data-dependently for the first non-residue `Z`
-* and for the smallest `i` in the main loop, unlike RFC 9380 Appendix I.4's constant-time shape.
-* 1. {@link https://eprint.iacr.org/2012/685.pdf | eprint 2012/685}, page 12
-* 2. Square Roots from 1; 24, 51, 10 to Dan Shanks
-* @param P - field order
-* @returns function that takes field Fp (created from P) and number n
-* @throws If the field is too small, non-prime, or the square root does not exist. {@link Error}
-* @example
-* Construct a square-root helper for primes that need Tonelli-Shanks.
-*
-* ```ts
-* import { Field, tonelliShanks } from '@noble/curves/abstract/modular.js';
-* const Fp = Field(17n);
-* const sqrt = tonelliShanks(17n)(Fp, 4n);
-* ```
-*/
-function tonelliShanks$1(P) {
-	if (P < _3n$2) throw new Error("sqrt is not defined for small field");
-	aoddModulus(P, "tonelliShanks");
-	let Q = P - _1n$9;
-	let S = 0;
-	while (Q % _2n$7 === _0n$8) {
-		Q /= _2n$7;
-		S++;
-	}
-	let Z = _2n$7;
-	const _Fp = Field$1(P);
-	while (FpLegendre$1(_Fp, Z) === 1) if (Z++ > 1e3) throw new Error("Cannot find square root: probably non-prime P");
-	if (S === 1) return sqrt3mod4$1;
-	let cc = _Fp.pow(Z, Q);
-	const Q1div2 = (Q + _1n$9) / _2n$7;
-	return function tonelliSlow(Fp, n) {
-		const F = Fp;
-		if (F.is0(n)) return n;
-		if (FpLegendre$1(F, n) !== 1) throw new Error("Cannot find square root");
-		let M = S;
-		let c = F.mul(F.ONE, cc);
-		let t = F.pow(n, Q);
-		let R = F.pow(n, Q1div2);
-		while (!F.eql(t, F.ONE)) {
-			if (F.is0(t)) throw new Error("Cannot find square root: probably non-prime P");
-			let i = 1;
-			let t_tmp = F.sqr(t);
-			while (!F.eql(t_tmp, F.ONE)) {
-				i++;
-				t_tmp = F.sqr(t_tmp);
-				if (i === M) throw new Error("Cannot find square root");
-			}
-			const exponent = _1n$9 << BigInt(M - i - 1);
-			const b = F.pow(c, exponent);
-			M = i;
-			c = F.sqr(b);
-			t = F.mul(t, c);
-			R = F.mul(R, b);
-		}
-		return R;
-	};
-}
-/**
-* Square root for a finite field. Will try optimized versions first:
-*
-* 1. P ≡ 3 (mod 4)
-* 2. P ≡ 5 (mod 8)
-* 3. P ≡ 9 (mod 16)
-* 4. Tonelli-Shanks algorithm
-*
-* Different algorithms can give different roots, it is up to user to decide which one they want.
-* For example there is FpSqrtOdd/FpSqrtEven to choose a root by oddness
-* (used for hash-to-curve).
-* @param P - Field order.
-* @returns Square-root helper. The generic fallback inherits Tonelli-Shanks' variable-time
-*   behavior and this selector assumes prime-field-style integer moduli.
-* @throws If the field is unsupported or the square root does not exist. {@link Error}
-* @example
-* Choose the square-root helper appropriate for one field modulus.
-*
-* ```ts
-* import { Field, FpSqrt } from '@noble/curves/abstract/modular.js';
-* const Fp = Field(17n);
-* const sqrt = FpSqrt(17n)(Fp, 4n);
-* ```
-*/
-function FpSqrt$1(P) {
-	aoddModulus(P, "Fp.sqrt");
-	if (P % _4n$4 === _3n$2) return sqrt3mod4$1;
-	if (P % _8n$5 === _5n$3) return sqrt5mod8$1;
-	if (P % _16n$1 === _9n$1) return sqrt9mod16$1(P);
-	return tonelliShanks$1(P);
-}
-/**
-* @param num - Value to inspect.
-* @param modulo - Field modulus.
-* @returns `true` when the least-significant little-endian bit is set.
-* @throws If the modulus is invalid for `mod(...)`. {@link Error}
-* @example
-* Inspect the low bit used by little-endian sign conventions.
-*
-* ```ts
-* isNegativeLE(3n, 11n);
-* ```
-*/
-var isNegativeLE$1 = (num, modulo) => (mod$1(num, modulo) & _1n$9) === _1n$9;
-var FIELD_FIELDS$1 = [
-	"create",
-	"isValid",
-	"is0",
-	"neg",
-	"inv",
-	"sqrt",
-	"sqr",
-	"eql",
-	"add",
-	"sub",
-	"mul",
-	"pow",
-	"div",
-	"addN",
-	"subN",
-	"mulN",
-	"sqrN"
-];
-/**
-* @param field - Field implementation.
-* @returns Validated field. This only checks the arithmetic subset needed by generic helpers; it
-*   does not guarantee full runtime-method coverage for serialization, batching, `cmov`, or
-*   field-specific extras beyond positive `BYTES` / `BITS`.
-* @throws If the field shape or numeric metadata are invalid. {@link Error}
-* @example
-* Check that a field implementation exposes the operations curve code expects.
-*
-* ```ts
-* import { Field, validateField } from '@noble/curves/abstract/modular.js';
-* const Fp = validateField(Field(17n));
-* ```
-*/
-function validateField$1(field) {
-	aobject(field, "field");
-	if (typeof field.ORDER !== "bigint") throw new TypeError("param \"ORDER\" is invalid: expected bigint, got " + typeof field.ORDER);
-	asafenumber(field.BYTES, "BYTES");
-	asafenumber(field.BITS, "BITS");
-	for (const name of FIELD_FIELDS$1) afunction(field[name], "field." + name);
-	if (field.BYTES < 1 || field.BITS < 1) throw new Error("invalid field: expected BYTES/BITS > 0");
-	if (field.ORDER <= _1n$9) throw new Error("invalid field: expected ORDER > 1, got " + field.ORDER);
-	return field;
-}
-function FpInvertBatch$1(Fp, nums, passZero = false) {
-	validateField$1(Fp);
-	aarray(nums, "nums");
-	abool(passZero, "passZero");
-	const F = Fp;
-	const inverted = new Array(nums.length).fill(passZero ? F.ZERO : void 0);
-	const multipliedAcc = nums.reduce((acc, num, i) => {
-		if (F.is0(num)) return acc;
-		inverted[i] = acc;
-		return F.mul(acc, num);
-	}, F.ONE);
-	const invertedAcc = F.inv(multipliedAcc);
-	nums.reduceRight((acc, num, i) => {
-		if (F.is0(num)) return acc;
-		inverted[i] = F.mul(acc, inverted[i]);
-		return F.mul(acc, num);
-	}, invertedAcc);
-	return inverted;
-}
-/**
-* Legendre symbol.
-* Legendre constant is used to calculate Legendre symbol (a | p)
-* which denotes the value of a^((p-1)/2) (mod p).
-*
-* * (a | p) ≡ 1    if a is a square (mod p), quadratic residue
-* * (a | p) ≡ -1   if a is not a square (mod p), quadratic non residue
-* * (a | p) ≡ 0    if a ≡ 0 (mod p)
-* @param Fp - Field implementation.
-* @param n - Value to inspect.
-* @returns Legendre symbol.
-* @throws If the powered value does not match a valid Legendre symbol. {@link Error}
-* @example
-* Compute the Legendre symbol of one field element.
-*
-* ```ts
-* import { Field, FpLegendre } from '@noble/curves/abstract/modular.js';
-* const Fp = Field(17n);
-* const symbol = FpLegendre(Fp, 4n);
-* ```
-*/
-function FpLegendre$1(Fp, n) {
-	validateField$1(Fp);
-	const F = Fp;
-	aoddModulus(F.ORDER, "FpLegendre");
-	const p1mod2 = (F.ORDER - _1n$9) / _2n$7;
-	const powered = F.pow(n, p1mod2);
-	const yes = F.eql(powered, F.ONE);
-	const zero = F.eql(powered, F.ZERO);
-	const no = F.eql(powered, F.neg(F.ONE));
-	if (!yes && !zero && !no) throw new Error("invalid Legendre symbol result");
-	return yes ? 1 : zero ? 0 : -1;
-}
-/**
-* @param n - Curve order. Callers are expected to pass a positive order.
-* @param nBitLength - Optional cached bit length. Callers are expected to pass a positive cached
-*   value when overriding the derived bit length.
-* @returns Byte and bit lengths.
-* @throws If the order or cached bit length is invalid. {@link Error}
-* @example
-* Measure the encoding sizes needed for one modulus.
-*
-* ```ts
-* nLength(255n);
-* ```
-*/
-function nLength$1(n, nBitLength) {
-	if (nBitLength !== void 0) anumber$1(nBitLength);
-	if (n <= _0n$8) throw new Error("invalid n length: expected positive n, got " + n);
-	if (nBitLength !== void 0 && nBitLength < 1) throw new Error("invalid n length: expected positive bit length, got " + nBitLength);
-	const bits = bitLen$1(n);
-	if (nBitLength !== void 0 && nBitLength < bits) throw new Error(`invalid n length: expected nBitLength (${nBitLength}) >= bitLen(n) (${bits})`);
-	const _nBitLength = nBitLength !== void 0 ? nBitLength : bits;
-	return {
-		nBitLength: _nBitLength,
-		nByteLength: Math.ceil(_nBitLength / 8)
-	};
-}
-var FIELD_SQRT = /* @__PURE__ */ new WeakMap();
-var _Field = class {
-	ORDER;
-	BITS;
-	BYTES;
-	isLE;
-	ZERO = _0n$8;
-	ONE = _1n$9;
-	_lengths;
-	_mod;
-	constructor(ORDER, opts = {}) {
-		if (ORDER <= _1n$9) throw new Error("invalid field: expected ORDER > 1, got " + ORDER);
-		let _nbitLength = void 0;
-		this.isLE = false;
-		if (opts != null && typeof opts === "object") {
-			if (typeof opts.BITS === "number") _nbitLength = opts.BITS;
-			if (typeof opts.sqrt === "function") Object.defineProperty(this, "sqrt", {
-				value: opts.sqrt,
-				enumerable: true
-			});
-			if (typeof opts.isLE === "boolean") this.isLE = opts.isLE;
-			if (opts.allowedLengths) this._lengths = Object.freeze(opts.allowedLengths.slice());
-			if (typeof opts.modFromBytes === "boolean") this._mod = opts.modFromBytes;
-		}
-		const { nBitLength, nByteLength } = nLength$1(ORDER, _nbitLength);
-		if (nByteLength > 2048) throw new Error("invalid field: expected ORDER of <= 2048 bytes");
-		this.ORDER = ORDER;
-		this.BITS = nBitLength;
-		this.BYTES = nByteLength;
-		Object.freeze(this);
-	}
-	create(num) {
-		return mod$1(num, this.ORDER);
-	}
-	isValid(num) {
-		if (typeof num !== "bigint") throw new TypeError("invalid field element: expected bigint, got " + typeof num);
-		return _0n$8 <= num && num < this.ORDER;
-	}
-	is0(num) {
-		return num === _0n$8;
-	}
-	isValidNot0(num) {
-		return !this.is0(num) && this.isValid(num);
-	}
-	isOdd(num) {
-		return (num & _1n$9) === _1n$9;
-	}
-	neg(num) {
-		return mod$1(-num, this.ORDER);
-	}
-	eql(lhs, rhs) {
-		return lhs === rhs;
-	}
-	sqr(num) {
-		return mod$1(num * num, this.ORDER);
-	}
-	add(lhs, rhs) {
-		return mod$1(lhs + rhs, this.ORDER);
-	}
-	sub(lhs, rhs) {
-		return mod$1(lhs - rhs, this.ORDER);
-	}
-	mul(lhs, rhs) {
-		return mod$1(lhs * rhs, this.ORDER);
-	}
-	pow(num, power) {
-		return pow(num, power, this.ORDER);
-	}
-	div(lhs, rhs) {
-		return mod$1(lhs * invert$1(rhs, this.ORDER), this.ORDER);
-	}
-	sqrN(num) {
-		return num * num;
-	}
-	addN(lhs, rhs) {
-		return lhs + rhs;
-	}
-	subN(lhs, rhs) {
-		return lhs - rhs;
-	}
-	mulN(lhs, rhs) {
-		return lhs * rhs;
-	}
-	inv(num) {
-		return invert$1(num, this.ORDER);
-	}
-	sqrt(num) {
-		let sqrt = FIELD_SQRT.get(this);
-		if (!sqrt) FIELD_SQRT.set(this, sqrt = FpSqrt$1(this.ORDER));
-		return sqrt(this, num);
-	}
-	toBytes(num) {
-		return this.isLE ? numberToBytesLE$1(num, this.BYTES) : numberToBytesBE$1(num, this.BYTES);
-	}
-	fromBytes(bytes, skipValidation = false) {
-		abytes$1(bytes);
-		const { _lengths: allowedLengths, BYTES, isLE, ORDER, _mod: modFromBytes } = this;
-		if (allowedLengths) {
-			if (bytes.length < 1 || !allowedLengths.includes(bytes.length) || bytes.length > BYTES) throw new Error("Field.fromBytes: expected " + allowedLengths + " bytes, got " + bytes.length);
-			const padded = new Uint8Array(BYTES);
-			padded.set(bytes, isLE ? 0 : padded.length - bytes.length);
-			bytes = padded;
-		}
-		if (bytes.length !== BYTES) throw new Error("Field.fromBytes: expected " + BYTES + " bytes, got " + bytes.length);
-		let scalar = isLE ? bytesToNumberLE$1(bytes) : bytesToNumberBE$1(bytes);
-		if (modFromBytes) scalar = mod$1(scalar, ORDER);
-		if (!skipValidation) {
-			if (!this.isValid(scalar)) throw new Error("invalid field element: outside of range 0..ORDER");
-		}
-		return scalar;
-	}
-	invertBatch(lst) {
-		return FpInvertBatch$1(this, lst, true);
-	}
-	cmov(a, b, condition) {
-		abool(condition, "condition");
-		return condition ? b : a;
-	}
-};
-/**
-* Creates a finite field. Major performance optimizations:
-* * 1. Denormalized operations like mulN instead of mul.
-* * 2. Identical object shape: never add or remove keys.
-* * 3. Frozen stable object shape; the lazy sqrt cache lives in a module-level `WeakMap`.
-* Fragile: always run a benchmark on a change.
-* Security note: operations and low-level serializers like `toBytes` don't check `isValid` for
-* all elements for performance and protocol-flexibility reasons; callers are responsible for
-* supplying valid elements when they need canonical field behavior.
-* This is low-level code, please make sure you know what you're doing.
-*
-* Note about field properties:
-* * CHARACTERISTIC p = prime number, number of elements in main subgroup.
-* * ORDER q = similar to cofactor in curves, may be composite `q = p^m`.
-*
-* @param ORDER - field order, probably prime, or could be composite
-* @param opts - Field options such as bit length or endianness. See {@link FieldOpts}.
-* @returns Frozen field instance with a stable object shape. This wrapper forwards `opts` straight
-*   into `_Field`, so it inherits `_Field`'s assumptions about cached sizes and `allowedLengths`.
-* @example
-* Construct one prime field with optional overrides.
-*
-* ```ts
-* Field(11n);
-* ```
-*/
-function Field$1(ORDER, opts = {}) {
-	Object.freeze(_Field.prototype);
-	return new _Field(ORDER, opts);
-}
-//#endregion
-//#region node_modules/@noble/curves/abstract/curve.js
-/**
-* Methods for elliptic curve multiplication by scalars.
-* Contains wNAF-based ScalarMultiplier, pippenger.
-* @module
-*/
-/*! noble-curves - MIT License (c) 2022 Paul Miller (paulmillr.com) */
-var _0n$7 = /* @__PURE__ */ BigInt(0);
-var _1n$8 = /* @__PURE__ */ BigInt(1);
-var _4n$3 = /* @__PURE__ */ BigInt(4);
-var BLIND_BYTES = 16;
-var BLIND_BITS = 128;
-var FW_WINDOW = 5;
-var TABLE_BYTES_MAX = /* @__PURE__ */ (() => 2 ** 31)();
-/**
-* Validates the static surface of a point constructor.
-* This is only a cheap sanity check for the constructor hooks and fields consumed by generic
-* factories; it does not certify `BASE`/`ZERO` semantics or prove the curve implementation itself.
-* @param Point - Runtime point constructor.
-* @throws On missing constructor hooks or malformed field metadata. {@link TypeError}
-* @example
-* Check that one point constructor exposes the static hooks generic helpers need.
-*
-* ```ts
-* import { ed25519 } from '@noble/curves/ed25519.js';
-* import { validatePointCons } from '@noble/curves/abstract/curve.js';
-* validatePointCons(ed25519.Point);
-* ```
-*/
-function validatePointCons(Point) {
-	const pc = Point;
-	if (typeof pc !== "function") throw new TypeError("\"Point\" expected constructor, got type=" + typeof Point);
-	afunction(pc.fromAffine, "Point.fromAffine");
-	afunction(pc.fromBytes, "Point.fromBytes");
-	afunction(pc.fromHex, "Point.fromHex");
-	aobject(pc.BASE, "Point.BASE");
-	aobject(pc.ZERO, "Point.ZERO");
-	validateField$1(pc.Fp);
-	validateField$1(pc.Fn);
-}
-/**
-* Takes a bunch of Projective Points but executes only one
-* inversion on all of them. Inversion is very slow operation,
-* so this improves performance massively.
-* Optimization: converts a list of projective points to a list of identical points with Z=1.
-* Input points are left unchanged; the normalized points are returned as fresh instances.
-* @param c - Point constructor.
-* @param points - Projective points.
-* @returns Fresh projective points reconstructed from normalized affine coordinates.
-* @example
-* Batch-normalize projective points with a single shared inversion.
-*
-* ```ts
-* import { normalizeZ } from '@noble/curves/abstract/curve.js';
-* import { p256 } from '@noble/curves/nist.js';
-* const points = normalizeZ(p256.Point, [p256.Point.BASE, p256.Point.BASE.double()]);
-* ```
-*/
-function normalizeZ$1(c, points) {
-	validatePointCons(c);
-	validateMSMPoints$1(points, c);
-	const invertedZs = FpInvertBatch$1(c.Fp, points.map((p) => p.Z));
-	return points.map((p, i) => c.fromAffine(p.toAffine(invertedZs[i])));
-}
-function validateW$1(W, bits, min = 1) {
-	if (!Number.isSafeInteger(W) || W < min || W > bits) throw new Error("invalid window size, expected [" + min + ".." + bits + "], got W=" + W);
-}
-function validateTableBytes(numPoints, fpBytes) {
-	const bytes = numPoints * (4 * fpBytes + 128);
-	if (bytes > TABLE_BYTES_MAX) throw new Error("invalid window size: table would need ~" + Math.ceil(bytes / 2 ** 20) + " MiB, max " + TABLE_BYTES_MAX / 2 ** 20 + " MiB");
-}
-/**
-* Probes an RNG once, at construction time: returns `undefined` when it is unavailable —
-* throws or returns malformed bytes — so callers can downgrade to their unblinded /
-* deterministic constant-time fallback. Blinding is defense-in-depth (DPA/template
-* hardening), not a correctness or key-secrecy requirement, so availability-based
-* downgrade is acceptable.
-*
-* The downgrade decision is deliberately static. After a successful probe the RNG becomes
-* part of the trusted contract: later misbehavior must fail closed in per-call validation
-* (throw), never downgrade — a dynamic fallback would let a tampered RNG silently strip
-* blinding on demand. A probe can only ever classify broken environments, not adversarial
-* RNGs: a stateful RNG can always behave while probed and misbehave later.
-* @param randomBytes - RNG to probe, or `undefined` when the environment provides none.
-* @param length - Byte length requested from the probe call.
-* @returns The RNG when the probe produced `length` valid bytes; `undefined` otherwise.
-* @example
-* Probe an RNG once before enabling scalar blinding.
-*
-* ```ts
-* import { probeRandomBytes } from '@noble/curves/abstract/curve.js';
-* import { randomBytes } from '@noble/hashes/utils.js';
-* const rng = probeRandomBytes(randomBytes, 16);
-* ```
-*/
-function probeRandomBytes(randomBytes, length) {
-	if (randomBytes === void 0) return void 0;
-	afunction(randomBytes, "randomBytes");
-	try {
-		const probe = randomBytes(length);
-		if (!isBytes$1(probe) || probe.length !== length) return void 0;
-	} catch {
-		return;
-	}
-	return randomBytes;
-}
-function validateMSMPoints$1(points, c) {
-	aarray(points, "points");
-	points.forEach((p, i) => {
-		if (!(p instanceof c)) throw new Error("invalid point at index " + i);
-	});
-}
-function validateMSMScalars$1(scalars, field, maxScalar) {
-	if (!Array.isArray(scalars)) throw new Error("array of scalars expected");
-	scalars.forEach((s, i) => {
-		if (!(maxScalar === void 0 ? field.isValid(s) : isPosBig$1(s) && s < maxScalar)) throw new Error("invalid scalar at index " + i);
-	});
-}
-var pointWindowSizes$1 = /* @__PURE__ */ new WeakMap();
-function getWindowSize(P) {
-	return pointWindowSizes$1.get(P) || 1;
-}
-/** Table of odd multiples [1P, 3P, ..., (2⋅size−1)P]; width-W wNAF uses size = 2^(W−2). */
-function oddMultiples(p, size) {
-	const dbl = p.double();
-	const t = [p];
-	for (let j = 1; j < size; j++) t.push(t[j - 1].add(dbl));
-	return t;
-}
-/**
-* Width-W wNAF signed-digit recoding (W >= 2), LSB-first: digits are 0 or odd with
-* |digit| < 2^(W−1); nonzero density ~1/(W+1) (a nonzero digit is followed by W−1 zeros).
-*/
-function wnafDigits(n, W) {
-	const size = 2 ** W;
-	const half = size / 2;
-	const mask = BigInt(size - 1);
-	const d = [];
-	while (n > _0n$7) {
-		let w = 0;
-		if (n & _1n$8) {
-			w = Number(n & mask);
-			if (w >= half) w -= size;
-			n -= BigInt(w);
-		}
-		d.push(w);
-		n >>= _1n$8;
-	}
-	return d;
-}
-/**
-* Fixed-position signed-window recoding for precomputed wNAF: `n = Σ digits[w]⋅2^(w⋅W)` with
-* digits in `[−2^(W−1)+1, 2^(W−1)]`. Digit count is fixed by `windows` (callers reserve one
-* extra window for the final carry), so recoding length does not depend on the scalar.
-*/
-function signedWindowDigits(n, W, windows) {
-	const size = 2 ** W;
-	const half = size / 2;
-	const mask = BigInt(size - 1);
-	const shiftBy = BigInt(W);
-	const d = [];
-	for (let w = 0; w < windows; w++) {
-		let v = Number(n & mask);
-		n >>= shiftBy;
-		if (v > half) {
-			v -= size;
-			n += _1n$8;
-		}
-		d.push(v);
-	}
-	if (n !== _0n$7) throw new Error("invalid wnaf");
-	return d;
-}
-/**
-* Shared vartime walk over per-scalar wNAF digit streams: one doubling of a single shared
-* accumulator per bit position of the longest recoding, one signed table addition per
-* nonzero digit. `tables[i]` must hold the odd multiples of the i-th point.
-*/
-function wnafWalk(zero, tables, digits) {
-	let max = 0;
-	for (const d of digits) max = Math.max(max, d.length);
-	let acc = zero;
-	for (let bit = max - 1; bit >= 0; bit--) {
-		if (bit !== max - 1) acc = acc.double();
-		for (let i = 0; i < digits.length; i++) {
-			const w = digits[i][bit];
-			if (w) {
-				const item = tables[i][Math.abs(w) - 1 >> 1];
-				acc = acc.add(w < 0 ? item.negate() : item);
-			}
-		}
-	}
-	return acc;
-}
-/**
-* Elliptic curve multiplication of Point by scalar.
-* Routes between cached-table, fixed-window, and one-shot wNAF paths; entry points validate
-* their own scalars (`mulCT`/`mulCTBlinded`: `1 <= s < Fn.ORDER`; `mulUnsafe`: up to the
-* `Fn.ORDER^4` DoS cap via {@link mulAddUnsafe}).
-* Table generation is expensive and happens on first call of `multiply()`
-* (or eagerly via `precompute(W, false)`). By default, `BASE` point is precomputed.
-*
-* Cached algorithm is signed fixed-window wNAF:
-* - table stores, for every window w, the multiples `[1..2^(W−1)]⋅2^(w⋅W)⋅P` — all doublings
-*   are baked in, so a multiplication is exactly one table addition per window
-* - window count is fixed (`ceil(bits/W) + 1`), so the point-operation count is scalar-independent
-*   (basis of the constant-time path)
-* - for a 256-bit curve and W=6: 44⋅32 = 1408 table points, 44 additions per multiply
-* - secret scalars are additionally blinded (see {@link ScalarMultiplier.mulCTBlinded}), which
-*   widens tables by 128 bits
-* @param Point - Point constructor.
-* @param randomBytes - RNG used for scalar blinding; required by the blinded secret path.
-* @example
-* Elliptic curve multiplication of Point by scalar.
-*
-* ```ts
-* import { ScalarMultiplier } from '@noble/curves/abstract/curve.js';
-* import { p256 } from '@noble/curves/nist.js';
-* const mul = new ScalarMultiplier(p256.Point);
-* ```
-*/
-var ScalarMultiplier = class {
-	Point;
-	BASE;
-	ZERO;
-	randomBytes;
-	wnafPrecomputes = /* @__PURE__ */ new WeakMap();
-	baseCanBeBlinded;
-	bits;
-	constructor(Point, randomBytes) {
-		validatePointCons(Point);
-		this.randomBytes = probeRandomBytes(randomBytes, BLIND_BYTES);
-		this.Point = Point;
-		this.BASE = Point.BASE;
-		this.ZERO = Point.ZERO;
-		this.bits = Point.Fn.BITS;
-	}
-	/**
-	* Creates a signed fixed-window wNAF precomputation table: for every window w, the
-	* multiples `[1..2^(W−1)]⋅2^(w⋅W)⋅P`, flattened. All doublings are baked into the table,
-	* so cached multiplication is additions-only. `windows = ceil(bits/W) + 1`: the extra
-	* window absorbs the final carry of signed-digit recoding.
-	* For a 256-bit curve and W=6, the table is 44⋅32 = 1408 points.
-	* @param point - Point instance
-	* @param W - window size
-	* @param bits - scalar bitlength the table must cover
-	*/
-	buildWnafTable(point, W, bits) {
-		const windows = Math.ceil(bits / W) + 1;
-		const half = 2 ** (W - 1);
-		const comp = [];
-		let base = point;
-		for (let w = 0; w < windows; w++) {
-			let acc = base;
-			for (let i = 0; i < half; i++) {
-				comp.push(acc);
-				acc = acc.add(base);
-			}
-			base = comp[comp.length - 1].double();
-		}
-		return {
-			W,
-			bits,
-			windows,
-			comp
-		};
-	}
-	/**
-	* Implements ec multiplication using precomputed signed fixed-window wNAF tables.
-	* Constant-time: fixed window count with one table addition per window — zero digits feed
-	* the fake accumulator — and no doublings; the lookup scans the whole window slice.
-	* Scalar bounds are validated by the public entry points ({@link ScalarMultiplier.mulCT},
-	* {@link ScalarMultiplier.mulCTBlinded}, {@link ScalarMultiplier.mulUnsafe});
-	* signedWindowDigits throws if `n` exceeds the table.
-	* @returns real and fake (for const-time) points
-	*/
-	wnafCachedCT(precomputes, n) {
-		const { W, windows, comp } = precomputes;
-		const half = 2 ** (W - 1);
-		const digits = signedWindowDigits(n, W, windows);
-		let p = this.ZERO;
-		let f = this.BASE;
-		for (let w = 0; w < windows; w++) {
-			const digit = digits[w];
-			const start = w * half;
-			const idx = Math.abs(digit) - 1;
-			let sel = comp[start];
-			for (let i = 1; i < half; i++) sel = i === idx ? comp[start + i] : sel;
-			const neg = sel.negate();
-			if (digit === 0) f = f.add(comp[start]);
-			else p = p.add(digit < 0 ? neg : sel);
-		}
-		return {
-			p,
-			f
-		};
-	}
-	getWnafPrecomputes(W, point, bits, transform) {
-		let entries = this.wnafPrecomputes.get(point);
-		let comp = entries?.find((entry) => entry.W === W && entry.bits === bits);
-		if (!comp) {
-			comp = this.buildWnafTable(point, W, bits);
-			if (typeof transform === "function") comp = {
-				...comp,
-				comp: transform(comp.comp)
-			};
-			if (!entries) {
-				entries = [];
-				this.wnafPrecomputes.set(point, entries);
-			}
-			entries.push(comp);
-		}
-		return comp;
-	}
-	assertPoint(point) {
-		if (!(point instanceof this.Point)) throw new TypeError("\"point\" expected Point instance, got type=" + typeof point);
-	}
-	validateMulInput(point, scalar) {
-		this.assertPoint(point);
-		if (!inRange$1(scalar, _1n$8, this.Point.Fn.ORDER)) throw new Error("invalid scalar");
-	}
-	runCT(point, n, bits, transform) {
-		const W = getWindowSize(point);
-		if (W === 1) return this.fixedWindowCT(point, n, bits);
-		return this.wnafCachedCT(this.getWnafPrecomputes(W, point, bits, transform), n);
-	}
-	mulCT(point, scalar, transform) {
-		this.validateMulInput(point, scalar);
-		return this.runCT(point, scalar, this.bits, transform);
-	}
-	mulCTBlinded(point, scalar, transform) {
-		this.validateMulInput(point, scalar);
-		if (this.randomBytes === void 0) throw new Error("randomBytes is required for scalar blinding");
-		const bits = this.Point.Fn.BITS + BLIND_BITS;
-		const blind = this.randomBytes(BLIND_BYTES);
-		if (!isBytes$1(blind) || blind.length !== BLIND_BYTES) throw new Error("randomBytes returned invalid byte array");
-		blind[0] = blind[0] & 63 | 128;
-		const n = scalar + bytesToNumberBE$1(blind) * this.Point.Fn.ORDER;
-		return this.runCT(point, n, bits, transform);
-	}
-	/**
-	* Constant-time multiplication `n*point` for an un-precomputed point, via a small fixed window.
-	* A cached wNAF table only pays off when reused; a flat 2^FW_WINDOW table (`size-1` adds) is
-	* far cheaper to build for a single use. The point-operation sequence is independent of `n`:
-	* build the table, then per window exactly FW_WINDOW doublings, a data-oblivious scan over
-	* every table entry, and one addition (adds the identity when the window digit is 0 — never
-	* skipped).
-	*
-	* `n` must be `< 2^bits`. Assumes complete addition (adding the identity costs the same as any
-	* add), which holds for the Weierstrass/Edwards point types used here. The table is left in
-	* projective form (no normalizeZ): normalizing this small a table costs more than the
-	* mixed-add savings it would buy for a single multiply.
-	* @returns real point `p`; `f` duplicates it only to match {@link wnafCachedCT}'s return shape
-	* (this path needs no fake accumulator — its op-count is already scalar-independent).
-	*/
-	fixedWindowCT(point, n, bits) {
-		const W = FW_WINDOW;
-		const size = 32;
-		const mask = bitMask$1(W);
-		const table = new Array(size);
-		table[0] = this.ZERO;
-		for (let i = 1; i < size; i++) table[i] = table[i - 1].add(point);
-		const windows = Math.ceil(bits / W);
-		let acc = this.ZERO;
-		for (let window = windows - 1; window >= 0; window--) {
-			if (window !== windows - 1) for (let d = 0; d < W; d++) acc = acc.double();
-			const digit = Number(n >> BigInt(window * W) & mask);
-			let sel = table[0];
-			for (let i = 1; i < size; i++) sel = i === digit ? table[i] : sel;
-			acc = acc.add(sel);
-		}
-		return {
-			p: acc,
-			f: acc
-		};
-	}
-	shouldBlind(point, cofactor) {
-		if (this.randomBytes === void 0) return false;
-		if (cofactor === _1n$8) return true;
-		if (point !== this.BASE) return false;
-		if (this.baseCanBeBlinded === void 0) this.baseCanBeBlinded = this.mulUnsafe(this.BASE, this.Point.Fn.ORDER).is0();
-		return this.baseCanBeBlinded;
-	}
-	mulSecret(point, scalar, cofactor, transform) {
-		return this.shouldBlind(point, cofactor) ? this.mulCTBlinded(point, scalar, transform) : this.mulCT(point, scalar, transform);
-	}
-	mulUnsafe(point, scalar, transform) {
-		this.assertPoint(point);
-		if (!isPosBig$1(scalar)) throw new Error("invalid scalar");
-		const W = getWindowSize(point);
-		if (W === 1 || scalar >= this.Point.Fn.ORDER) return mulAddUnsafe(this.Point, [point], [scalar], true);
-		const precomputes = this.getWnafPrecomputes(W, point, this.bits, transform);
-		return this.wnafCachedCT(precomputes, scalar).p;
-	}
-	setWindowSize(point, W) {
-		this.assertPoint(point);
-		validateW$1(W, this.bits);
-		validateTableBytes((Math.ceil((this.bits + BLIND_BITS) / W) + 1) * 2 ** (W - 1), this.Point.Fp.BYTES);
-		pointWindowSizes$1.set(point, W);
-		this.wnafPrecomputes.delete(point);
-	}
-	hasWindowSize(point) {
-		return getWindowSize(point) !== 1;
-	}
-};
-/**
-* Combined multi-scalar multiplication `Σ scalars[i]⋅points[i]` via interleaved width-4 wNAF
-* (Strauss–Shamir). Every input gets its own table of odd multiples `[1P, 3P, 5P, 7P]` and
-* signed-digit recoding, but all walks share one doubling chain, so total cost is
-* `~bits` doublings + `L⋅bits/5` additions instead of `L⋅bits` doublings for separate
-* multiplications. Intended for the 2-4 point shapes of signature verification
-* (`R = u1⋅G + u2⋅P`); use {@link pippenger} for larger batches.
-*
-* Not constant-time: only for public inputs. Scalars must satisfy `0 <= s < Fn.ORDER`;
-* fold negative signs into the points before calling.
-* @param c - Point constructor.
-* @param points - Array of curve points.
-* @param scalars - Array of non-negative scalars, same length as points.
-* @param allowOversized - Replace the `s < Fn.ORDER` scalar check with a `Fn.ORDER^4` DoS cap.
-*   Off by default. For scalars that must NOT be reduced mod ORDER: torsion checks
-*   (`Fn.ORDER⋅P ≟ O`) and cofactor-clearing multiples. Walk length grows with `bitLen(s)`.
-* @returns Combined multiplication result; identity for empty input.
-* @throws If the point set or scalar set is invalid. {@link Error}
-* @example
-* Combined multi-scalar multiplication via Strauss–Shamir.
-*
-* ```ts
-* import { mulAddUnsafe } from '@noble/curves/abstract/curve.js';
-* import { p256 } from '@noble/curves/nist.js';
-* const G = p256.Point.BASE;
-* const R = mulAddUnsafe(p256.Point, [G, G.double()], [2n, 3n]); // 2⋅G + 3⋅(2⋅G)
-* ```
-*/
-function mulAddUnsafe(c, points, scalars, allowOversized = false) {
-	validatePointCons(c);
-	validateMSMPoints$1(points, c);
-	abool(allowOversized, "allowOversized");
-	validateMSMScalars$1(scalars, c.Fn, allowOversized ? c.Fn.ORDER ** _4n$3 : void 0);
-	if (points.length !== scalars.length) throw new Error("arrays of points and scalars must have equal length");
-	const tables = points.map((p) => oddMultiples(p, 4));
-	const digits = scalars.map((n) => wnafDigits(n, 4));
-	return wnafWalk(c.ZERO, tables, digits);
-}
-function createField$1(order, field, isLE) {
-	if (field) {
-		if (field.ORDER !== order) throw new Error("Field.ORDER must match order: Fp == p, Fn == n");
-		validateField$1(field);
-		return field;
-	} else return Field$1(order, { isLE });
-}
-/**
-* Validates basic CURVE shape and field membership, then creates fields.
-* This does not prove that the generator is on-curve, that subgroup/order data are consistent, or
-* that the curve equation itself is otherwise sane.
-* @param type - Curve family.
-* @param CURVE - Curve parameters.
-* @param curveOpts - Optional field overrides. See {@link FpFn}:
-*   - `Fp` (optional): Optional base-field override.
-*   - `Fn` (optional): Optional scalar-field override.
-* @param FpFnLE - Whether field encoding is little-endian.
-* @returns Frozen curve parameters and fields.
-* @throws If the curve parameters or field overrides are invalid. {@link Error}
-* @example
-* Build curve fields from raw constants before constructing a curve instance.
-*
-* ```ts
-* const curve = createCurveFields('weierstrass', {
-*   p: 17n,
-*   n: 19n,
-*   h: 1n,
-*   a: 2n,
-*   b: 2n,
-*   Gx: 5n,
-*   Gy: 1n,
-* });
-* ```
-*/
-function createCurveFields(type, CURVE, curveOpts = {}, FpFnLE) {
-	if (type !== "weierstrass" && type !== "edwards") throw new Error("expected curve type \"weierstrass\" or \"edwards\"");
-	if (FpFnLE === void 0) FpFnLE = type === "edwards";
-	if (!CURVE || typeof CURVE !== "object") throw new Error(`expected valid ${type} CURVE object`);
-	validateObject(curveOpts);
-	for (const p of [
-		"p",
-		"n",
-		"h"
-	]) {
-		const val = CURVE[p];
-		if (!(isPosBig$1(val) && val !== _0n$7)) throw new Error(`CURVE.${p} must be positive bigint`);
-	}
-	const Fp = createField$1(CURVE.p, curveOpts.Fp, FpFnLE);
-	const Fn = createField$1(CURVE.n, curveOpts.Fn, FpFnLE);
-	const params = [
-		"Gx",
-		"Gy",
-		"a",
-		type === "weierstrass" ? "b" : "d"
-	];
-	for (const p of params) if (!Fp.isValid(CURVE[p])) throw new Error(`CURVE.${p} must be valid field element of CURVE.Fp`);
-	CURVE = Object.freeze(Object.assign({}, CURVE));
-	return {
-		CURVE,
-		Fp,
-		Fn
-	};
-}
-/**
-* @param randomSecretKey - Secret-key generator.
-* @param getPublicKey - Public-key derivation helper.
-* @returns Keypair generator.
-* @example
-* Build a `keygen()` helper from existing secret-key and public-key primitives.
-*
-* ```ts
-* import { createKeygen } from '@noble/curves/abstract/curve.js';
-* import { p256 } from '@noble/curves/nist.js';
-* const keygen = createKeygen(p256.utils.randomSecretKey, p256.getPublicKey);
-* const pair = keygen();
-* ```
-*/
-function createKeygen(randomSecretKey, getPublicKey) {
-	return function keygen(seed) {
-		const secretKey = randomSecretKey(seed);
-		return {
-			secretKey,
-			publicKey: getPublicKey(secretKey)
-		};
-	};
-}
-//#endregion
-//#region node_modules/@noble/curves/abstract/edwards.js
-/**
-* Twisted Edwards curve. The formula is: ax² + y² = 1 + dx²y².
-* For design rationale of types / exports, see weierstrass module documentation.
-* Untwisted Edwards curves exist, but they aren't used in real-world protocols.
-* @module
-*/
-/*! noble-curves - MIT License (c) 2022 Paul Miller (paulmillr.com) */
-var _0n$6 = /* @__PURE__ */ BigInt(0);
-var _1n$7 = /* @__PURE__ */ BigInt(1);
-var _2n$6 = /* @__PURE__ */ BigInt(2);
-var _4n$2 = /* @__PURE__ */ BigInt(4);
-var _8n$4 = /* @__PURE__ */ BigInt(8);
-function isEdValidXY$1(Fp, CURVE, x, y) {
-	const x2 = Fp.sqr(x);
-	const y2 = Fp.sqr(y);
-	const left = Fp.add(Fp.mul(CURVE.a, x2), y2);
-	const right = Fp.add(Fp.ONE, Fp.mul(CURVE.d, Fp.mul(x2, y2)));
-	return Fp.eql(left, right);
-}
-/**
-* @param params - Curve parameters. See {@link EdwardsOpts}.
-* @param extraOpts - Optional helpers and overrides. See {@link EdwardsExtraOpts}.
-* @returns Edwards point constructor. Generator validation here only checks
-*   that `(Gx, Gy)` satisfies the affine Edwards equation.
-*   RFC 8032 base-point constraints like `B != (0,1)` and `[L]B = 0`
-*   are left to the caller's chosen parameters, since eager subgroup
-*   validation here adds about 10-15ms to heavyweight imports like ed448.
-*   The returned constructor also eagerly marks `Point.BASE` for W=6
-*   precompute caching. Some code paths still assume
-*   `Fp.BYTES === Fn.BYTES`, so mismatched byte lengths are not fully audited here.
-* @throws If the curve parameters or Edwards overrides are invalid. {@link Error}
-* @example
-* ```ts
-* import { edwards } from '@noble/curves/abstract/edwards.js';
-* import { jubjub } from '@noble/curves/misc.js';
-* // Build a point constructor from explicit curve parameters, then use its base point.
-* const Point = edwards(jubjub.Point.CURVE());
-* Point.BASE.toHex();
-* ```
-*/
-function edwards$1(params, extraOpts = {}) {
-	validateObject(extraOpts, {}, {}, "extraOpts");
-	const opts = extraOpts;
-	const validated = createCurveFields("edwards", params, opts, opts.FpFnLE);
-	const { Fp, Fn } = validated;
-	let CURVE = validated.CURVE;
-	const { h: cofactor } = CURVE;
-	if (FpLegendre$1(Fp, CURVE.a) !== 1) throw new Error("edwards: CURVE.a must be a square in Fp for complete addition formulas");
-	if (FpLegendre$1(Fp, CURVE.d) !== -1) throw new Error("edwards: CURVE.d must be a non-square in Fp for complete addition formulas");
-	validateObject(opts, {}, {
-		uvRatio: "function",
-		randomBytes: "function"
-	});
-	const randomBytes = opts.randomBytes === void 0 ? randomBytes$1 : opts.randomBytes;
-	const MASK = _2n$6 << BigInt(Fp.BYTES * 8) - _1n$7;
-	function isOdd(n) {
-		if (!Fp.isOdd) throw new Error("Field does not have .isOdd()");
-		return Fp.isOdd(n);
-	}
-	const uvRatio = opts.uvRatio === void 0 ? (u, v) => {
-		try {
-			return {
-				isValid: true,
-				value: Fp.sqrt(Fp.div(u, v))
-			};
-		} catch (e) {
-			return {
-				isValid: false,
-				value: _0n$6
-			};
-		}
-	} : opts.uvRatio;
-	if (!isEdValidXY$1(Fp, CURVE, CURVE.Gx, CURVE.Gy)) throw new Error("bad curve params: generator point");
-	const mulA = Fp.eql(CURVE.a, Fp.neg(Fp.ONE)) ? (x) => Fp.neg(x) : Fp.eql(CURVE.a, Fp.ONE) ? (x) => x : (x) => Fp.mul(CURVE.a, x);
-	/**
-	* Asserts coordinate is valid: 0 <= n < MASK.
-	* Coordinates >= Fp.ORDER are allowed for zip215.
-	*/
-	function acoord(title, n, banZero = false) {
-		const min = banZero ? _1n$7 : _0n$6;
-		aInRange$1("coordinate " + title, n, min, MASK);
-		return n;
-	}
-	function aedpoint(other) {
-		if (!(other instanceof Point)) throw new Error("EdwardsPoint expected");
-	}
-	class Point {
-		static BASE = new Point(CURVE.Gx, CURVE.Gy, Fp.ONE, Fp.mul(CURVE.Gx, CURVE.Gy));
-		static ZERO = new Point(Fp.ZERO, Fp.ONE, Fp.ONE, Fp.ZERO);
-		static Fp = Fp;
-		static Fn = Fn;
-		X;
-		Y;
-		Z;
-		T;
-		constructor(X, Y, Z, T) {
-			this.X = acoord("x", X);
-			this.Y = acoord("y", Y);
-			this.Z = acoord("z", Z, true);
-			this.T = acoord("t", T);
-			Object.freeze(this);
-		}
-		static CURVE() {
-			return CURVE;
-		}
-		/**
-		* Create one extended Edwards point from affine coordinates.
-		* Does NOT validate that the point is on-curve or torsion-free.
-		* Use `.assertValidity()` on adversarial inputs.
-		*/
-		static fromAffine(p) {
-			if (p instanceof Point) throw new Error("extended point not allowed");
-			const { x, y } = p || {};
-			acoord("x", x);
-			acoord("y", y);
-			return new Point(x, y, Fp.ONE, Fp.mul(x, y));
-		}
-		static fromBytes(bytes, zip215 = false) {
-			const len = Fp.BYTES;
-			const { a, d } = CURVE;
-			bytes = copyBytes$1(abytes$1(bytes, len, "point"));
-			abool(zip215, "zip215");
-			const normed = copyBytes$1(bytes);
-			const lastByte = bytes[len - 1];
-			normed[len - 1] = lastByte & -129;
-			const y = bytesToNumberLE$1(normed);
-			aInRange$1("point.y", y, _0n$6, zip215 ? MASK : Fp.ORDER);
-			const y2 = Fp.sqr(y);
-			const u = Fp.sub(y2, Fp.ONE);
-			const v = Fp.sub(Fp.mulN(d, y2), a);
-			let { isValid, value: x } = uvRatio(u, v);
-			if (!isValid) throw new Error("bad point: invalid y coordinate");
-			const isXOdd = isOdd(x);
-			const isLastByteOdd = (lastByte & 128) !== 0;
-			if (!zip215 && Fp.is0(x) && isLastByteOdd) throw new Error("bad point: x=0 and x_0=1");
-			if (isLastByteOdd !== isXOdd) x = Fp.neg(x);
-			return Point.fromAffine({
-				x,
-				y
-			});
-		}
-		static fromHex(hex, zip215 = false) {
-			return Point.fromBytes(hexToBytes$1(hex), zip215);
-		}
-		get x() {
-			return this.toAffine().x;
-		}
-		get y() {
-			return this.toAffine().y;
-		}
-		precompute(windowSize = 6, isLazy = true) {
-			wnaf.setWindowSize(this, windowSize);
-			if (!isLazy) this.multiply(_2n$6);
-			return this;
-		}
-		assertValidity() {
-			const p = this;
-			const { a, d } = CURVE;
-			if (p.is0()) throw new Error("bad point: ZERO");
-			const { X, Y, Z, T } = p;
-			const X2 = Fp.sqr(X);
-			const Y2 = Fp.sqr(Y);
-			const Z2 = Fp.sqr(Z);
-			const Z4 = Fp.sqr(Z2);
-			const aX2 = Fp.mul(X2, a);
-			const left = Fp.mul(Fp.add(aX2, Y2), Z2);
-			const right = Fp.add(Z4, Fp.mul(d, Fp.mul(X2, Y2)));
-			if (!Fp.eql(left, right)) throw new Error("bad point: equation left != right (1)");
-			const XY = Fp.mul(X, Y);
-			const ZT = Fp.mul(Z, T);
-			if (!Fp.eql(XY, ZT)) throw new Error("bad point: equation left != right (2)");
-		}
-		equals(other) {
-			aedpoint(other);
-			const { X: X1, Y: Y1, Z: Z1 } = this;
-			const { X: X2, Y: Y2, Z: Z2 } = other;
-			const X1Z2 = Fp.mul(X1, Z2);
-			const X2Z1 = Fp.mul(X2, Z1);
-			const Y1Z2 = Fp.mul(Y1, Z2);
-			const Y2Z1 = Fp.mul(Y2, Z1);
-			return Fp.eql(X1Z2, X2Z1) && Fp.eql(Y1Z2, Y2Z1);
-		}
-		is0() {
-			return this.equals(Point.ZERO);
-		}
-		negate() {
-			return new Point(Fp.neg(this.X), this.Y, this.Z, Fp.neg(this.T));
-		}
-		double() {
-			const { X: X1, Y: Y1, Z: Z1 } = this;
-			const A = Fp.sqr(X1);
-			const B = Fp.sqr(Y1);
-			const C = Fp.mul(Fp.sqr(Z1), _2n$6);
-			const D = mulA(A);
-			const x1y1 = Fp.addN(X1, Y1);
-			const E = Fp.sub(Fp.subN(Fp.sqr(x1y1), A), B);
-			const G = Fp.addN(D, B);
-			const F = Fp.subN(G, C);
-			const H = Fp.subN(D, B);
-			const X3 = Fp.mul(E, F);
-			const Y3 = Fp.mul(G, H);
-			const T3 = Fp.mul(E, H);
-			const Z3 = Fp.mul(F, G);
-			return new Point(X3, Y3, Z3, T3);
-		}
-		add(other) {
-			aedpoint(other);
-			const { d } = CURVE;
-			const { X: X1, Y: Y1, Z: Z1, T: T1 } = this;
-			const { X: X2, Y: Y2, Z: Z2, T: T2 } = other;
-			const A = Fp.mul(X1, X2);
-			const B = Fp.mul(Y1, Y2);
-			const C = Fp.mul(Fp.mulN(T1, d), T2);
-			const D = Fp.mul(Z1, Z2);
-			const E = Fp.sub(Fp.subN(Fp.mulN(Fp.addN(X1, Y1), Fp.addN(X2, Y2)), A), B);
-			const F = Fp.subN(D, C);
-			const G = Fp.addN(D, C);
-			const H = Fp.sub(B, mulA(A));
-			const X3 = Fp.mul(E, F);
-			const Y3 = Fp.mul(G, H);
-			const T3 = Fp.mul(E, H);
-			const Z3 = Fp.mul(F, G);
-			return new Point(X3, Y3, Z3, T3);
-		}
-		subtract(other) {
-			aedpoint(other);
-			return this.add(other.negate());
-		}
-		multiply(scalar) {
-			if (!Fn.isValidNot0(scalar)) throw new RangeError("invalid scalar: expected 1 <= sc < curve.n");
-			const { p, f } = wnaf.mulSecret(this, scalar, cofactor, normalize);
-			return normalize([p, f])[0];
-		}
-		multiplyUnsafe(scalar) {
-			if (!Fn.isValid(scalar)) throw new RangeError("invalid scalar: expected 0 <= sc < curve.n");
-			if (scalar === _0n$6) return Point.ZERO;
-			if (this.is0() || scalar === _1n$7) return this;
-			return wnaf.mulUnsafe(this, scalar, normalize);
-		}
-		isSmallOrder() {
-			return this.clearCofactor().is0();
-		}
-		isTorsionFree() {
-			return wnaf.mulUnsafe(this, CURVE.n).is0();
-		}
-		toAffine(invertedZ) {
-			const p = this;
-			let iz = invertedZ;
-			if (iz != null && typeof iz !== "bigint") throw new TypeError("\"invertedZ\" expected bigint, got type=" + typeof iz);
-			const { X, Y, Z } = p;
-			const is0 = p.is0();
-			if (iz == null) iz = is0 ? Fp.create(_8n$4) : Fp.inv(Z);
-			const x = Fp.mul(X, iz);
-			const y = Fp.mul(Y, iz);
-			const zz = Fp.mul(Z, iz);
-			if (is0) return {
-				x: Fp.ZERO,
-				y: Fp.ONE
-			};
-			if (!Fp.eql(zz, Fp.ONE)) throw new Error("invZ was invalid");
-			return {
-				x,
-				y
-			};
-		}
-		clearCofactor() {
-			if (cofactor === _1n$7) return this;
-			if (cofactor === _2n$6) return this.double();
-			if (cofactor === _4n$2) return this.double().double();
-			if (cofactor === _8n$4) return this.double().double().double();
-			return this.multiplyUnsafe(cofactor);
-		}
-		toBytes() {
-			const { x, y } = this.toAffine();
-			const bytes = Fp.toBytes(y);
-			bytes[bytes.length - 1] |= isOdd(x) ? 128 : 0;
-			return bytes;
-		}
-		toHex() {
-			return bytesToHex$1(this.toBytes());
-		}
-		toString() {
-			return `<Point ${this.is0() ? "ZERO" : this.toHex()}>`;
-		}
-	}
-	const normalize = (points) => normalizeZ$1(Point, points);
-	const wnaf = new ScalarMultiplier(Point, randomBytes);
-	if (wnaf.bits >= 6) Point.BASE.precompute(6);
-	Object.freeze(Point.prototype);
-	Object.freeze(Point);
-	return Point;
-}
-/**
-* Initializes EdDSA signatures over given Edwards curve.
-* @param Point - Edwards point constructor.
-* @param cHash - Hash function.
-* @param eddsaOpts - Optional signature helpers. See {@link EdDSAOpts}.
-* @returns EdDSA helper namespace.
-* @throws If the hash function, options, or derived point operations are invalid. {@link Error}
-* @example
-* Initializes EdDSA signatures over given Edwards curve.
-*
-* ```ts
-* import { eddsa } from '@noble/curves/abstract/edwards.js';
-* import { jubjub } from '@noble/curves/misc.js';
-* import { sha512 } from '@noble/hashes/sha2.js';
-* const sigs = eddsa(jubjub.Point, sha512);
-* const { secretKey, publicKey } = sigs.keygen();
-* const msg = new TextEncoder().encode('hello noble');
-* const sig = sigs.sign(msg, secretKey);
-* const isValid = sigs.verify(sig, msg, publicKey);
-* ```
-*/
-function eddsa$1(Point, cHash, eddsaOpts = {}) {
-	validatePointCons(Point);
-	if (typeof cHash !== "function") throw new Error("\"hash\" function param is required");
-	const hash = cHash;
-	const opts = eddsaOpts;
-	validateObject(opts, {}, {
-		adjustScalarBytes: "function",
-		randomBytes: "function",
-		domain: "function",
-		prehash: "function",
-		zip215: "boolean",
-		mapToCurve: "function",
-		toMontgomery: "function",
-		toMontgomerySecret: "function"
-	});
-	const { prehash } = opts;
-	const { BASE, Fp, Fn } = Point;
-	const outputLen = hash.outputLen;
-	const expectedLen = 2 * Fp.BYTES;
-	if (outputLen !== void 0) {
-		asafenumber(outputLen, "hash.outputLen");
-		if (outputLen !== expectedLen) throw new Error(`hash.outputLen must be ${expectedLen}, got ${outputLen}`);
-	}
-	const randomBytes = opts.randomBytes === void 0 ? randomBytes$1 : opts.randomBytes;
-	const toMontgomery = opts.toMontgomery;
-	const toMontgomerySecret = opts.toMontgomerySecret;
-	const adjustScalarBytes = opts.adjustScalarBytes === void 0 ? (bytes) => bytes : opts.adjustScalarBytes;
-	const domain = opts.domain === void 0 ? (data, ctx, phflag) => {
-		abool(phflag, "phflag");
-		if (ctx.length || phflag) throw new Error("Contexts/pre-hash are not supported");
-		return data;
-	} : opts.domain;
-	function modN_LE(hash) {
-		return Fn.create(bytesToNumberLE$1(hash));
-	}
-	function getPrivateScalar(key) {
-		const len = lengths.secretKey;
-		abytes$1(key, lengths.secretKey, "secretKey");
-		const hashed = abytes$1(hash(key), 2 * len, "hashedSecretKey");
-		const head = adjustScalarBytes(hashed.slice(0, len));
-		return {
-			head,
-			prefix: hashed.slice(len, 2 * len),
-			scalar: modN_LE(head)
-		};
-	}
-	/** Convenience method that creates public key from scalar. RFC8032 5.1.5
-	* Also exposes the derived scalar/prefix tuple and point form reused by sign().
-	*/
-	function getExtendedPublicKey(secretKey) {
-		const { head, prefix, scalar } = getPrivateScalar(secretKey);
-		const point = BASE.multiply(scalar);
-		return {
-			head,
-			prefix,
-			scalar,
-			point,
-			pointBytes: point.toBytes()
-		};
-	}
-	/** Calculates EdDSA pub key. RFC8032 5.1.5. */
-	function getPublicKey(secretKey) {
-		return getExtendedPublicKey(secretKey).pointBytes;
-	}
-	function hashDomainToScalar(context = Uint8Array.of(), ...msgs) {
-		const msg = concatBytes$1(...msgs);
-		return modN_LE(hash(domain(msg, abytes$1(context, void 0, "context"), !!prehash)));
-	}
-	/** Signs message with secret key. RFC8032 5.1.6 */
-	function sign(msg, secretKey, options = {}) {
-		validateObject(options, {}, {}, "options");
-		msg = copyBytes$1(abytes$1(msg, void 0, "message"));
-		if (prehash) msg = prehash(msg);
-		const { prefix, scalar, pointBytes } = getExtendedPublicKey(secretKey);
-		const r = hashDomainToScalar(options.context, prefix, msg);
-		const R = BASE.multiply(r).toBytes();
-		const k = hashDomainToScalar(options.context, R, pointBytes, msg);
-		const s = Fn.create(r + k * scalar);
-		if (!Fn.isValid(s)) throw new Error("sign failed: invalid s");
-		return abytes$1(concatBytes$1(R, Fn.toBytes(s)), lengths.signature, "result");
-	}
-	const verifyOpts = { zip215: opts.zip215 };
-	/**
-	* Verifies EdDSA signature against message and public key. RFC 8032 §§5.1.7 and 5.2.7.
-	* A cofactored verification equation is checked.
-	*/
-	function verify(sig, msg, publicKey, options = verifyOpts) {
-		validateObject(options);
-		const { context } = options;
-		const zip215 = options.zip215 === void 0 ? !!verifyOpts.zip215 : options.zip215;
-		const len = lengths.signature;
-		sig = abytes$1(sig, len, "signature");
-		msg = abytes$1(msg, void 0, "message");
-		publicKey = abytes$1(publicKey, lengths.publicKey, "publicKey");
-		if (zip215 !== void 0) abool(zip215, "zip215");
-		if (prehash) msg = prehash(msg);
-		const mid = len / 2;
-		const r = sig.subarray(0, mid);
-		const s = bytesToNumberLE$1(sig.subarray(mid, len));
-		let A, R, SB;
-		try {
-			A = Point.fromBytes(publicKey, zip215);
-			R = Point.fromBytes(r, zip215);
-			SB = BASE.multiplyUnsafe(s);
-		} catch (error) {
-			return false;
-		}
-		if (!zip215 && A.isSmallOrder()) return false;
-		const k = hashDomainToScalar(context, r, publicKey, msg);
-		return R.add(A.multiplyUnsafe(k)).subtract(SB).clearCofactor().is0();
-	}
-	const _size = Fp.BYTES;
-	const lengths = {
-		secretKey: _size,
-		publicKey: _size,
-		signature: 2 * _size,
-		seed: _size
-	};
-	function randomSecretKey(seed) {
-		seed = seed === void 0 ? randomBytes(lengths.seed) : seed;
-		return abytes$1(seed, lengths.seed, "seed");
-	}
-	function isValidSecretKey(key) {
-		return isBytes$1(key) && key.length === lengths.secretKey;
-	}
-	function isValidPublicKey(key, zip215) {
-		try {
-			return !!Point.fromBytes(key, zip215 === void 0 ? verifyOpts.zip215 : zip215);
-		} catch (error) {
-			return false;
-		}
-	}
-	const utils = {
-		getExtendedPublicKey,
-		randomSecretKey,
-		isValidSecretKey,
-		isValidPublicKey,
-		/** Converts an Edwards public key to a companion Montgomery public key. */
-		toMontgomery(publicKey) {
-			if (toMontgomery === void 0) throw new Error("Montgomery conversion is not supported for this curve");
-			return toMontgomery(Point.fromBytes(publicKey));
-		},
-		toMontgomerySecret(secretKey) {
-			if (toMontgomerySecret === void 0) throw new Error("Montgomery conversion is not supported for this curve");
-			return toMontgomerySecret(secretKey);
-		}
-	};
-	Object.freeze(lengths);
-	Object.freeze(utils);
-	return Object.freeze({
-		keygen: createKeygen(randomSecretKey, getPublicKey),
-		getPublicKey,
-		sign,
-		verify,
-		utils,
-		Point,
-		lengths
-	});
-}
-//#endregion
-//#region node_modules/@noble/curves/ed25519.js
-/**
-* ed25519 Twisted Edwards curve with following addons:
-* - X25519 ECDH
-* - Ristretto cofactor elimination
-* - Elligator hash-to-group / point indistinguishability
-* @module
-*/
-/*! noble-curves - MIT License (c) 2022 Paul Miller (paulmillr.com) */
-var _1n$6 = /* @__PURE__ */ BigInt(1);
-var _2n$5 = /* @__PURE__ */ BigInt(2);
-var _5n$2 = /* @__PURE__ */ BigInt(5);
-var _8n$3 = /* @__PURE__ */ BigInt(8);
-var ed25519_CURVE_p$1 = /* @__PURE__ */ BigInt("0x7fffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffed");
-var ed25519_CURVE$1 = /* @__PURE__ */ (() => ({
-	p: ed25519_CURVE_p$1,
-	n: BigInt("0x1000000000000000000000000000000014def9dea2f79cd65812631a5cf5d3ed"),
-	h: _8n$3,
-	a: BigInt("0x7fffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffec"),
-	d: BigInt("0x52036cee2b6ffe738cc740797779e89800700a4d4141d8ab75eb4dca135978a3"),
-	Gx: BigInt("0x216936d3cd6e53fec0a4e231fdd6dc5c692cc7609525a7b2c9562d608f25d51a"),
-	Gy: BigInt("0x6666666666666666666666666666666666666666666666666666666666666658")
-}))();
-function ed25519_pow_2_252_3$1(x) {
-	const _10n = BigInt(10), _20n = BigInt(20), _40n = BigInt(40), _80n = BigInt(80);
-	const P = ed25519_CURVE_p$1;
-	const b2 = x * x % P * x % P;
-	const b5 = pow2$1(pow2$1(b2, _2n$5, P) * b2 % P, _1n$6, P) * x % P;
-	const b10 = pow2$1(b5, _5n$2, P) * b5 % P;
-	const b20 = pow2$1(b10, _10n, P) * b10 % P;
-	const b40 = pow2$1(b20, _20n, P) * b20 % P;
-	const b80 = pow2$1(b40, _40n, P) * b40 % P;
-	return {
-		pow_p_5_8: pow2$1(pow2$1(pow2$1(pow2$1(b80, _80n, P) * b80 % P, _80n, P) * b80 % P, _10n, P) * b10 % P, _2n$5, P) * x % P,
-		b2
-	};
-}
-function adjustScalarBytes$1(bytes) {
-	bytes[0] &= 248;
-	bytes[31] &= 127;
-	bytes[31] |= 64;
-	return bytes;
-}
-var ED25519_SQRT_M1$1 = /* @__PURE__ */ BigInt("19681161376707505956807079304988542015446066515923890162744021073123829784752");
-function uvRatio$1(u, v) {
-	const P = ed25519_CURVE_p$1;
-	const v3 = mod$1(v * v * v, P);
-	const pow = ed25519_pow_2_252_3$1(u * mod$1(v3 * v3 * v, P)).pow_p_5_8;
-	let x = mod$1(u * v3 * pow, P);
-	const vx2 = mod$1(v * x * x, P);
-	const root1 = x;
-	const root2 = mod$1(x * ED25519_SQRT_M1$1, P);
-	const useRoot1 = vx2 === u;
-	const useRoot2 = vx2 === mod$1(-u, P);
-	const noRoot = vx2 === mod$1(-u * ED25519_SQRT_M1$1, P);
-	if (useRoot1) x = root1;
-	if (useRoot2 || noRoot) x = root2;
-	if (isNegativeLE$1(x, P)) x = mod$1(-x, P);
-	return {
-		isValid: useRoot1 || useRoot2,
-		value: x
-	};
-}
-var ed25519_Point = /* @__PURE__ */ edwards$1(ed25519_CURVE$1, { uvRatio: uvRatio$1 });
-var Fp$1 = /* @__PURE__ */ (() => ed25519_Point.Fp)();
-function toMontgomery(point) {
-	const { y } = point;
-	return Fp$1.toBytes(Fp$1.div(_1n$6 + y, _1n$6 - y));
-}
-function toMontgomerySecret(secretKey) {
-	const size = ed25519_Point.Fp.BYTES;
-	abytes$2(secretKey, size);
-	return adjustScalarBytes$1(sha512$1(secretKey.subarray(0, size))).subarray(0, size);
-}
-function ed(opts) {
-	return eddsa$1(ed25519_Point, sha512$1, Object.assign({
-		adjustScalarBytes: adjustScalarBytes$1,
-		toMontgomery,
-		toMontgomerySecret,
-		zip215: true
-	}, opts));
-}
-/**
-* ed25519 curve with EdDSA signatures.
-* Seeded `keygen(seed)` / `utils.randomSecretKey(seed)` reuse the provided
-* 32-byte seed buffer instead of copying it.
-* @example
-* Generate one Ed25519 keypair, sign a message, and verify it.
-*
-* ```js
-* import { ed25519 } from '@noble/curves/ed25519.js';
-* const { secretKey, publicKey } = ed25519.keygen();
-* // const publicKey = ed25519.getPublicKey(secretKey);
-* const msg = new TextEncoder().encode('hello noble');
-* const sig = ed25519.sign(msg, secretKey);
-* const isValid = ed25519.verify(sig, msg, publicKey); // ZIP215
-* // RFC8032 / FIPS 186-5
-* const isValid2 = ed25519.verify(sig, msg, publicKey, { zip215: false });
-* ```
-*/
-var ed25519$1 = /* @__PURE__ */ ed({});
 //#endregion
 //#region node_modules/@solana/web3.js/node_modules/@noble/hashes/esm/cryptoNode.js
 /**
@@ -8712,4 +8712,4 @@ var secp256k1 = createCurve({
 	endo: secp256k1_ENDO
 }, sha256);
 //#endregion
-export { wrapConstructor as A, SHA2 as C, createView$1 as D, checkOpts as E, output as F, sha256$2 as I, bytesToHex$3 as L, exists as M, hash as N, toBytes$1 as O, number as P, hexToBytes$3 as R, sha256$1 as S, asyncLoop as T, toBytes as _, rotlBL as a, secp256k1$1 as b, split as c, aexists as d, anumber as f, swap32IfBE as g, createHasher as h, rotlBH as i, bytes as j, u32$1 as k, Hash as l, clean as m, ed25519 as n, rotlSH as o, aoutput as p, sha256 as r, rotlSL as s, secp256k1 as t, abytes as u, u32 as v, Hash$1 as w, hmac$1 as x, ed25519$1 as y };
+export { bytes as A, Hash$1 as C, toBytes$1 as D, createView$1 as E, ed25519$1 as F, sha256$2 as I, bytesToHex$3 as L, hash as M, number as N, u32$1 as O, output as P, hexToBytes$3 as R, SHA2 as S, checkOpts as T, toBytes as _, rotlBL as a, hmac$1 as b, split as c, aexists as d, anumber as f, swap32IfBE as g, createHasher as h, rotlBH as i, exists as j, wrapConstructor as k, Hash as l, clean as m, ed25519 as n, rotlSH as o, aoutput as p, sha256 as r, rotlSL as s, secp256k1 as t, abytes as u, u32 as v, asyncLoop as w, sha256$1 as x, secp256k1$1 as y };

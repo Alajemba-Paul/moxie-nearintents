@@ -15,16 +15,28 @@ export function devnetConnection(): Connection {
   return new Connection(SOLANA_DEVNET_RPC, "confirmed");
 }
 
-export function injectedProvider(which: "Phantom" | "Solflare"): SolanaProvider | null {
+export type InjectedWallet = "Phantom" | "Solflare" | "Backpack";
+
+export function injectedProvider(which: InjectedWallet): SolanaProvider | null {
   const host = window as Window & {
     phantom?: { solana?: SolanaProvider };
     solflare?: SolanaProvider;
-    solana?: SolanaProvider;
+    backpack?: SolanaProvider;
+    solana?: SolanaProvider & { isBackpack?: boolean };
   };
   if (which === "Phantom") {
     return host.phantom?.solana ?? (host.solana?.isPhantom ? host.solana : null);
   }
-  return host.solflare ?? (host.solana?.isSolflare ? host.solana : null);
+  if (which === "Solflare") {
+    return host.solflare ?? (host.solana?.isSolflare ? host.solana : null);
+  }
+  return host.backpack ?? (host.solana?.isBackpack ? host.solana : null);
+}
+
+export function openMobileWallet(): void {
+  const origin = window.location.origin;
+  const url = `solana-wallet://v1/connect?cluster=devnet&app_url=${encodeURIComponent(origin)}&redirect_link=${encodeURIComponent(origin)}`;
+  window.location.assign(url);
 }
 
 export async function readDevnetBalance(owner: string): Promise<{ amount: bigint; decimals: number }> {

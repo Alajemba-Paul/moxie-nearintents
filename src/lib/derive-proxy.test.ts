@@ -7,7 +7,7 @@ import { derivePolygonAddress } from "./derive-proxy.ts";
 test("proxy address matches the NEAR MPC v1 signer path", () => {
   assert.equal(
     derivePolygonAddress("56UdLRmQvDnpJFSKcZGNBXuzHMcnZcfkfxrP6sBvfPXx"),
-    "0x038b01E2bB97E317d8B9dEa21BdE7CdCF5D11902",
+    "0x6E4CDDf9610C52724086c0ECbd0A2EEec1919854",
   );
 });
 

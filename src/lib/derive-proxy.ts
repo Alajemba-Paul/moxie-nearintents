@@ -8,7 +8,7 @@ export function derivePolygonAddress(
   solanaPubkey: string,
   nearContractId: string = "v1.signer-prod.testnet",
 ): string {
-  const path = `moxie-intents,${solanaPubkey}`;
+  const path = `solana,${solanaPubkey}`;
   const combinedSeed = `${nearContractId},${path}`;
   const hash = ethers.keccak256(ethers.toUtf8Bytes(combinedSeed));
 
