@@ -1,5 +1,5 @@
 import { i as __require, t as __commonJSMin } from "../_runtime.mjs";
-//#region node_modules/@solana/buffer-layout/lib/Layout.js
+// node_modules/@solana/buffer-layout/lib/Layout.js
 /**
 * Support for translating between Uint8Array instances and JavaScript
 * native types.
@@ -2032,5 +2032,4 @@ var require_Layout = /* @__PURE__ */ __commonJSMin(((exports) => {
 	/** Factory for {@link Constant} values. */
 	exports.constant = ((value, property) => new Constant(value, property));
 }));
-//#endregion
 export { require_Layout as t };

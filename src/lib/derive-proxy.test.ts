@@ -1,14 +1,16 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 import { PublicKey } from "@solana/web3.js";
+import { ethers } from "ethers";
 import { SOLANA_ESCROW_PROGRAM_ID } from "../config/constants.ts";
-import { derivePolygonAddress } from "./derive-proxy.ts";
+import { derivationPathOf, derivePolygonAddress } from "./derive-proxy.ts";
 
-test("proxy address matches the NEAR MPC v1 signer path", () => {
-  assert.equal(
-    derivePolygonAddress("56UdLRmQvDnpJFSKcZGNBXuzHMcnZcfkfxrP6sBvfPXx"),
-    "0x6E4CDDf9610C52724086c0ECbd0A2EEec1919854",
-  );
+test("proxy address matches the NEAR MPC v1.signer-prod.testnet moxie-intents path", () => {
+  const pubkey = "56UdLRmQvDnpJFSKcZGNBXuzHMcnZcfkfxrP6sBvfPXx";
+  const expectedSeed = `v1.signer-prod.testnet,moxie-intents,${pubkey}`;
+  const expectedAddress = ethers.getAddress("0x" + ethers.keccak256(ethers.toUtf8Bytes(expectedSeed)).slice(-40));
+  assert.equal(derivationPathOf(pubkey), `moxie-intents,${pubkey}`);
+  assert.equal(derivePolygonAddress(pubkey), expectedAddress);
 });
 
 test("devnet escrow pda is escrow+maker and the vault hangs off it", () => {

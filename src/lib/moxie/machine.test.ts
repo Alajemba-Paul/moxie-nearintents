@@ -220,3 +220,102 @@ describe("planRoute", () => {
     assert.equal(bestQuote(quotes, order.referenceAskMicro, 0, commitment), null);
   });
 });
+
+describe("wallet isolation, onboarding idempotency, and balance accounting", async () => {
+  const { deriveWalletIdentity, useDesk } = await import("./store.ts");
+  const { positionsOf, INITIAL_ONBOARD_USDC } = await import("./format.ts");
+
+  it("derives distinct deterministic Solana addresses per login identity and preserves positions across re-login", () => {
+    // Provide a minimal in-memory window.localStorage shim for Node test runner
+    const storeMap = new Map<string, string>();
+    (globalThis as unknown as { window?: unknown }).window = {
+      localStorage: {
+        getItem: (k: string) => storeMap.get(k) ?? null,
+        setItem: (k: string, v: string) => {
+          storeMap.set(k, v);
+        },
+        removeItem: (k: string) => {
+          storeMap.delete(k);
+        },
+      },
+    };
+
+    const googleWallet = deriveWalletIdentity("Google", null);
+    const xWallet = deriveWalletIdentity("X", null);
+    assert.notEqual(googleWallet.walletAddress, xWallet.walletAddress);
+    assert.equal(
+      googleWallet.walletAddress,
+      deriveWalletIdentity("Google", null).walletAddress,
+    );
+
+    // 1. Brand-new wallet starts at $0.00 before onboarding
+    useDesk.getState().connect("Google", null);
+    assert.equal(useDesk.getState().available, 0);
+    assert.equal(useDesk.getState().orders.length, 0);
+
+    // 2. Auto-onboarding allocates strictly 1000 Test USDC and is idempotent on repeat calls
+    useDesk.getState().completeAutoOnboard(googleWallet.walletAddress);
+    assert.equal(useDesk.getState().available, INITIAL_ONBOARD_USDC);
+    assert.equal(INITIAL_ONBOARD_USDC, 1_000 * 1_000_000);
+    useDesk.getState().completeAutoOnboard(googleWallet.walletAddress);
+    assert.equal(useDesk.getState().available, 1_000 * 1_000_000);
+
+    // 3. Buy a $200 YES position and verify Available Balance = 1000 - 200 = $800
+    useDesk.getState().addToPosition({
+      marketId: "fed-dec-2026",
+      side: "yes",
+      tokenId: outcomeTokenId("fed-dec-2026", "yes"),
+      usdcMicro: 200 * 1_000_000,
+      executionPriceMicro: 500_000,
+      orderType: "market",
+    });
+    assert.equal(useDesk.getState().available, 800 * 1_000_000);
+    assert.equal(positionsOf(useDesk.getState().orders).length, 1);
+
+    // 4. Reject any Buy order exceeding Available Balance ($800)
+    assert.throws(() =>
+      useDesk.getState().addToPosition({
+        marketId: "fed-dec-2026",
+        side: "yes",
+        tokenId: outcomeTokenId("fed-dec-2026", "yes"),
+        usdcMicro: 900 * 1_000_000,
+        executionPriceMicro: 500_000,
+        orderType: "market",
+      }),
+    );
+
+    // 5. Switch to Wallet 2 (X) -> flushes in-memory state, no leak from Google wallet
+    useDesk.getState().connect("X", null);
+    assert.equal(useDesk.getState().available, 0);
+    assert.equal(useDesk.getState().orders.length, 0);
+    assert.equal(positionsOf(useDesk.getState().orders).length, 0);
+
+    // 6. Disconnect -> zeroed state
+    useDesk.getState().disconnect();
+    assert.equal(useDesk.getState().connected, false);
+    assert.equal(useDesk.getState().available, 0);
+    assert.equal(useDesk.getState().orders.length, 0);
+
+    // 7. Re-login to Google wallet -> restores $800 Available Balance, active position, and trade history
+    useDesk.getState().connect("Google", null);
+    assert.equal(useDesk.getState().available, 800 * 1_000_000);
+    assert.equal(positionsOf(useDesk.getState().orders).length, 1);
+    assert.equal(positionsOf(useDesk.getState().orders)[0]?.costMicro, 200 * 1_000_000);
+
+    // 8. Sell 50% of the $200 position ($100 cost basis) for $130 proceeds -> Available = (1000 + 0 + 130) - (100 + 100) = $930
+    useDesk
+      .getState()
+      .cashOutPosition(outcomeTokenId("fed-dec-2026", "yes"), 130 * 1_000_000, 50);
+    assert.equal(useDesk.getState().available, 930 * 1_000_000);
+    assert.equal(positionsOf(useDesk.getState().orders)[0]?.costMicro, 100 * 1_000_000);
+
+    // 9. Theme switching persists to localStorage
+    useDesk.getState().setTheme("light");
+    assert.equal(useDesk.getState().theme, "light");
+    assert.equal(storeMap.get("moxie_theme"), "light");
+    useDesk.getState().setTheme("dark");
+    assert.equal(useDesk.getState().theme, "dark");
+    assert.equal(storeMap.get("moxie_theme"), "dark");
+  });
+});
+

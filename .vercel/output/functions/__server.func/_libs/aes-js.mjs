@@ -1,4 +1,4 @@
-//#region node_modules/aes-js/lib.esm/aes.js
+// node_modules/aes-js/lib.esm/aes.js
 /*! MIT License. Copyright 2015-2022 Richard Moore <me@ricmoo.com>. See LICENSE.txt. */
 var __classPrivateFieldGet$2 = function(receiver, state, kind, f) {
 	if (kind === "a" && !f) throw new TypeError("Private accessor was defined without a getter");
@@ -3786,8 +3786,7 @@ var AES = class AES {
 	}
 };
 _AES_key = /* @__PURE__ */ new WeakMap(), _AES_Kd = /* @__PURE__ */ new WeakMap(), _AES_Ke = /* @__PURE__ */ new WeakMap();
-//#endregion
-//#region node_modules/aes-js/lib.esm/mode.js
+// node_modules/aes-js/lib.esm/mode.js
 var ModeOfOperation = class {
 	constructor(name, key, cls) {
 		if (cls && !(this instanceof cls)) throw new Error(`${name} must be instantiated with "new"`);
@@ -3803,8 +3802,7 @@ var ModeOfOperation = class {
 		});
 	}
 };
-//#endregion
-//#region node_modules/aes-js/lib.esm/mode-cbc.js
+// node_modules/aes-js/lib.esm/mode-cbc.js
 var __classPrivateFieldSet$1 = function(receiver, state, value, kind, f) {
 	if (kind === "m") throw new TypeError("Private method is not writable");
 	if (kind === "a" && !f) throw new TypeError("Private accessor was defined without a setter");
@@ -3856,8 +3854,7 @@ var CBC = class CBC extends ModeOfOperation {
 	}
 };
 _CBC_iv = /* @__PURE__ */ new WeakMap(), _CBC_lastBlock = /* @__PURE__ */ new WeakMap();
-//#endregion
-//#region node_modules/aes-js/lib.esm/mode-ctr.js
+// node_modules/aes-js/lib.esm/mode-ctr.js
 var __classPrivateFieldSet = function(receiver, state, value, kind, f) {
 	if (kind === "m") throw new TypeError("Private method is not writable");
 	if (kind === "a" && !f) throw new TypeError("Private accessor was defined without a setter");
@@ -3925,8 +3922,7 @@ var CTR = class CTR extends ModeOfOperation {
 	}
 };
 _CTR_remaining = /* @__PURE__ */ new WeakMap(), _CTR_remainingIndex = /* @__PURE__ */ new WeakMap(), _CTR_counter = /* @__PURE__ */ new WeakMap();
-//#endregion
-//#region node_modules/aes-js/lib.esm/padding.js
+// node_modules/aes-js/lib.esm/padding.js
 function pkcs7Strip(data) {
 	if (data.length < 16) throw new TypeError("PKCS#7 invalid length");
 	const padder = data[data.length - 1];
@@ -3935,5 +3931,4 @@ function pkcs7Strip(data) {
 	for (let i = 0; i < padder; i++) if (data[length + i] !== padder) throw new TypeError("PKCS#7 invalid padding byte");
 	return new Uint8Array(data.subarray(0, length));
 }
-//#endregion
 export { CTR as n, CBC as r, pkcs7Strip as t };

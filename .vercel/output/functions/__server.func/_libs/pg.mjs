@@ -1,5 +1,5 @@
 import { a as __toCommonJS, i as __require, n as __esmMin, o as __toESM, r as __exportAll, t as __commonJSMin } from "../_runtime.mjs";
-//#region node_modules/postgres-array/index.js
+// node_modules/postgres-array/index.js
 var require_postgres_array = /* @__PURE__ */ __commonJSMin(((exports) => {
 	exports.parse = function(source, transform) {
 		return new ArrayParser(source, transform).parse();
@@ -77,8 +77,7 @@ var require_postgres_array = /* @__PURE__ */ __commonJSMin(((exports) => {
 		return value;
 	}
 }));
-//#endregion
-//#region node_modules/pg-types/lib/arrayParser.js
+// node_modules/pg-types/lib/arrayParser.js
 var require_arrayParser = /* @__PURE__ */ __commonJSMin(((exports, module) => {
 	var array = require_postgres_array();
 	module.exports = { create: function(source, transform) {
@@ -87,8 +86,7 @@ var require_arrayParser = /* @__PURE__ */ __commonJSMin(((exports, module) => {
 		} };
 	} };
 }));
-//#endregion
-//#region node_modules/postgres-date/index.js
+// node_modules/postgres-date/index.js
 var require_postgres_date = /* @__PURE__ */ __commonJSMin(((exports, module) => {
 	var DATE_TIME = /(\d{1,})-(\d{2})-(\d{2}) (\d{2}):(\d{2}):(\d{2})(\.\d{1,})?.*?( BC)?$/;
 	var DATE = /^(\d{1,})-(\d{2})-(\d{2})( BC)?$/;
@@ -147,8 +145,7 @@ var require_postgres_date = /* @__PURE__ */ __commonJSMin(((exports, module) => 
 		return num >= 0 && num < 100;
 	}
 }));
-//#endregion
-//#region node_modules/xtend/mutable.js
+// node_modules/xtend/mutable.js
 var require_mutable = /* @__PURE__ */ __commonJSMin(((exports, module) => {
 	module.exports = extend;
 	var hasOwnProperty = Object.prototype.hasOwnProperty;
@@ -160,8 +157,7 @@ var require_mutable = /* @__PURE__ */ __commonJSMin(((exports, module) => {
 		return target;
 	}
 }));
-//#endregion
-//#region node_modules/postgres-interval/index.js
+// node_modules/postgres-interval/index.js
 var require_postgres_interval = /* @__PURE__ */ __commonJSMin(((exports, module) => {
 	var extend = require_mutable();
 	module.exports = PostgresInterval;
@@ -261,8 +257,7 @@ var require_postgres_interval = /* @__PURE__ */ __commonJSMin(((exports, module)
 		}, {});
 	}
 }));
-//#endregion
-//#region node_modules/postgres-bytea/index.js
+// node_modules/postgres-bytea/index.js
 var require_postgres_bytea = /* @__PURE__ */ __commonJSMin(((exports, module) => {
 	var bufferFrom = Buffer.from || Buffer;
 	module.exports = function parseBytea(input) {
@@ -284,8 +279,7 @@ var require_postgres_bytea = /* @__PURE__ */ __commonJSMin(((exports, module) =>
 		return bufferFrom(output, "binary");
 	};
 }));
-//#endregion
-//#region node_modules/pg-types/lib/textParsers.js
+// node_modules/pg-types/lib/textParsers.js
 var require_textParsers = /* @__PURE__ */ __commonJSMin(((exports, module) => {
 	var array = require_postgres_array();
 	var arrayParser = require_arrayParser();
@@ -441,8 +435,7 @@ var require_textParsers = /* @__PURE__ */ __commonJSMin(((exports, module) => {
 	};
 	module.exports = { init };
 }));
-//#endregion
-//#region node_modules/pg-int8/index.js
+// node_modules/pg-int8/index.js
 var require_pg_int8 = /* @__PURE__ */ __commonJSMin(((exports, module) => {
 	var BASE = 1e6;
 	function readInt8(buffer) {
@@ -498,8 +491,7 @@ var require_pg_int8 = /* @__PURE__ */ __commonJSMin(((exports, module) => {
 	}
 	module.exports = readInt8;
 }));
-//#endregion
-//#region node_modules/pg-types/lib/binaryParsers.js
+// node_modules/pg-types/lib/binaryParsers.js
 var require_binaryParsers = /* @__PURE__ */ __commonJSMin(((exports, module) => {
 	var parseInt64 = require_pg_int8();
 	var parseBits = function(data, bits, offset, invert, callback) {
@@ -657,8 +649,7 @@ var require_binaryParsers = /* @__PURE__ */ __commonJSMin(((exports, module) => 
 	};
 	module.exports = { init };
 }));
-//#endregion
-//#region node_modules/pg-types/lib/builtins.js
+// node_modules/pg-types/lib/builtins.js
 var require_builtins = /* @__PURE__ */ __commonJSMin(((exports, module) => {
 	/**
 	* Following query was used to generate this file:
@@ -733,8 +724,7 @@ var require_builtins = /* @__PURE__ */ __commonJSMin(((exports, module) => {
 		REGROLE: 4096
 	};
 }));
-//#endregion
-//#region node_modules/pg-types/index.js
+// node_modules/pg-types/index.js
 var require_pg_types = /* @__PURE__ */ __commonJSMin(((exports) => {
 	var textParsers = require_textParsers();
 	var binaryParsers = require_binaryParsers();
@@ -770,8 +760,7 @@ var require_pg_types = /* @__PURE__ */ __commonJSMin(((exports) => {
 		typeParsers.binary[oid] = converter;
 	});
 }));
-//#endregion
-//#region node_modules/pg/lib/defaults.js
+// node_modules/pg/lib/defaults.js
 var require_defaults = /* @__PURE__ */ __commonJSMin(((exports, module) => {
 	var user;
 	try {
@@ -811,13 +800,12 @@ var require_defaults = /* @__PURE__ */ __commonJSMin(((exports, module) => {
 		pgTypes.setTypeParser(1016, "text", val ? pgTypes.getTypeParser(1007, "text") : parseBigIntegerArray);
 	});
 }));
-//#endregion
-//#region node_modules/pg/lib/utils.js
+// node_modules/pg/lib/utils.js
 var require_utils$1 = /* @__PURE__ */ __commonJSMin(((exports, module) => {
 	var defaults = require_defaults();
-	var nodeUtils$2 = __require("util");
+	var nodeUtils = __require("util");
 	var { isDate } = __require("util/types");
-	var invalidDateDeprecationNotice = nodeUtils$2.deprecate(() => {}, "Sending an invalid date to Postgres is deprecated and will throw an error in the next major version of pg. Ensure any Date object passed as a query parameter is valid.", "PG_INVALID_DATE");
+	var invalidDateDeprecationNotice = nodeUtils.deprecate(() => {}, "Sending an invalid date to Postgres is deprecated and will throw an error in the next major version of pg. Ensure any Date object passed as a query parameter is valid.", "PG_INVALID_DATE");
 	function escapeElement(elementRepresentation) {
 		return "\"" + elementRepresentation.replace(/\\/g, "\\\\").replace(/"/g, "\\\"") + "\"";
 	}
@@ -925,8 +913,7 @@ var require_utils$1 = /* @__PURE__ */ __commonJSMin(((exports, module) => {
 		escapeLiteral
 	};
 }));
-//#endregion
-//#region node_modules/pg/lib/crypto/utils.js
+// node_modules/pg/lib/crypto/utils.js
 var require_utils = /* @__PURE__ */ __commonJSMin(((exports, module) => {
 	var nodeCrypto = __require("crypto");
 	module.exports = {
@@ -1009,8 +996,7 @@ var require_utils = /* @__PURE__ */ __commonJSMin(((exports, module) => {
 		return await subtleCrypto.deriveBits(params, key, 256, ["deriveBits"]);
 	}
 }));
-//#endregion
-//#region node_modules/pg/lib/crypto/cert-signatures.js
+// node_modules/pg/lib/crypto/cert-signatures.js
 var require_cert_signatures = /* @__PURE__ */ __commonJSMin(((exports, module) => {
 	function x509Error(msg, cert) {
 		return /* @__PURE__ */ new Error("SASL channel binding: " + msg + " when parsing public certificate " + cert.toString("base64"));
@@ -1101,8 +1087,7 @@ var require_cert_signatures = /* @__PURE__ */ __commonJSMin(((exports, module) =
 	}
 	module.exports = { signatureAlgorithmHashFromCertificate };
 }));
-//#endregion
-//#region node_modules/pg/lib/crypto/sasl.js
+// node_modules/pg/lib/crypto/sasl.js
 var require_sasl = /* @__PURE__ */ __commonJSMin(((exports, module) => {
 	var crypto = require_utils();
 	var { signatureAlgorithmHashFromCertificate } = require_cert_signatures();
@@ -1236,8 +1221,7 @@ var require_sasl = /* @__PURE__ */ __commonJSMin(((exports, module) => {
 		DEFAULT_MAX_SCRAM_ITERATIONS
 	};
 }));
-//#endregion
-//#region node_modules/pg/lib/type-overrides.js
+// node_modules/pg/lib/type-overrides.js
 var require_type_overrides = /* @__PURE__ */ __commonJSMin(((exports, module) => {
 	var types = require_pg_types();
 	function TypeOverrides(userTypes) {
@@ -1265,8 +1249,7 @@ var require_type_overrides = /* @__PURE__ */ __commonJSMin(((exports, module) =>
 	};
 	module.exports = TypeOverrides;
 }));
-//#endregion
-//#region node_modules/pg-connection-string/index.js
+// node_modules/pg-connection-string/index.js
 var require_pg_connection_string = /* @__PURE__ */ __commonJSMin(((exports, module) => {
 	function parse(str, options = {}) {
 		if (str.charAt(0) === "/") {
@@ -1389,8 +1372,7 @@ See https://www.postgresql.org/docs/current/libpq-ssl.html for libpq SSL mode de
 	parse.toClientConfig = toClientConfig;
 	parse.parseIntoClientConfig = parseIntoClientConfig;
 }));
-//#endregion
-//#region node_modules/pg/lib/connection-parameters.js
+// node_modules/pg/lib/connection-parameters.js
 var require_connection_parameters = /* @__PURE__ */ __commonJSMin(((exports, module) => {
 	var dns = __require("dns");
 	var defaults = require_defaults();
@@ -1490,8 +1472,7 @@ var require_connection_parameters = /* @__PURE__ */ __commonJSMin(((exports, mod
 	};
 	module.exports = ConnectionParameters;
 }));
-//#endregion
-//#region node_modules/pg/lib/result.js
+// node_modules/pg/lib/result.js
 var require_result = /* @__PURE__ */ __commonJSMin(((exports, module) => {
 	var types = require_pg_types();
 	var matchRegexp = /^([A-Za-z]+)(?: (\d+))?(?: (\d+))?/;
@@ -1560,13 +1541,12 @@ var require_result = /* @__PURE__ */ __commonJSMin(((exports, module) => {
 	};
 	module.exports = Result;
 }));
-//#endregion
-//#region node_modules/pg/lib/query.js
+// node_modules/pg/lib/query.js
 var require_query$1 = /* @__PURE__ */ __commonJSMin(((exports, module) => {
-	var { EventEmitter: EventEmitter$5 } = __require("events");
+	var { EventEmitter } = __require("events");
 	var Result = require_result();
 	var utils = require_utils$1();
-	var Query = class extends EventEmitter$5 {
+	var Query = class extends EventEmitter {
 		constructor(config, values, callback) {
 			super();
 			config = utils.normalizeQueryConfig(config, values, callback);
@@ -1712,8 +1692,7 @@ var require_query$1 = /* @__PURE__ */ __commonJSMin(((exports, module) => {
 	};
 	module.exports = Query;
 }));
-//#endregion
-//#region node_modules/pg-protocol/dist/messages.js
+// node_modules/pg-protocol/dist/messages.js
 var require_messages = /* @__PURE__ */ __commonJSMin(((exports) => {
 	Object.defineProperty(exports, "__esModule", { value: true });
 	exports.NoticeMessage = exports.DataRowMessage = exports.CommandCompleteMessage = exports.ReadyForQueryMessage = exports.NotificationResponseMessage = exports.BackendKeyDataMessage = exports.AuthenticationMD5Password = exports.ParameterStatusMessage = exports.ParameterDescriptionMessage = exports.RowDescriptionMessage = exports.Field = exports.CopyResponse = exports.CopyDataMessage = exports.DatabaseError = exports.copyDone = exports.emptyQuery = exports.replicationStart = exports.portalSuspended = exports.noData = exports.closeComplete = exports.bindComplete = exports.parseComplete = void 0;
@@ -1874,8 +1853,7 @@ var require_messages = /* @__PURE__ */ __commonJSMin(((exports) => {
 	};
 	exports.NoticeMessage = NoticeMessage;
 }));
-//#endregion
-//#region node_modules/pg-protocol/dist/buffer-writer.js
+// node_modules/pg-protocol/dist/buffer-writer.js
 var require_buffer_writer = /* @__PURE__ */ __commonJSMin(((exports) => {
 	Object.defineProperty(exports, "__esModule", { value: true });
 	exports.Writer = void 0;
@@ -1976,8 +1954,7 @@ var require_buffer_writer = /* @__PURE__ */ __commonJSMin(((exports) => {
 	};
 	exports.Writer = Writer;
 }));
-//#endregion
-//#region node_modules/pg-protocol/dist/serializer.js
+// node_modules/pg-protocol/dist/serializer.js
 var require_serializer = /* @__PURE__ */ __commonJSMin(((exports) => {
 	Object.defineProperty(exports, "__esModule", { value: true });
 	exports.serialize = void 0;
@@ -2150,8 +2127,7 @@ var require_serializer = /* @__PURE__ */ __commonJSMin(((exports) => {
 		cancel
 	};
 }));
-//#endregion
-//#region node_modules/pg-protocol/dist/buffer-reader.js
+// node_modules/pg-protocol/dist/buffer-reader.js
 var require_buffer_reader = /* @__PURE__ */ __commonJSMin(((exports) => {
 	Object.defineProperty(exports, "__esModule", { value: true });
 	exports.BufferReader = void 0;
@@ -2205,8 +2181,7 @@ var require_buffer_reader = /* @__PURE__ */ __commonJSMin(((exports) => {
 	};
 	exports.BufferReader = BufferReader;
 }));
-//#endregion
-//#region node_modules/pg-protocol/dist/parser.js
+// node_modules/pg-protocol/dist/parser.js
 var require_parser = /* @__PURE__ */ __commonJSMin(((exports) => {
 	Object.defineProperty(exports, "__esModule", { value: true });
 	exports.Parser = void 0;
@@ -2486,8 +2461,7 @@ var require_parser = /* @__PURE__ */ __commonJSMin(((exports) => {
 		return message;
 	};
 }));
-//#endregion
-//#region node_modules/pg-protocol/dist/index.js
+// node_modules/pg-protocol/dist/index.js
 var require_dist = /* @__PURE__ */ __commonJSMin(((exports) => {
 	Object.defineProperty(exports, "__esModule", { value: true });
 	exports.DatabaseError = exports.serialize = void 0;
@@ -2513,14 +2487,12 @@ var require_dist = /* @__PURE__ */ __commonJSMin(((exports) => {
 		return new Promise((resolve) => stream.on("end", () => resolve()));
 	}
 }));
-//#endregion
-//#region node_modules/pg-cloudflare/dist/empty.js
+// node_modules/pg-cloudflare/dist/empty.js
 var require_empty = /* @__PURE__ */ __commonJSMin(((exports) => {
 	Object.defineProperty(exports, "__esModule", { value: true });
 	exports.default = {};
 }));
-//#endregion
-//#region node_modules/pg/lib/stream.js
+// node_modules/pg/lib/stream.js
 var require_stream = /* @__PURE__ */ __commonJSMin(((exports, module) => {
 	var { getStream, getSecureStream } = getStreamFuncs();
 	module.exports = {
@@ -2586,17 +2558,16 @@ var require_stream = /* @__PURE__ */ __commonJSMin(((exports, module) => {
 		return getNodejsStreamFuncs();
 	}
 }));
-//#endregion
-//#region node_modules/pg/lib/connection.js
+// node_modules/pg/lib/connection.js
 var require_connection = /* @__PURE__ */ __commonJSMin(((exports, module) => {
-	var EventEmitter$4 = __require("events").EventEmitter;
+	var EventEmitter = __require("events").EventEmitter;
 	var { parse, serialize } = require_dist();
 	var stream = require_stream();
 	var { getStream } = stream;
 	var flushBuffer = serialize.flush();
 	var syncBuffer = serialize.sync();
 	var endBuffer = serialize.end();
-	var Connection$1 = class extends EventEmitter$4 {
+	var Connection = class extends EventEmitter {
 		constructor(config) {
 			super();
 			config = config || {};
@@ -2750,10 +2721,9 @@ var require_connection = /* @__PURE__ */ __commonJSMin(((exports, module) => {
 			this._send(serialize.copyFail(msg));
 		}
 	};
-	module.exports = Connection$1;
+	module.exports = Connection;
 }));
-//#endregion
-//#region node_modules/split2/index.js
+// node_modules/split2/index.js
 var require_split2 = /* @__PURE__ */ __commonJSMin(((exports, module) => {
 	var { Transform } = __require("stream");
 	var { StringDecoder } = __require("string_decoder");
@@ -2842,13 +2812,12 @@ var require_split2 = /* @__PURE__ */ __commonJSMin(((exports, module) => {
 	}
 	module.exports = split;
 }));
-//#endregion
-//#region node_modules/pgpass/lib/helper.js
+// node_modules/pgpass/lib/helper.js
 var require_helper = /* @__PURE__ */ __commonJSMin(((exports, module) => {
 	var path = __require("path");
 	var Stream = __require("stream").Stream;
 	var split = require_split2();
-	var util$2 = __require("util");
+	var util = __require("util");
 	var defaultPort = 5432;
 	var isWin = process.platform === "win32";
 	var warnStream = process.stderr;
@@ -2871,7 +2840,7 @@ var require_helper = /* @__PURE__ */ __commonJSMin(((exports, module) => {
 	function warn() {
 		if (warnStream instanceof Stream && true === warnStream.writable) {
 			var args = Array.prototype.slice.call(arguments).concat("\n");
-			warnStream.write(util$2.format.apply(util$2, args));
+			warnStream.write(util.format.apply(util, args));
 		}
 	}
 	Object.defineProperty(module.exports, "isWin", {
@@ -2992,8 +2961,7 @@ var require_helper = /* @__PURE__ */ __commonJSMin(((exports, module) => {
 		return true;
 	};
 }));
-//#endregion
-//#region node_modules/pgpass/lib/index.js
+// node_modules/pgpass/lib/index.js
 var require_lib$1 = /* @__PURE__ */ __commonJSMin(((exports, module) => {
 	__require("path");
 	var fs = __require("fs");
@@ -3008,12 +2976,11 @@ var require_lib$1 = /* @__PURE__ */ __commonJSMin(((exports, module) => {
 	};
 	module.exports.warnTo = helper.warnTo;
 }));
-//#endregion
-//#region node_modules/pg/lib/client.js
+// node_modules/pg/lib/client.js
 var require_client$1 = /* @__PURE__ */ __commonJSMin(((exports, module) => {
-	var EventEmitter$3 = __require("events").EventEmitter;
+	var EventEmitter = __require("events").EventEmitter;
 	var utils = require_utils$1();
-	var nodeUtils$1 = __require("util");
+	var nodeUtils = __require("util");
 	var sasl = require_sasl();
 	var TypeOverrides = require_type_overrides();
 	var ConnectionParameters = require_connection_parameters();
@@ -3021,11 +2988,11 @@ var require_client$1 = /* @__PURE__ */ __commonJSMin(((exports, module) => {
 	var defaults = require_defaults();
 	var Connection = require_connection();
 	var crypto = require_utils();
-	var activeQueryDeprecationNotice = nodeUtils$1.deprecate(() => {}, "Client.activeQuery is deprecated and will be removed in pg@9.0");
-	var queryQueueDeprecationNotice = nodeUtils$1.deprecate(() => {}, "Client.queryQueue is deprecated and will be removed in pg@9.0.");
-	var pgPassDeprecationNotice = nodeUtils$1.deprecate(() => {}, "pgpass support is deprecated and will be removed in pg@9.0. You can provide an async function as the password property to the Client/Pool constructor that returns a password instead. Within this function you can call the pgpass module in your own code.");
-	var byoPromiseDeprecationNotice = nodeUtils$1.deprecate(() => {}, "Passing a custom Promise implementation to the Client/Pool constructor is deprecated and will be removed in pg@9.0.");
-	var queryQueueLengthDeprecationNotice = nodeUtils$1.deprecate(() => {}, "Calling client.query() when the client is already executing a query is deprecated and will be removed in pg@9.0. Use async/await or an external async flow control mechanism instead.");
+	var activeQueryDeprecationNotice = nodeUtils.deprecate(() => {}, "Client.activeQuery is deprecated and will be removed in pg@9.0");
+	var queryQueueDeprecationNotice = nodeUtils.deprecate(() => {}, "Client.queryQueue is deprecated and will be removed in pg@9.0.");
+	var pgPassDeprecationNotice = nodeUtils.deprecate(() => {}, "pgpass support is deprecated and will be removed in pg@9.0. You can provide an async function as the password property to the Client/Pool constructor that returns a password instead. Within this function you can call the pgpass module in your own code.");
+	var byoPromiseDeprecationNotice = nodeUtils.deprecate(() => {}, "Passing a custom Promise implementation to the Client/Pool constructor is deprecated and will be removed in pg@9.0.");
+	var queryQueueLengthDeprecationNotice = nodeUtils.deprecate(() => {}, "Calling client.query() when the client is already executing a query is deprecated and will be removed in pg@9.0. Use async/await or an external async flow control mechanism instead.");
 	function coerceNumberOrDefault(value, defaultValue) {
 		if (typeof value === "number") return Number.isFinite(value) ? value : defaultValue;
 		if (typeof value === "string" && value.trim() !== "") {
@@ -3034,7 +3001,7 @@ var require_client$1 = /* @__PURE__ */ __commonJSMin(((exports, module) => {
 		}
 		return defaultValue;
 	}
-	var Client = class extends EventEmitter$3 {
+	var Client = class extends EventEmitter {
 		constructor(config) {
 			super();
 			this.connectionParameters = new ConnectionParameters(config);
@@ -3569,10 +3536,9 @@ var require_client$1 = /* @__PURE__ */ __commonJSMin(((exports, module) => {
 	Client.Query = Query;
 	module.exports = Client;
 }));
-//#endregion
-//#region node_modules/pg-pool/index.js
+// node_modules/pg-pool/index.js
 var require_pg_pool = /* @__PURE__ */ __commonJSMin(((exports, module) => {
-	var EventEmitter$2 = __require("events").EventEmitter;
+	var EventEmitter = __require("events").EventEmitter;
 	var NOOP = function() {};
 	var removeWhere = (list, predicate) => {
 		const i = list.findIndex(predicate);
@@ -3625,7 +3591,7 @@ var require_pg_pool = /* @__PURE__ */ __commonJSMin(((exports, module) => {
 			pool.emit("error", err, client);
 		};
 	}
-	var Pool = class extends EventEmitter$2 {
+	var Pool = class extends EventEmitter {
 		constructor(options, Client) {
 			super();
 			this.options = Object.assign({}, options);
@@ -3917,22 +3883,20 @@ var require_pg_pool = /* @__PURE__ */ __commonJSMin(((exports, module) => {
 	};
 	module.exports = Pool;
 }));
-//#endregion
-//#region __vite-optional-peer-dep:pg-native:pg
+// __vite-optional-peer-dep:pg-native:pg
 var __vite_optional_peer_dep_pg_native_pg_exports = /* @__PURE__ */ __exportAll({ default: () => __vite_optional_peer_dep_pg_native_pg_default });
 var __vite_optional_peer_dep_pg_native_pg_default;
 var init___vite_optional_peer_dep_pg_native_pg = __esmMin((() => {
 	__vite_optional_peer_dep_pg_native_pg_default = {};
 	throw new Error(`Could not resolve "pg-native" imported by "pg". Is it installed?`);
 }));
-//#endregion
-//#region node_modules/pg/lib/native/query.js
+// node_modules/pg/lib/native/query.js
 var require_query = /* @__PURE__ */ __commonJSMin(((exports, module) => {
-	var EventEmitter$1 = __require("events").EventEmitter;
-	var util$1 = __require("util");
+	var EventEmitter = __require("events").EventEmitter;
+	var util = __require("util");
 	var utils = require_utils$1();
 	var NativeQuery = module.exports = function(config, values, callback) {
-		EventEmitter$1.call(this);
+		EventEmitter.call(this);
 		config = utils.normalizeQueryConfig(config, values, callback);
 		this.text = config.text;
 		this.values = config.values;
@@ -3946,7 +3910,7 @@ var require_query = /* @__PURE__ */ __commonJSMin(((exports, module) => {
 			if (event === "row") this._emitRowEvents = true;
 		}.bind(this));
 	};
-	util$1.inherits(NativeQuery, EventEmitter$1);
+	util.inherits(NativeQuery, EventEmitter);
 	var errorFieldMap = {
 		sqlState: "code",
 		statementPosition: "position",
@@ -4040,8 +4004,7 @@ var require_query = /* @__PURE__ */ __commonJSMin(((exports, module) => {
 		else client.native.query(this.text, after);
 	};
 }));
-//#endregion
-//#region node_modules/pg/lib/native/client.js
+// node_modules/pg/lib/native/client.js
 var require_client = /* @__PURE__ */ __commonJSMin(((exports, module) => {
 	var nodeUtils = __require("util");
 	var Native;
@@ -4327,13 +4290,11 @@ var require_client = /* @__PURE__ */ __commonJSMin(((exports, module) => {
 		return this.native.getTransactionStatus();
 	};
 }));
-//#endregion
-//#region node_modules/pg/lib/native/index.js
+// node_modules/pg/lib/native/index.js
 var require_native = /* @__PURE__ */ __commonJSMin(((exports, module) => {
 	module.exports = require_client();
 }));
-//#endregion
-//#region node_modules/pg/lib/index.js
+// node_modules/pg/lib/index.js
 var require_lib = /* @__PURE__ */ __commonJSMin(((exports, module) => {
 	var Client = require_client$1();
 	var defaults = require_defaults();
@@ -4388,8 +4349,7 @@ var require_lib = /* @__PURE__ */ __commonJSMin(((exports, module) => {
 		}
 	});
 }));
-//#endregion
-//#region node_modules/pg/esm/index.mjs
+// node_modules/pg/esm/index.mjs
 var esm_exports = /* @__PURE__ */ __exportAll({
 	Pool: () => Pool,
 	types: () => types
@@ -4406,5 +4366,4 @@ import_lib.default.escapeLiteral;
 import_lib.default.Result;
 import_lib.default.TypeOverrides;
 import_lib.default.defaults;
-//#endregion
 export { esm_exports as t };

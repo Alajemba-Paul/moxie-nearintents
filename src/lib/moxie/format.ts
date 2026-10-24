@@ -1,6 +1,8 @@
+import { complementAsk, type Market } from "./markets.ts";
 import type { DeskOrder } from "./types.ts";
 
-export const OPENING_BALANCE = 25_000 * 1_000_000;
+export const INITIAL_ONBOARD_USDC = 1_000 * 1_000_000;
+export const OPENING_BALANCE = INITIAL_ONBOARD_USDC;
 export const MAX_TICKET = 5_000 * 1_000_000;
 
 export function formatUsdc(micro: number): string {
@@ -62,6 +64,37 @@ export interface Position {
   tokenId: string;
   sharesMicro: number;
   costMicro: number;
+}
+
+export interface EnrichedPosition extends Position {
+  market: Market;
+  liveMarkPriceMicro: number;
+  currentValueMicro: number;
+  pnlMicro: number;
+  pnlPct: string;
+}
+
+export function enrichPosition(
+  pos: Position,
+  market: Market,
+  overrideAskMicro?: number,
+): EnrichedPosition {
+  const currentAskMicro =
+    overrideAskMicro ??
+    (pos.side === "yes" ? market.yesAskMicro : complementAsk(market.yesAskMicro));
+  const liveMarkPriceMicro = Math.min(980_000, currentAskMicro + 20_000);
+  const currentValueMicro = markValue(pos.sharesMicro, liveMarkPriceMicro);
+  const pnlMicro = currentValueMicro - pos.costMicro;
+  const pnlPct =
+    pos.costMicro > 0 ? ((pnlMicro / pos.costMicro) * 100).toFixed(1) : "0.0";
+  return {
+    ...pos,
+    market,
+    liveMarkPriceMicro,
+    currentValueMicro,
+    pnlMicro,
+    pnlPct,
+  };
 }
 
 export function positionsOf(orders: DeskOrder[]): Position[] {

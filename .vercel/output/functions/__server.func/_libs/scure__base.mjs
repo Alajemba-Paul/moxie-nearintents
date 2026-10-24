@@ -1,4 +1,4 @@
-//#region node_modules/@scure/base/index.js
+// node_modules/@scure/base/index.js
 /*! scure-base - MIT License (c) 2022 Paul Miller (paulmillr.com) */
 var freeze = (fn) => Object.freeze(fn());
 function isBytes(a) {
@@ -8,10 +8,38 @@ function isBytes(a) {
 function abytes(b) {
 	if (!isBytes(b)) throw new TypeError("Uint8Array expected");
 }
+function afn(input) {
+	if (typeof input !== "function") throw new TypeError("function expected");
+	return true;
+}
 function astr(label, input) {
 	if (typeof input !== "string") throw new TypeError(`${label}: string expected`);
 	return true;
 }
+function anumber(n, title = "number") {
+	if (typeof n !== "number") throw new TypeError(`${title}: expected number, got ${typeof n}`);
+	if (!Number.isSafeInteger(n)) throw new RangeError(`${title}: expected safe integer, got ${n}`);
+}
+function chain(...args) {
+	const id = (a) => a;
+	const wrap = (a, b) => (c) => a(b(c));
+	return {
+		encode: args.map((x) => x.encode).reduceRight(wrap, id),
+		decode: args.map((x) => x.decode).reduce(wrap, id)
+	};
+}
+function normalize(fn) {
+	afn(fn);
+	return {
+		encode: (from) => from,
+		decode: (to) => fn(to)
+	};
+}
+var powers = /* @__PURE__ */ (() => {
+	let res = [];
+	for (let i = 0; i < 40; i++) res.push(2 ** i);
+	return res;
+})();
 var asciiDecoder = /* @__PURE__ */ (() => {
 	try {
 		const decoder = new TextDecoder();
@@ -28,6 +56,59 @@ function charcodesToString(codes) {
 	let res = "";
 	for (let i = 0; i < len; i += B2S_CHUNK) res += String.fromCharCode.apply(null, codes.subarray(i, i + B2S_CHUNK));
 	return res;
+}
+/**
+* Linear 8 <-> bits regrouping (radix2Slow semantics), with Uint8Array digits and
+* preallocated output.
+*/
+function radix2(bits) {
+	anumber(bits);
+	if (bits <= 0 || bits > 8) throw new RangeError("radix2: bits should be in (0..8]");
+	const mask = powers[bits] - 1;
+	return {
+		encode: (bytes) => {
+			abytes(bytes);
+			const len = bytes.length;
+			const res = new Uint8Array(Math.ceil(len * 8 / bits));
+			let carry = 0;
+			let pos = 0;
+			let j = 0;
+			for (let i = 0; i < len;) {
+				if (i + 2 < len) {
+					carry = carry << 24 | bytes[i] << 16 | bytes[i + 1] << 8 | bytes[i + 2];
+					pos += 24;
+					i += 3;
+				} else {
+					carry = (carry << 8 | bytes[i]) & 65535;
+					pos += 8;
+					i++;
+				}
+				for (;;) {
+					pos -= bits;
+					res[j++] = carry >> pos & mask;
+					if (pos < bits) break;
+				}
+			}
+			if (pos > 0) res[j] = carry << bits - pos & mask;
+			return res;
+		},
+		decode: (digits) => {
+			const len = digits.length;
+			const res = new Uint8Array(Math.floor(len * bits / 8));
+			let carry = 0;
+			let pos = 0;
+			let j = 0;
+			for (let i = 0; i < len; i++) {
+				carry = (carry << bits | digits[i]) & 65535;
+				pos += bits;
+				for (; pos >= 8; pos -= 8) res[j++] = carry >> pos - 8 & 255;
+			}
+			carry = carry << 8 - pos & 255;
+			if (pos >= bits) throw new Error("Excess padding");
+			if (carry > 0) throw new Error(`Non-zero padding: ${carry}`);
+			return res;
+		}
+	};
 }
 /**
 * Digit <-> letter mapping fused with string join (chain(alphabetSlow(letters), join(''))
@@ -191,5 +272,38 @@ var genBase58 = (abc) => genBaseN(radix58, abc);
 * ```
 */
 var base58 = /* @__PURE__ */ freeze(() => genBase58("123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz"));
-//#endregion
-export { base58 as t };
+/** Lowercase hex with case-insensitive decoding. Pure JS version. */
+var hexFallback = /* @__PURE__ */ freeze(() => chain(radix2(4), alphabet("0123456789abcdef", {
+	A: "a",
+	B: "b",
+	C: "c",
+	D: "d",
+	E: "e",
+	F: "f"
+}), normalize((s) => {
+	astr("hex", s);
+	if (s.length % 2 !== 0) throw new TypeError(`hex.decode: odd-length string (${s.length})`);
+	return s;
+})));
+var hasHexBuiltin = /* @__PURE__ */ (() => typeof Uint8Array.from([]).toHex === "function" && typeof Uint8Array.fromHex === "function")();
+var hexBuiltin = {
+	encode(data) {
+		abytes(data);
+		return data.toHex();
+	},
+	decode(s) {
+		astr("hex", s);
+		return Uint8Array.fromHex(s);
+	}
+};
+/**
+* hex string decoder. Uses built-in function, when available.
+* Lowercase codec; unlike `base16`, this variant accepts either hex case and emits lowercase.
+* @example
+* ```js
+* const b = hex.decode("0102ff"); // => new Uint8Array([ 1, 2, 255 ])
+* const str = hex.encode(b); // "0102ff"
+* ```
+*/
+var hex = /* @__PURE__ */ freeze(() => hasHexBuiltin ? hexBuiltin : hexFallback);
+export { hex as n, base58 as t };

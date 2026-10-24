@@ -1,5 +1,5 @@
-import { A as bytes, C as Hash, D as toBytes, E as createView, M as hash, N as number, O as u32, P as output, S as SHA2, T as checkOpts, _ as toBytes$1, a as rotlBL$1, b as hmac, c as split$1, d as aexists, f as anumber, g as swap32IfBE, h as createHasher, i as rotlBH$1, j as exists, k as wrapConstructor, l as Hash$1, m as clean, o as rotlSH$1, p as aoutput, r as sha256$2, s as rotlSL$1, u as abytes, v as u32$1, w as asyncLoop, x as sha256$1 } from "./noble__curves+noble__hashes.mjs";
-//#region node_modules/ethers/node_modules/@noble/hashes/esm/_u64.js
+import { A as wrapConstructor, C as SHA2, D as createView, E as checkOpts, F as output, M as exists, N as hash, O as toBytes, P as number, S as sha256$1, T as asyncLoop, _ as toBytes$1, a as rotlBL$1, c as split$1, d as aexists, f as anumber, g as swap32IfBE, h as createHasher, i as rotlBH$1, j as bytes, k as u32, l as Hash$1, m as clean, o as rotlSH$1, p as aoutput, r as sha256$2, s as rotlSL$1, u as abytes, v as u32$1, w as Hash, x as hmac } from "./noble__curves+noble__hashes.mjs";
+// node_modules/ethers/node_modules/@noble/hashes/esm/_u64.js
 var U32_MASK64 = /* @__PURE__ */ BigInt(2 ** 32 - 1);
 var _32n = /* @__PURE__ */ BigInt(32);
 function fromBig(n, le = false) {
@@ -25,8 +25,7 @@ var rotlSH = (h, l, s) => h << s | l >>> 32 - s;
 var rotlSL = (h, l, s) => l << s | h >>> 32 - s;
 var rotlBH = (h, l, s) => l << s - 32 | h >>> 64 - s;
 var rotlBL = (h, l, s) => h << s - 32 | l >>> 64 - s;
-//#endregion
-//#region node_modules/ethers/node_modules/@noble/hashes/esm/sha3.js
+// node_modules/ethers/node_modules/@noble/hashes/esm/sha3.js
 var [SHA3_PI$1, SHA3_ROTL$1, _SHA3_IOTA$1] = [
 	[],
 	[],
@@ -190,8 +189,7 @@ var gen$1 = (suffix, blockLen, outputLen) => wrapConstructor(() => new Keccak$1(
 * @param message - that would be hashed
 */
 var keccak_256$1 = /* @__PURE__ */ gen$1(1, 136, 32);
-//#endregion
-//#region node_modules/ethers/node_modules/@noble/hashes/esm/ripemd160.js
+// node_modules/ethers/node_modules/@noble/hashes/esm/ripemd160.js
 var Rho = /* @__PURE__ */ new Uint8Array([
 	7,
 	4,
@@ -391,8 +389,7 @@ var RIPEMD160 = class extends SHA2 {
 * @param message - msg that would be hashed
 */
 var ripemd160 = /* @__PURE__ */ wrapConstructor(() => new RIPEMD160());
-//#endregion
-//#region node_modules/ethers/node_modules/@noble/hashes/esm/pbkdf2.js
+// node_modules/ethers/node_modules/@noble/hashes/esm/pbkdf2.js
 function pbkdf2Init(hash$1, _password, _salt, _opts) {
 	hash(hash$1);
 	const { c, dkLen, asyncTick } = checkOpts({
@@ -448,8 +445,7 @@ function pbkdf2(hash, password, salt, opts) {
 	}
 	return pbkdf2Output(PRF, PRFSalt, DK, prfW, u);
 }
-//#endregion
-//#region node_modules/ethers/node_modules/@noble/hashes/esm/scrypt.js
+// node_modules/ethers/node_modules/@noble/hashes/esm/scrypt.js
 var rotl = (a, b) => a << b | a >>> 32 - b;
 function XorAndSalsa(prev, pi, input, ii, out, oi) {
 	let y00 = prev[pi++] ^ input[ii++], y01 = prev[pi++] ^ input[ii++];
@@ -641,8 +637,7 @@ async function scryptAsync(password, salt, opts) {
 	}
 	return scryptOutput(password, dkLen, B, V, tmp);
 }
-//#endregion
-//#region node_modules/@solana/web3.js/node_modules/@noble/hashes/esm/sha256.js
+// node_modules/@solana/web3.js/node_modules/@noble/hashes/esm/sha256.js
 /**
 * SHA2-256 a.k.a. sha256. In JS, it is the fastest hash, even faster than Blake3.
 *
@@ -655,8 +650,7 @@ async function scryptAsync(password, salt, opts) {
 */
 /** @deprecated Use import from `noble/hashes/sha2` module */
 var sha256 = sha256$2;
-//#endregion
-//#region node_modules/@solana/web3.js/node_modules/@noble/hashes/esm/sha3.js
+// node_modules/@solana/web3.js/node_modules/@noble/hashes/esm/sha3.js
 /**
 * SHA3 (keccak) hash function, based on a new "Sponge function" design.
 * Different from older hashes, the internal state is bigger than output size.
@@ -837,5 +831,4 @@ var Keccak = class Keccak extends Hash$1 {
 var gen = (suffix, blockLen, outputLen) => createHasher(() => new Keccak(blockLen, suffix, outputLen));
 /** keccak-256 hash function. Different from SHA3-256. */
 var keccak_256 = /* @__PURE__ */ (() => gen(1, 136, 32))();
-//#endregion
 export { ripemd160 as a, scryptAsync as i, sha256 as n, keccak_256$1 as o, scrypt as r, keccak_256 as t };

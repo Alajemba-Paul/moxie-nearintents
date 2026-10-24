@@ -1,13 +1,12 @@
 import { sha256 } from "@noble/hashes/sha2.js";
 import {
-  Connection,
   PublicKey,
   SystemProgram,
   Transaction,
   TransactionInstruction,
 } from "@solana/web3.js";
-import { DEVNET_USDC_MINT, SOLANA_DEVNET_RPC, SOLANA_ESCROW_PROGRAM_ID } from "@/config/constants";
-import type { SolanaProvider } from "@/lib/solana/wallet";
+import { DEVNET_USDC_MINT, SOLANA_ESCROW_PROGRAM_ID } from "@/config/constants";
+import { withSolanaFailover, type SolanaProvider } from "@/lib/solana/wallet";
 
 const TOKEN_PROGRAM_ID = new PublicKey("TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA");
 const PROGRAM_ID = new PublicKey(SOLANA_ESCROW_PROGRAM_ID);
@@ -30,7 +29,7 @@ export function makerTokenAccount(maker: PublicKey): PublicKey {
   )[0];
 }
 
-function instructionData(amount: bigint, intentHash: Uint8Array, timeout: bigint): Buffer {
+function initializeIntentData(amount: bigint, intentHash: Uint8Array, timeout: bigint): Buffer {
   if (intentHash.length !== 32) throw new Error("Intent hash must be 32 bytes");
   const disc = Buffer.from(sha256(new TextEncoder().encode("global:initialize_intent"))).subarray(0, 8);
   const data = Buffer.alloc(8 + 8 + 32 + 8);
@@ -41,6 +40,13 @@ function instructionData(amount: bigint, intentHash: Uint8Array, timeout: bigint
   return data;
 }
 
+function discriminatorOf(instructionSnakeName: string): Buffer {
+  return Buffer.from(sha256(new TextEncoder().encode(`global:${instructionSnakeName}`))).subarray(0, 8);
+}
+
+/**
+ * Matches IDL instruction `initializeIntent` in `src/idl/moxie_escrow.json`
+ */
 export function initializeIntentTransaction(input: {
   maker: PublicKey;
   amount: bigint;
@@ -61,7 +67,58 @@ export function initializeIntentTransaction(input: {
       { pubkey: TOKEN_PROGRAM_ID, isSigner: false, isWritable: false },
       { pubkey: SystemProgram.programId, isSigner: false, isWritable: false },
     ],
-    data: instructionData(input.amount, input.intentHash, input.timeout),
+    data: initializeIntentData(input.amount, input.intentHash, input.timeout),
+  });
+  const transaction = new Transaction({ feePayer: input.maker, recentBlockhash: input.blockhash }).add(ix);
+  return { transaction, escrow, vault };
+}
+
+/**
+ * Matches IDL instruction `solverRelease` in `src/idl/moxie_escrow.json`
+ */
+export function solverReleaseTransaction(input: {
+  solver: PublicKey;
+  maker: PublicKey;
+  solverTokenAccount: PublicKey;
+  blockhash: string;
+}): { transaction: Transaction; escrow: PublicKey; vault: PublicKey } {
+  const escrow = escrowPda(input.maker);
+  const vault = vaultPda(escrow);
+  const ix = new TransactionInstruction({
+    programId: PROGRAM_ID,
+    keys: [
+      { pubkey: input.solver, isSigner: true, isWritable: false },
+      { pubkey: escrow, isSigner: false, isWritable: true },
+      { pubkey: input.maker, isSigner: false, isWritable: false },
+      { pubkey: vault, isSigner: false, isWritable: true },
+      { pubkey: input.solverTokenAccount, isSigner: false, isWritable: true },
+      { pubkey: TOKEN_PROGRAM_ID, isSigner: false, isWritable: false },
+    ],
+    data: discriminatorOf("solver_release"),
+  });
+  const transaction = new Transaction({ feePayer: input.solver, recentBlockhash: input.blockhash }).add(ix);
+  return { transaction, escrow, vault };
+}
+
+/**
+ * Matches IDL instruction `userRefund` in `src/idl/moxie_escrow.json`
+ */
+export function userRefundTransaction(input: {
+  maker: PublicKey;
+  blockhash: string;
+}): { transaction: Transaction; escrow: PublicKey; vault: PublicKey } {
+  const escrow = escrowPda(input.maker);
+  const vault = vaultPda(escrow);
+  const ix = new TransactionInstruction({
+    programId: PROGRAM_ID,
+    keys: [
+      { pubkey: input.maker, isSigner: true, isWritable: true },
+      { pubkey: escrow, isSigner: false, isWritable: true },
+      { pubkey: vault, isSigner: false, isWritable: true },
+      { pubkey: makerTokenAccount(input.maker), isSigner: false, isWritable: true },
+      { pubkey: TOKEN_PROGRAM_ID, isSigner: false, isWritable: false },
+    ],
+    data: discriminatorOf("user_refund"),
   });
   const transaction = new Transaction({ feePayer: input.maker, recentBlockhash: input.blockhash }).add(ix);
   return { transaction, escrow, vault };
@@ -78,42 +135,44 @@ export async function lockDevnetIntent(input: {
   amount: bigint;
   intentHash: Uint8Array;
   timeout: bigint;
-}): Promise<{ signature: string; escrowPda: string }> {
+}): Promise<{ signature: string; escrowPda: string; usedFallback: boolean }> {
   if (!input.provider.signTransaction) throw new Error("This wallet cannot sign a Solana transaction.");
-  const connection = new Connection(SOLANA_DEVNET_RPC, "confirmed");
   const maker = new PublicKey(input.publicKey);
-  const { blockhash, lastValidBlockHeight } = await connection.getLatestBlockhash("confirmed");
-  const built = initializeIntentTransaction({
-    maker,
-    amount: input.amount,
-    intentHash: input.intentHash,
-    timeout: input.timeout,
-    blockhash,
+  const { result, usedFallback } = await withSolanaFailover(async (connection, endpoint) => {
+    const { blockhash, lastValidBlockHeight } = await connection.getLatestBlockhash("confirmed");
+    const built = initializeIntentTransaction({
+      maker,
+      amount: input.amount,
+      intentHash: input.intentHash,
+      timeout: input.timeout,
+      blockhash,
+    });
+    const raw = built.transaction.serialize({ requireAllSignatures: false, verifySignatures: false });
+    const simulated = await fetch(endpoint, {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({
+        jsonrpc: "2.0",
+        id: 1,
+        method: "simulateTransaction",
+        params: [
+          Buffer.from(raw).toString("base64"),
+          { encoding: "base64", sigVerify: false, replaceRecentBlockhash: true },
+        ],
+      }),
+    });
+    const preview = (await simulated.json()) as {
+      error?: { message?: string };
+      result?: { value?: { err: unknown; logs?: string[] } };
+    };
+    if (preview.error?.message) throw new Error(preview.error.message);
+    if (preview.result?.value?.err) {
+      throw new Error(logMessage(preview.result.value.logs) ?? "Devnet rejected the lock before signing.");
+    }
+    const signed = await input.provider.signTransaction!(built.transaction);
+    const signature = await connection.sendRawTransaction(signed.serialize(), { skipPreflight: false });
+    await connection.confirmTransaction({ signature, blockhash, lastValidBlockHeight }, "confirmed");
+    return { signature, escrowPda: built.escrow.toBase58() };
   });
-  const raw = built.transaction.serialize({ requireAllSignatures: false, verifySignatures: false });
-  const simulated = await fetch(SOLANA_DEVNET_RPC, {
-    method: "POST",
-    headers: { "content-type": "application/json" },
-    body: JSON.stringify({
-      jsonrpc: "2.0",
-      id: 1,
-      method: "simulateTransaction",
-      params: [
-        Buffer.from(raw).toString("base64"),
-        { encoding: "base64", sigVerify: false, replaceRecentBlockhash: true },
-      ],
-    }),
-  });
-  const preview = (await simulated.json()) as {
-    error?: { message?: string };
-    result?: { value?: { err: unknown; logs?: string[] } };
-  };
-  if (preview.error?.message) throw new Error(preview.error.message);
-  if (preview.result?.value?.err) {
-    throw new Error(logMessage(preview.result.value.logs) ?? "Devnet rejected the lock before signing.");
-  }
-  const signed = await input.provider.signTransaction(built.transaction);
-  const signature = await connection.sendRawTransaction(signed.serialize(), { skipPreflight: false });
-  await connection.confirmTransaction({ signature, blockhash, lastValidBlockHeight }, "confirmed");
-  return { signature, escrowPda: built.escrow.toBase58() };
+  return { ...result, usedFallback };
 }

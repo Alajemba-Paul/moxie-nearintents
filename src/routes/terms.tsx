@@ -3,10 +3,10 @@ import { createFileRoute } from "@tanstack/react-router";
 export const Route = createFileRoute("/terms")({
   head: () => ({
     meta: [
-      { title: "Terms · Moxie" },
+      { title: "Terms · Moxie Markets" },
       {
         name: "description",
-        content: "Non-custodial prediction terms for Moxie intents.",
+        content: "Terms of use for Moxie Markets private prediction terminal.",
       },
     ],
   }),
@@ -15,27 +15,27 @@ export const Route = createFileRoute("/terms")({
 
 function Terms() {
   return (
-    <main className="max-w-2xl px-4 py-8">
-      <p className="kicker text-xs text-slate">Terms</p>
-      <h1 className="mt-2 text-3xl">Prediction protocol terms</h1>
-      <div className="mt-6 space-y-4 text-mist">
+    <main className="mx-auto max-w-2xl py-12 space-y-6">
+      <div>
+        <p className="text-caption text-fey-signal">Legal</p>
+        <h1 className="mt-2 text-display text-fey-white">
+          Terms of <span className="text-fey-ember">use.</span>
+        </h1>
+      </div>
+
+      <div className="fey-card p-6 space-y-4 text-body text-fey-mist">
         <p>
-          Moxie is a non-custodial interface. You sign every lock. ICM Labs does not hold your tokens and does not
-          promise that a solver will fill a bet.
+          Moxie Markets gives you a direct web interface to lock USDC on Solana and route orders to Polymarket. You sign every transaction with your own wallet. Moxie never holds your private keys.
         </p>
         <p>
-          An intent is a request: market, side, size, slippage room, and expiry. A match can fail. If the fill proof
-          does not check out, the deposit stays locked until the escrow rules allow a refund.
+          When you click Lock bet, you set the market, outcome (YES or NO), USDC amount, price room (slippage percentage), and expiry time. If a solver cannot fill your order within your price room before the timer ends, you can reclaim your USDC from the Solana escrow account.
         </p>
         <p>
-          Devnet and Amoy activity is test traffic. Prices on the desk are a practice book unless a wallet transaction
-          is confirmed on-chain. Settled rows are receipts, not investment advice.
+          Devnet and Polygon Amoy activity uses test tokens for demonstration. Make sure your Solana wallet is set to the correct network before approving a lock.
         </p>
         <p>
-          You are responsible for the wallet you connect and for setting that wallet to Devnet before you approve a
-          lock. One escrow account can be open per Solana key.
+          Questions or support: <a href="mailto:moxiedotmarkets@gmail.com" className="text-fey-signal hover:underline">moxiedotmarkets@gmail.com</a> or <a href="https://x.com/moxiedotmarkets" target="_blank" rel="noreferrer" className="text-fey-signal hover:underline">@moxiedotmarkets</a>.
         </p>
-        <p>Contact ICM Labs, FUTO, Nigeria at ops@moxie.markets or icmlabs@gmail.com.</p>
       </div>
     </main>
   );

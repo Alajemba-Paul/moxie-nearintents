@@ -6,6 +6,6 @@
   "dependencies": {
     "bufferutil": "4.1.0",
     "node-gyp-build": "4.8.4",
-    "utf-8-validate": "5.0.10"
+    "utf-8-validate": "6.0.6"
   }
 }

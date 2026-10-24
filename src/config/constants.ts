@@ -1,5 +1,12 @@
 export const SOLANA_ESCROW_PROGRAM_ID = "DiiRjjCHMYkiMp2x7LX4Bzobq8niuiVD5vkym8mCwK5g";
 export const DEVNET_USDC_MINT = "Djt6NeQ1393wVNHpGkgyty15rKqfA7PHeXoVezuW2TUs";
 export const POLYGON_AMOY_RPC = "https://rpc-amoy.polygon.technology";
+export const POLYGON_EXPLORER_URL = "https://amoy.polygonscan.com";
 export const SOLANA_DEVNET_RPC = "https://api.devnet.solana.com";
+export const SOLANA_FALLBACK_RPC = "https://api.devnet.solana.com";
+export const NEAR_RPC_URL = "https://rpc.testnet.near.org";
 export const NEAR_MPC_CONTRACT = "v1.signer-prod.testnet";
+export const NEAR_DERIVATION_PREFIX = "moxie-intents";
+export const POLYMARKET_GAMMA_API = "https://gamma-api.polymarket.com";
+export const POLYMARKET_CLOB_API = "https://clob.polymarket.com";
+export const POLYMARKET_WS_URL = "wss://ws-subscriptions-clob.polymarket.com/ws/market";

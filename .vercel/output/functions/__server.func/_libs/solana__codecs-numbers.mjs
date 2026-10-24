@@ -1,5 +1,5 @@
-import { a as createEncoder, i as createDecoder, n as assertByteArrayIsNotEmptyForCodec, o as SOLANA_ERROR__CODECS__NUMBER_OUT_OF_RANGE, r as combineCodec, s as SolanaError, t as assertByteArrayHasEnoughBytesForCodec } from "./@solana/codecs-core+[...].mjs";
-//#region node_modules/@solana/codecs-numbers/dist/index.node.mjs
+import { a as createEncoder, c as SolanaError, i as createDecoder, n as assertByteArrayIsNotEmptyForCodec, o as toArrayBuffer, r as combineCodec, s as SOLANA_ERROR__CODECS__NUMBER_OUT_OF_RANGE, t as assertByteArrayHasEnoughBytesForCodec } from "./@solana/codecs-core+[...].mjs";
+// node_modules/@solana/codecs-numbers/dist/index.node.mjs
 function assertNumberIsBetweenForCodec(codecDescription, min, max, value) {
 	if (value < min || value > max) throw new SolanaError(SOLANA_ERROR__CODECS__NUMBER_OUT_OF_RANGE, {
 		codecDescription,
@@ -34,11 +34,6 @@ function numberDecoderFactory(input) {
 		}
 	});
 }
-function toArrayBuffer(bytes, offset, length) {
-	const bytesOffset = bytes.byteOffset + (offset ?? 0);
-	const bytesLength = length ?? bytes.byteLength;
-	return bytes.buffer.slice(bytesOffset, bytesOffset + bytesLength);
-}
 var getU64Encoder = (config = {}) => numberEncoderFactory({
 	config,
 	name: "u64",
@@ -53,5 +48,4 @@ var getU64Decoder = (config = {}) => numberDecoderFactory({
 	size: 8
 });
 var getU64Codec = (config = {}) => combineCodec(getU64Encoder(config), getU64Decoder(config));
-//#endregion
 export { getU64Encoder as n, getU64Codec as t };

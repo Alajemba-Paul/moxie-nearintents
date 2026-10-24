@@ -4,7 +4,7 @@ import { PreviewHostBridge } from "@/components/preview-host-bridge";
 import { Shell } from "@/components/shell";
 import appCss from "../styles.css?url";
 
-const APP_NAME = "Moxie";
+const APP_NAME = "Moxie Markets";
 
 export const Route = createRootRoute({
   head: () => ({
@@ -12,10 +12,10 @@ export const Route = createRootRoute({
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
       { title: APP_NAME },
-      { name: "theme-color", content: "#012624" },
+      { name: "theme-color", content: "#0b0b0b" },
       {
         name: "description",
-        content: "Lock Solana USDC. Moxie matches the intent through NEAR and fills the prediction market. You don't hold gas or bridge.",
+        content: "Bet on global events privately. Lock Solana USDC, route orders privately through NEAR Intents, and settle Polymarket shares on Polygon.",
       },
     ],
     links: [
@@ -23,7 +23,7 @@ export const Route = createRootRoute({
       { rel: "preconnect", href: "https://fonts.gstatic.com", crossOrigin: "anonymous" },
       {
         rel: "stylesheet",
-        href: "https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,500&family=Inter:wght@400;500&display=swap",
+        href: "https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,500&family=Inter:wght@400;500;600;700&display=swap",
       },
       { rel: "icon", type: "image/svg+xml", href: "/favicon.svg" },
       { rel: "icon", type: "image/png", sizes: "32x32", href: "/favicon-32.png" },
@@ -35,10 +35,10 @@ export const Route = createRootRoute({
   }),
   component: () => (
     <html lang="en" className="antialiased" suppressHydrationWarning>
-      <head>
+      <head suppressHydrationWarning>
         <HeadContent />
       </head>
-      <body>
+      <body suppressHydrationWarning>
         <PreviewHostBridge />
         <AuthProvider>
           <Shell>

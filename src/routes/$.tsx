@@ -4,22 +4,35 @@ import { ParticleOrb } from "@/components/particle-orb";
 export const Route = createFileRoute("/$")({
   head: () => ({
     meta: [
-      { title: "Not found · Moxie" },
-      { name: "description", content: "That Moxie page is not on the desk." },
+      { title: "404 Not Found · Moxie Markets" },
+      { name: "description", content: "That page was not found on the Moxie Markets terminal." },
     ],
   }),
-  component: Missing,
+  component: MissingPage,
 });
 
-function Missing() {
+function MissingPage() {
   return (
-    <main className="flex flex-col items-center px-4 py-16 text-center">
-      <ParticleOrb className="h-56 w-56" disperse />
-      <h1 className="mt-4 text-3xl">This page drifted off</h1>
-      <p className="mt-2 max-w-sm">The route is not part of the terminal.</p>
-      <Link to="/" className="mt-6 inline-flex h-11 items-center rounded-control bg-cta px-4 text-sm font-medium text-abyss">
-        Return to markets
-      </Link>
+    <main className="flex flex-col items-center px-4 py-16 text-center space-y-5">
+      <ParticleOrb className="h-48 w-48" disperse />
+      <p className="text-caption text-fey-ember">Error 404</p>
+      <h1 className="text-display text-fey-white">
+        This page drifted <span className="text-fey-ember">off.</span>
+      </h1>
+      <p className="max-w-sm text-body text-fey-mist">
+        That link is not on the terminal. Jump back to live markets or check your portfolio.
+      </p>
+      <div className="flex items-center gap-3 pt-2">
+        <Link to="/markets" className="ghost-pill-cta inline-flex h-11 items-center px-6 text-body font-medium">
+          Open Markets
+        </Link>
+        <Link
+          to="/"
+          className="inline-flex h-11 items-center rounded-pill bg-fey-charcoal border border-fey-smoke px-5 text-body font-medium text-fey-mist hover:text-fey-white"
+        >
+          Home
+        </Link>
+      </div>
     </main>
   );
 }

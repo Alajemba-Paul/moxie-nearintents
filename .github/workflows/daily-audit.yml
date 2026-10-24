@@ -1,0 +1,44 @@
+name: Moxie Daily Quality & Health Audit
+
+on:
+  schedule:
+    - cron: '0 0 * * *'
+  workflow_dispatch:
+  push:
+    branches: [ main ]
+
+jobs:
+  audit-and-test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Security vulnerability scan
+        run: npm audit --audit-level=high
+
+      - name: TypeScript compiler check
+        run: npx tsc --noEmit
+
+      - name: Lint check
+        run: npm run lint
+
+      - name: Run daily infrastructure & contract health script
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+          NEXT_PUBLIC_SOLANA_RPC_URL: ${{ secrets.NEXT_PUBLIC_SOLANA_RPC_URL }}
+          NEXT_PUBLIC_NEAR_RPC_URL: https://rpc.testnet.near.org
+          NEXT_PUBLIC_POLYGON_RPC_URL: ${{ secrets.NEXT_PUBLIC_POLYGON_RPC_URL }}
+        run: npx tsx scripts/daily-audit.ts
+
+      - name: Verify production build
+        run: npm run build

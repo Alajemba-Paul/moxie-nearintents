@@ -35,7 +35,7 @@ export function ParticleOrb({ className, disperse = false }: { className?: strin
         const x = Math.cos(point.theta + spin) * point.radius;
         const z = Math.sin(point.theta + spin) * point.radius;
         const depth = (z + 1) / 2;
-        ctx.fillStyle = depth > 0.72 ? "#ffffff" : depth > 0.4 ? "#cbfffc" : "#00827c";
+        ctx.fillStyle = depth > 0.72 ? "#ffffff" : depth > 0.4 ? "#479ffa" : "#ffa16c";
         ctx.globalAlpha = fade * (0.3 + depth * 0.7);
         ctx.beginPath();
         ctx.arc(cx + x * scale, cy + point.y * scale, 1 + depth * 1.2, 0, Math.PI * 2);
@@ -48,7 +48,7 @@ export function ParticleOrb({ className, disperse = false }: { className?: strin
 
     draw();
     return () => window.cancelAnimationFrame(raf);
-  }, []);
+  }, [disperse]);
 
   return (
     <canvas
