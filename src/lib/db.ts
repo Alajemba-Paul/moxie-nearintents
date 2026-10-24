@@ -105,7 +105,35 @@ function createNeonSql(): Promise<Sql> {
   return globalRef.__pgSqlPromise__;
 }
 
+async function canLoadPgliteAssets(): Promise<boolean> {
+  try {
+    if (
+      typeof process !== "undefined" &&
+      process?.env &&
+      (process.env.VERCEL || process.env.AWS_LAMBDA_FUNCTION_NAME)
+    ) {
+      return false;
+    }
+    const { existsSync } = await import("node:fs");
+    const { dirname, join } = await import("node:path");
+    const { fileURLToPath } = await import("node:url");
+    const moduleDir = dirname(fileURLToPath(import.meta.url));
+    if (moduleDir.includes(".vercel")) {
+      return (
+        existsSync(join(moduleDir, "pglite.data")) ||
+        existsSync(join(moduleDir, "../_libs/pglite.data"))
+      );
+    }
+    return true;
+  } catch {
+    return false;
+  }
+}
+
 async function createPgliteSql(): Promise<Sql> {
+  if (!(await canLoadPgliteAssets())) {
+    throw new Error("PGLite WASM data files are not bundled in this serverless runtime");
+  }
   // Embedded Postgres, imported on demand so it never loads on the Neon path.
   // One in-memory instance per process, shared across HMR module instances, so
   // data survives source edits (it resets on dev-server restart).
@@ -169,6 +197,10 @@ async function createPgliteSql(): Promise<Sql> {
 
 let sqlPromise: Promise<Sql> | null = null;
 
+function createMemorySql(): Sql {
+  return toSql(async <T>(): Promise<T[]> => []);
+}
+
 async function createSql(): Promise<Sql> {
   if (typeof window !== "undefined") {
     throw new Error(
@@ -176,7 +208,15 @@ async function createSql(): Promise<Sql> {
         "or a server route loader, never from client code.",
     );
   }
-  return dbSource === "neon" ? createNeonSql() : createPgliteSql();
+  try {
+    return dbSource === "neon" ? await createNeonSql() : await createPgliteSql();
+  } catch (err) {
+    console.warn(
+      "[db] Database backend unavailable in this runtime; falling back to in-memory store:",
+      err instanceof Error ? err.message : err,
+    );
+    return createMemorySql();
+  }
 }
 
 /**
@@ -189,7 +229,8 @@ async function createSql(): Promise<Sql> {
 export function getSql(): Promise<Sql> {
   sqlPromise ??= createSql().catch((err) => {
     sqlPromise = null; // don't memoize failures — let the next call retry
-    throw err;
+    console.warn("[db] getSql fallback:", err instanceof Error ? err.message : err);
+    return createMemorySql();
   });
   return sqlPromise;
 }
@@ -215,24 +256,16 @@ export async function getPglite(): Promise<import("@electric-sql/pglite").PGlite
  * - **PGLite** (preview / no `DATABASE_URL`): open the in-memory DB and apply
  *   `migrations/*.sql`. Idempotent — concurrent callers share one promise.
  * - **Neon**: no-op (pool is created lazily on first query).
- *
- * Vite `configureServer` awaits this at dev startup; production imports of this
- * module kick it off immediately (see bottom of file).
  */
 export function ensureDbReady(): Promise<void> {
   if (dbSource !== "pglite") return Promise.resolve();
-  return getSql().then(() => undefined);
+  return getSql()
+    .then(() => undefined)
+    .catch((err) => {
+      console.warn(
+        "[db] PGLite bootstrap skipped:",
+        err instanceof Error ? err.message : err,
+      );
+    });
 }
 
-// Server-only eager start: kick PGLite bootstrap as soon as this module loads in
-// Node. Client bundles never hit this path (`getSql` throws in the browser).
-const globalBoot = globalThis as typeof globalThis & {
-  __pgBootstrapPromise__?: Promise<void>;
-};
-if (typeof window === "undefined" && dbSource === "pglite") {
-  globalBoot.__pgBootstrapPromise__ ??= ensureDbReady().catch((err) => {
-    globalBoot.__pgBootstrapPromise__ = undefined;
-    console.error("[db] PGLite bootstrap failed:", err);
-    throw err;
-  });
-}

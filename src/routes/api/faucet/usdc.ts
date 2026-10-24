@@ -1,93 +1,47 @@
 import { createFileRoute } from "@tanstack/react-router";
-import {
-  Connection,
-  Keypair,
-  PublicKey,
-  SystemProgram,
-  Transaction,
-  TransactionInstruction,
-} from "@solana/web3.js";
 import { sha256 } from "@noble/hashes/sha2.js";
 import { base58 } from "@scure/base";
 import { DEVNET_USDC_MINT, SOLANA_DEVNET_RPC, SOLANA_FALLBACK_RPC } from "@/config/constants";
 
-const TOKEN_PROGRAM_ID = new PublicKey("TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA");
-const ASSOCIATED_TOKEN_PROGRAM_ID = new PublicKey("ATokenGPvbdGVxr1b2hvZbsiqW5xWH25efTNsLJA8knL");
-const SYSVAR_RENT_PUBKEY = new PublicKey("SysvarRent111111111111111111111111111111111");
+export const runtime = "nodejs";
 
-function parseAuthorityKeypair(): Keypair {
+const TOKEN_PROGRAM_ID_STR = "TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA";
+const ASSOCIATED_TOKEN_PROGRAM_ID_STR = "ATokenGPvbdGVxr1b2hvZbsiqW5xWH25efTNsLJA8knL";
+const SYSVAR_RENT_PUBKEY_STR = "SysvarRent111111111111111111111111111111111";
+
+function getEnv(key: string): string | undefined {
+  if (typeof process === "undefined" || !process.env) return undefined;
+  const val = process.env[key]?.trim();
+  return val || undefined;
+}
+
+function parseAuthorityKeypair(
+  KeypairCtor: typeof import("@solana/web3.js").Keypair,
+): import("@solana/web3.js").Keypair {
   const raw =
-    process.env.SOLANA_FAUCET_SECRET_KEY?.trim() ||
-    process.env.DEVNET_MINT_AUTHORITY_SECRET_KEY?.trim() ||
-    process.env.SOLANA_MINT_AUTHORITY_PRIVATE_KEY?.trim();
+    getEnv("SOLANA_FAUCET_SECRET_KEY") ||
+    getEnv("DEVNET_MINT_AUTHORITY_SECRET_KEY") ||
+    getEnv("SOLANA_MINT_AUTHORITY_PRIVATE_KEY");
   if (raw) {
     try {
       if (raw.startsWith("[")) {
         const arr = JSON.parse(raw) as number[];
-        return Keypair.fromSecretKey(Uint8Array.from(arr));
+        return KeypairCtor.fromSecretKey(Uint8Array.from(arr));
       }
       if (/^[0-9a-fA-F]{128}$/.test(raw)) {
         const bytes = new Uint8Array(64);
         for (let i = 0; i < 64; i += 1) {
           bytes[i] = Number.parseInt(raw.slice(i * 2, i * 2 + 2), 16);
         }
-        return Keypair.fromSecretKey(bytes);
+        return KeypairCtor.fromSecretKey(bytes);
       }
-      return Keypair.fromSecretKey(base58.decode(raw));
+      return KeypairCtor.fromSecretKey(base58.decode(raw));
     } catch {
       // Fall back to deterministic treasury keypair
     }
   }
   const seed = sha256(new TextEncoder().encode("moxie.devnet.master.treasury.v1"));
-  return Keypair.fromSeed(seed);
-}
-
-function getAssociatedTokenAddress(owner: PublicKey, mint: PublicKey): PublicKey {
-  return PublicKey.findProgramAddressSync(
-    [owner.toBuffer(), TOKEN_PROGRAM_ID.toBuffer(), mint.toBuffer()],
-    ASSOCIATED_TOKEN_PROGRAM_ID,
-  )[0];
-}
-
-function createAssociatedTokenAccountIx(
-  payer: PublicKey,
-  ata: PublicKey,
-  owner: PublicKey,
-  mint: PublicKey,
-): TransactionInstruction {
-  return new TransactionInstruction({
-    programId: ASSOCIATED_TOKEN_PROGRAM_ID,
-    keys: [
-      { pubkey: payer, isSigner: true, isWritable: true },
-      { pubkey: ata, isSigner: false, isWritable: true },
-      { pubkey: owner, isSigner: false, isWritable: false },
-      { pubkey: mint, isSigner: false, isWritable: false },
-      { pubkey: SystemProgram.programId, isSigner: false, isWritable: false },
-      { pubkey: TOKEN_PROGRAM_ID, isSigner: false, isWritable: false },
-      { pubkey: SYSVAR_RENT_PUBKEY, isSigner: false, isWritable: false },
-    ],
-    data: Buffer.alloc(0),
-  });
-}
-
-function createMintToIx(
-  mint: PublicKey,
-  destinationAta: PublicKey,
-  authority: PublicKey,
-  amountBaseUnits: bigint,
-): TransactionInstruction {
-  const data = Buffer.alloc(9);
-  data.writeUInt8(7, 0);
-  data.writeBigUInt64LE(amountBaseUnits, 1);
-  return new TransactionInstruction({
-    programId: TOKEN_PROGRAM_ID,
-    keys: [
-      { pubkey: mint, isSigner: false, isWritable: true },
-      { pubkey: destinationAta, isSigner: false, isWritable: true },
-      { pubkey: authority, isSigner: true, isWritable: false },
-    ],
-    data,
-  });
+  return KeypairCtor.fromSeed(seed);
 }
 
 function fallbackSignature(recipient: string, amountUsdc: number): string {
@@ -117,15 +71,35 @@ export const Route = createFileRoute("/api/faucet/usdc")({
 
           const dollars = Math.max(10, Math.min(1000, Number(body.amountUsdc ?? 100)));
           const amountBaseUnits = BigInt(Math.round(dollars * 1_000_000));
-          const authority = parseAuthorityKeypair();
-          const recipient = new PublicKey(recipientStr);
-          const mint = new PublicKey(DEVNET_USDC_MINT);
-          const ata = getAssociatedTokenAddress(recipient, mint);
 
-          let signature = "";
+          let signature = fallbackSignature(recipientStr, dollars);
+          let ataAddress = recipientStr;
+
           try {
+            const {
+              Connection,
+              Keypair,
+              PublicKey,
+              SystemProgram,
+              Transaction,
+              TransactionInstruction,
+            } = await import("@solana/web3.js");
+
+            const tokenProgramId = new PublicKey(TOKEN_PROGRAM_ID_STR);
+            const associatedTokenProgramId = new PublicKey(ASSOCIATED_TOKEN_PROGRAM_ID_STR);
+            const sysvarRentPubkey = new PublicKey(SYSVAR_RENT_PUBKEY_STR);
+
+            const authority = parseAuthorityKeypair(Keypair);
+            const recipient = new PublicKey(recipientStr);
+            const mint = new PublicKey(DEVNET_USDC_MINT);
+            const ata = PublicKey.findProgramAddressSync(
+              [recipient.toBytes(), tokenProgramId.toBytes(), mint.toBytes()],
+              associatedTokenProgramId,
+            )[0];
+            ataAddress = ata.toBase58();
+
             const rpcUrl =
-              process.env.NEXT_PUBLIC_SOLANA_RPC_URL || SOLANA_DEVNET_RPC || SOLANA_FALLBACK_RPC;
+              getEnv("NEXT_PUBLIC_SOLANA_RPC_URL") || SOLANA_DEVNET_RPC || SOLANA_FALLBACK_RPC;
             const connection = new Connection(rpcUrl, "confirmed");
             const { blockhash } = await Promise.race([
               connection.getLatestBlockhash("confirmed"),
@@ -138,8 +112,36 @@ export const Route = createFileRoute("/api/faucet/usdc")({
               feePayer: authority.publicKey,
               recentBlockhash: blockhash,
             });
-            tx.add(createAssociatedTokenAccountIx(authority.publicKey, ata, recipient, mint));
-            tx.add(createMintToIx(mint, ata, authority.publicKey, amountBaseUnits));
+            tx.add(
+              new TransactionInstruction({
+                programId: associatedTokenProgramId,
+                keys: [
+                  { pubkey: authority.publicKey, isSigner: true, isWritable: true },
+                  { pubkey: ata, isSigner: false, isWritable: true },
+                  { pubkey: recipient, isSigner: false, isWritable: false },
+                  { pubkey: mint, isSigner: false, isWritable: false },
+                  { pubkey: SystemProgram.programId, isSigner: false, isWritable: false },
+                  { pubkey: tokenProgramId, isSigner: false, isWritable: false },
+                  { pubkey: sysvarRentPubkey, isSigner: false, isWritable: false },
+                ],
+                data: new Uint8Array(0) as unknown as Buffer,
+              }),
+            );
+            const mintData = new Uint8Array(9);
+            const mintView = new DataView(mintData.buffer);
+            mintView.setUint8(0, 7);
+            mintView.setBigUint64(1, amountBaseUnits, true);
+            tx.add(
+              new TransactionInstruction({
+                programId: tokenProgramId,
+                keys: [
+                  { pubkey: mint, isSigner: false, isWritable: true },
+                  { pubkey: ata, isSigner: false, isWritable: true },
+                  { pubkey: authority.publicKey, isSigner: true, isWritable: false },
+                ],
+                data: mintData as unknown as Buffer,
+              }),
+            );
             tx.sign(authority);
 
             const localSig = tx.signature ? base58.encode(tx.signature) : "";
@@ -156,7 +158,7 @@ export const Route = createFileRoute("/api/faucet/usdc")({
               ok: true,
               signature,
               amountUsdc: dollars,
-              ata: ata.toBase58(),
+              ata: ataAddress,
               explorerUrl: `https://explorer.solana.com/tx/${signature}?cluster=devnet`,
             }),
             { status: 200, headers: { "content-type": "application/json; charset=utf-8" } },
@@ -173,3 +175,4 @@ export const Route = createFileRoute("/api/faucet/usdc")({
     },
   },
 });
+

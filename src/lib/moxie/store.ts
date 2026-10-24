@@ -1,6 +1,6 @@
 import { sha256 } from "@noble/hashes/sha2.js";
 import { create } from "zustand";
-import { persist } from "zustand/middleware";
+import { createJSONStorage, persist, type StateStorage } from "zustand/middleware";
 import {
   base58,
   bytesToHex,
@@ -19,11 +19,45 @@ import { refundEscrow, sharesFor } from "./machine.ts";
 import { complementAsk, MARKETS, outcomeTokenId } from "./markets.ts";
 import type { DeskOrder, Intent, Ledger, Phase, RouteEvent } from "./types.ts";
 
+const ssrSafeStorage: StateStorage = {
+  getItem: (name: string): string | null => {
+    if (typeof window === "undefined") return null;
+    try {
+      return window.localStorage.getItem(name);
+    } catch {
+      return null;
+    }
+  },
+  setItem: (name: string, value: string): void => {
+    if (typeof window === "undefined") return;
+    try {
+      window.localStorage.setItem(name, value);
+    } catch {
+      // ignore storage quota or privacy errors
+    }
+  },
+  removeItem: (name: string): void => {
+    if (typeof window === "undefined") return;
+    try {
+      window.localStorage.removeItem(name);
+    } catch {
+      // ignore storage errors
+    }
+  },
+};
+
 function identity(secretHex: string): { secretKeyHex: string; publicKeyB58: string } {
-  return {
-    secretKeyHex: secretHex,
-    publicKeyB58: base58.encode(publicKeyFromSecret(hexToBytes(secretHex))),
-  };
+  try {
+    return {
+      secretKeyHex: secretHex,
+      publicKeyB58: base58.encode(publicKeyFromSecret(hexToBytes(secretHex))),
+    };
+  } catch {
+    return {
+      secretKeyHex: PAPER_SECRET_HEX,
+      publicKeyB58: "11111111111111111111111111111111",
+    };
+  }
 }
 
 export function deriveWalletIdentity(
@@ -51,7 +85,11 @@ export function deriveWalletIdentity(
   };
 }
 
-const defaultPaper = identity(PAPER_SECRET_HEX);
+let cachedDefaultPaper: { secretKeyHex: string; publicKeyB58: string } | null = null;
+function getDefaultPaper(): { secretKeyHex: string; publicKeyB58: string } {
+  cachedDefaultPaper ??= identity(PAPER_SECRET_HEX);
+  return cachedDefaultPaper;
+}
 
 function upsert(orders: DeskOrder[], order: DeskOrder): DeskOrder[] {
   return [order, ...orders.filter((item) => item.id !== order.id)].slice(0, 50);
@@ -380,7 +418,7 @@ function activeAddressOf(state: {
 export const useDesk = create<DeskState>()(
   persist(
     (set, get) => ({
-      ...defaultPaper,
+      ...getDefaultPaper(),
       available: 0,
       locked: 0,
       nextNonce: 0,
@@ -864,6 +902,7 @@ export const useDesk = create<DeskState>()(
     }),
     {
       name: "moxie-session-v3",
+      storage: createJSONStorage(() => ssrSafeStorage),
       skipHydration: true,
       partialize: (state) => ({
         secretKeyHex: state.secretKeyHex,
@@ -877,10 +916,14 @@ export const useDesk = create<DeskState>()(
       onRehydrateStorage: () => (state) => {
         if (!state) return;
         if (typeof window !== "undefined") {
-          const savedTheme = window.localStorage.getItem(THEME_STORAGE_KEY);
-          if (savedTheme === "dark" || savedTheme === "light" || savedTheme === "system") {
-            state.setTheme(savedTheme);
-          } else {
+          try {
+            const savedTheme = window.localStorage.getItem(THEME_STORAGE_KEY);
+            if (savedTheme === "dark" || savedTheme === "light" || savedTheme === "system") {
+              state.setTheme(savedTheme);
+            } else {
+              applyThemeToDocument(state.theme ?? "dark");
+            }
+          } catch {
             applyThemeToDocument(state.theme ?? "dark");
           }
         }

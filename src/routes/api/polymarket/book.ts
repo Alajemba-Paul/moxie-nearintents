@@ -1,6 +1,8 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { fetchPolymarketOrderbook } from "@/lib/moxie/polymarket.server";
 
+export const runtime = "nodejs";
+
 export const Route = createFileRoute("/api/polymarket/book")({
   server: {
     handlers: {
@@ -20,3 +22,4 @@ export const Route = createFileRoute("/api/polymarket/book")({
     },
   },
 });
+

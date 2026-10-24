@@ -96,7 +96,7 @@ function hexToSecret(hex: string): Uint8Array {
 
 function wait(ms: number, reduce: boolean): Promise<void> {
   return new Promise((resolve) => {
-    window.setTimeout(resolve, reduce ? 0 : ms);
+    setTimeout(resolve, reduce ? 0 : ms);
   });
 }
 
@@ -191,6 +191,7 @@ function TradeExecutionDesk() {
 
   // Fetch live orderbook from /api/polymarket/book and stream updates
   useEffect(() => {
+    if (typeof window === "undefined") return;
     let cancelled = false;
 
     async function fetchBook() {
@@ -211,33 +212,35 @@ function TradeExecutionDesk() {
 
     let ws: WebSocket | null = null;
     try {
-      ws = new WebSocket(POLYMARKET_WS_URL);
-      ws.onopen = () => {
-        if (!cancelled) {
-          setWsConnected(true);
-          ws?.send(
-            JSON.stringify({
-              assets_ids: market.clobTokenIds,
-              type: "market",
-            }),
-          );
-        }
-      };
-      ws.onmessage = () => {
-        if (!cancelled) {
-          setOrderbook((prev) => {
-            const delta = (Math.random() - 0.48) * 10_000;
-            const nextYes = Math.max(80_000, Math.min(920_000, prev.lastPriceCents * 10_000 + delta));
-            return buildOrderbook(market, nextYes);
-          });
-        }
-      };
-      ws.onerror = () => {
-        if (!cancelled) setWsConnected(false);
-      };
-      ws.onclose = () => {
-        if (!cancelled) setWsConnected(false);
-      };
+      if (typeof WebSocket !== "undefined") {
+        ws = new WebSocket(POLYMARKET_WS_URL);
+        ws.onopen = () => {
+          if (!cancelled) {
+            setWsConnected(true);
+            ws?.send(
+              JSON.stringify({
+                assets_ids: market.clobTokenIds,
+                type: "market",
+              }),
+            );
+          }
+        };
+        ws.onmessage = () => {
+          if (!cancelled) {
+            setOrderbook((prev) => {
+              const delta = (Math.random() - 0.48) * 10_000;
+              const nextYes = Math.max(80_000, Math.min(920_000, prev.lastPriceCents * 10_000 + delta));
+              return buildOrderbook(market, nextYes);
+            });
+          }
+        };
+        ws.onerror = () => {
+          if (!cancelled) setWsConnected(false);
+        };
+        ws.onclose = () => {
+          if (!cancelled) setWsConnected(false);
+        };
+      }
     } catch {
       setWsConnected(false);
     }

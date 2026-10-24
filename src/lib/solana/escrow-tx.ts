@@ -8,40 +8,82 @@ import {
 import { DEVNET_USDC_MINT, SOLANA_ESCROW_PROGRAM_ID } from "@/config/constants";
 import { withSolanaFailover, type SolanaProvider } from "@/lib/solana/wallet";
 
-const TOKEN_PROGRAM_ID = new PublicKey("TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA");
-const PROGRAM_ID = new PublicKey(SOLANA_ESCROW_PROGRAM_ID);
-const MINT = new PublicKey(DEVNET_USDC_MINT);
+const textEncoder = new TextEncoder();
+
+let cachedTokenProgramId: PublicKey | null = null;
+let cachedProgramId: PublicKey | null = null;
+let cachedMint: PublicKey | null = null;
+let cachedAssociatedProgramId: PublicKey | null = null;
+
+function getTokenProgramId(): PublicKey {
+  cachedTokenProgramId ??= new PublicKey("TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA");
+  return cachedTokenProgramId;
+}
+
+function getProgramId(): PublicKey {
+  cachedProgramId ??= new PublicKey(SOLANA_ESCROW_PROGRAM_ID);
+  return cachedProgramId;
+}
+
+function getMint(): PublicKey {
+  cachedMint ??= new PublicKey(DEVNET_USDC_MINT);
+  return cachedMint;
+}
+
+function getAssociatedProgramId(): PublicKey {
+  cachedAssociatedProgramId ??= new PublicKey("ATokenGPvbdGVxr1b2hvZbsiqW5xWH25efTNsLJA8knL");
+  return cachedAssociatedProgramId;
+}
+
+function bytesToBase64(bytes: Uint8Array): string {
+  if (typeof Buffer !== "undefined") {
+    return Buffer.from(bytes).toString("base64");
+  }
+  let binary = "";
+  for (let i = 0; i < bytes.length; i += 1) {
+    binary += String.fromCharCode(bytes[i]!);
+  }
+  return btoa(binary);
+}
 
 /** Confirmed on Devnet: seeds `["escrow", maker]` and `["vault", escrow]`. */
 export function escrowPda(maker: PublicKey): PublicKey {
-  return PublicKey.findProgramAddressSync([Buffer.from("escrow"), maker.toBuffer()], PROGRAM_ID)[0];
+  return PublicKey.findProgramAddressSync(
+    [textEncoder.encode("escrow"), maker.toBytes()],
+    getProgramId(),
+  )[0];
 }
 
 export function vaultPda(escrow: PublicKey): PublicKey {
-  return PublicKey.findProgramAddressSync([Buffer.from("vault"), escrow.toBuffer()], PROGRAM_ID)[0];
+  return PublicKey.findProgramAddressSync(
+    [textEncoder.encode("vault"), escrow.toBytes()],
+    getProgramId(),
+  )[0];
 }
 
 export function makerTokenAccount(maker: PublicKey): PublicKey {
-  const associated = new PublicKey("ATokenGPvbdGVxr1b2hvZbsiqW5xWH25efTNsLJA8knL");
   return PublicKey.findProgramAddressSync(
-    [maker.toBuffer(), TOKEN_PROGRAM_ID.toBuffer(), MINT.toBuffer()],
-    associated,
+    [maker.toBytes(), getTokenProgramId().toBytes(), getMint().toBytes()],
+    getAssociatedProgramId(),
   )[0];
 }
 
 function initializeIntentData(amount: bigint, intentHash: Uint8Array, timeout: bigint): Buffer {
   if (intentHash.length !== 32) throw new Error("Intent hash must be 32 bytes");
-  const disc = Buffer.from(sha256(new TextEncoder().encode("global:initialize_intent"))).subarray(0, 8);
-  const data = Buffer.alloc(8 + 8 + 32 + 8);
-  disc.copy(data, 0);
-  data.writeBigUInt64LE(amount, 8);
-  Buffer.from(intentHash).copy(data, 16);
-  data.writeBigInt64LE(timeout, 48);
-  return data;
+  const disc = sha256(textEncoder.encode("global:initialize_intent")).subarray(0, 8);
+  const raw = new Uint8Array(8 + 8 + 32 + 8);
+  raw.set(disc, 0);
+  const view = new DataView(raw.buffer);
+  view.setBigUint64(8, amount, true);
+  raw.set(intentHash, 16);
+  view.setBigInt64(48, timeout, true);
+  return Buffer.from(raw);
 }
 
 function discriminatorOf(instructionSnakeName: string): Buffer {
-  return Buffer.from(sha256(new TextEncoder().encode(`global:${instructionSnakeName}`))).subarray(0, 8);
+  return Buffer.from(
+    sha256(textEncoder.encode(`global:${instructionSnakeName}`)).subarray(0, 8),
+  );
 }
 
 /**
@@ -57,14 +99,14 @@ export function initializeIntentTransaction(input: {
   const escrow = escrowPda(input.maker);
   const vault = vaultPda(escrow);
   const ix = new TransactionInstruction({
-    programId: PROGRAM_ID,
+    programId: getProgramId(),
     keys: [
       { pubkey: input.maker, isSigner: true, isWritable: true },
       { pubkey: escrow, isSigner: false, isWritable: true },
       { pubkey: makerTokenAccount(input.maker), isSigner: false, isWritable: true },
       { pubkey: vault, isSigner: false, isWritable: true },
-      { pubkey: MINT, isSigner: false, isWritable: false },
-      { pubkey: TOKEN_PROGRAM_ID, isSigner: false, isWritable: false },
+      { pubkey: getMint(), isSigner: false, isWritable: false },
+      { pubkey: getTokenProgramId(), isSigner: false, isWritable: false },
       { pubkey: SystemProgram.programId, isSigner: false, isWritable: false },
     ],
     data: initializeIntentData(input.amount, input.intentHash, input.timeout),
@@ -85,14 +127,14 @@ export function solverReleaseTransaction(input: {
   const escrow = escrowPda(input.maker);
   const vault = vaultPda(escrow);
   const ix = new TransactionInstruction({
-    programId: PROGRAM_ID,
+    programId: getProgramId(),
     keys: [
       { pubkey: input.solver, isSigner: true, isWritable: false },
       { pubkey: escrow, isSigner: false, isWritable: true },
       { pubkey: input.maker, isSigner: false, isWritable: false },
       { pubkey: vault, isSigner: false, isWritable: true },
       { pubkey: input.solverTokenAccount, isSigner: false, isWritable: true },
-      { pubkey: TOKEN_PROGRAM_ID, isSigner: false, isWritable: false },
+      { pubkey: getTokenProgramId(), isSigner: false, isWritable: false },
     ],
     data: discriminatorOf("solver_release"),
   });
@@ -110,13 +152,13 @@ export function userRefundTransaction(input: {
   const escrow = escrowPda(input.maker);
   const vault = vaultPda(escrow);
   const ix = new TransactionInstruction({
-    programId: PROGRAM_ID,
+    programId: getProgramId(),
     keys: [
       { pubkey: input.maker, isSigner: true, isWritable: true },
       { pubkey: escrow, isSigner: false, isWritable: true },
       { pubkey: vault, isSigner: false, isWritable: true },
       { pubkey: makerTokenAccount(input.maker), isSigner: false, isWritable: true },
-      { pubkey: TOKEN_PROGRAM_ID, isSigner: false, isWritable: false },
+      { pubkey: getTokenProgramId(), isSigner: false, isWritable: false },
     ],
     data: discriminatorOf("user_refund"),
   });
@@ -156,7 +198,7 @@ export async function lockDevnetIntent(input: {
         id: 1,
         method: "simulateTransaction",
         params: [
-          Buffer.from(raw).toString("base64"),
+          bytesToBase64(raw),
           { encoding: "base64", sigVerify: false, replaceRecentBlockhash: true },
         ],
       }),
@@ -176,3 +218,4 @@ export async function lockDevnetIntent(input: {
   });
   return { ...result, usedFallback };
 }
+

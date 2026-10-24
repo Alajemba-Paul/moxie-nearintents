@@ -101,19 +101,29 @@ export function Shell({ children }: { children: ReactNode }) {
   useEffect(() => {
     // Immediately restore theme from localStorage before or alongside store hydration
     if (typeof window !== "undefined") {
-      const saved = window.localStorage.getItem(THEME_STORAGE_KEY);
-      if (saved === "dark" || saved === "light" || saved === "system") {
-        setTheme(saved);
-        setResolvedTheme(applyThemeToDocument(saved));
-      } else {
+      try {
+        const saved = window.localStorage.getItem(THEME_STORAGE_KEY);
+        if (saved === "dark" || saved === "light" || saved === "system") {
+          setTheme(saved);
+          setResolvedTheme(applyThemeToDocument(saved));
+        } else {
+          setResolvedTheme(applyThemeToDocument(useDesk.getState().theme));
+        }
+      } catch {
         setResolvedTheme(applyThemeToDocument(useDesk.getState().theme));
       }
     }
     void Promise.resolve(useDesk.persist.rehydrate()).finally(() => {
       setReady(true);
       setSlipInput(useDesk.getState().slippagePct.toFixed(1));
-      const saved =
-        typeof window !== "undefined" ? window.localStorage.getItem(THEME_STORAGE_KEY) : null;
+      let saved: string | null = null;
+      if (typeof window !== "undefined") {
+        try {
+          saved = window.localStorage.getItem(THEME_STORAGE_KEY);
+        } catch {
+          saved = null;
+        }
+      }
       const effectiveTheme: ThemePreference =
         saved === "dark" || saved === "light" || saved === "system"
           ? saved
@@ -163,8 +173,14 @@ export function Shell({ children }: { children: ReactNode }) {
       }
 
       // 2. Idempotent auto-onboarding check (never fires twice for the same wallet)
-      const alreadyMarkedLocal =
-        typeof window !== "undefined" && window.localStorage.getItem(storageKey) === "1";
+      let alreadyMarkedLocal = false;
+      if (typeof window !== "undefined") {
+        try {
+          alreadyMarkedLocal = window.localStorage.getItem(storageKey) === "1";
+        } catch {
+          alreadyMarkedLocal = false;
+        }
+      }
       if (alreadyMarkedLocal || useDesk.getState().onboarded) {
         completeAutoOnboard(targetWallet);
         return;
@@ -193,7 +209,11 @@ export function Shell({ children }: { children: ReactNode }) {
         if (cancelled || !data.ok) return;
 
         if (typeof window !== "undefined") {
-          window.localStorage.setItem(storageKey, "1");
+          try {
+            window.localStorage.setItem(storageKey, "1");
+          } catch {
+            // ignore storage errors
+          }
         }
         completeAutoOnboard(targetWallet);
 
@@ -206,7 +226,11 @@ export function Shell({ children }: { children: ReactNode }) {
         // Even if RPC is unreachable in sandbox, ensure initial 1000 Test USDC allocation is credited once
         if (!cancelled) {
           if (typeof window !== "undefined") {
-            window.localStorage.setItem(storageKey, "1");
+            try {
+              window.localStorage.setItem(storageKey, "1");
+            } catch {
+              // ignore storage errors
+            }
           }
           completeAutoOnboard(targetWallet);
         }
@@ -230,6 +254,7 @@ export function Shell({ children }: { children: ReactNode }) {
   ]);
 
   useEffect(() => {
+    if (typeof window === "undefined") return;
     function onKeyDown(e: KeyboardEvent) {
       if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === "k") {
         e.preventDefault();
@@ -246,6 +271,7 @@ export function Shell({ children }: { children: ReactNode }) {
   }, [setActiveModal]);
 
   useEffect(() => {
+    if (typeof document === "undefined") return;
     function onDocClick(e: MouseEvent) {
       if (settingsRef.current && !settingsRef.current.contains(e.target as Node)) {
         setSettingsOpen(false);
@@ -1427,7 +1453,12 @@ function CommandSearchModal({
 function CookieBanner() {
   const [open, setOpen] = useState(false);
   useEffect(() => {
-    setOpen(window.localStorage.getItem("moxie-cookie") !== "1");
+    if (typeof window === "undefined") return;
+    try {
+      setOpen(window.localStorage.getItem("moxie-cookie") !== "1");
+    } catch {
+      setOpen(false);
+    }
   }, []);
   if (!open) return null;
   return (
@@ -1436,7 +1467,13 @@ function CookieBanner() {
       <button
         type="button"
         onClick={() => {
-          window.localStorage.setItem("moxie-cookie", "1");
+          if (typeof window !== "undefined") {
+            try {
+              window.localStorage.setItem("moxie-cookie", "1");
+            } catch {
+              // ignore storage errors
+            }
+          }
           setOpen(false);
         }}
         className="ghost-pill-cta h-8 px-3.5 text-xs font-medium shrink-0"

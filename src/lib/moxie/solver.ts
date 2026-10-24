@@ -20,16 +20,23 @@ function solverKey(name: string, edgeBps: number): SolverKey {
   return { name, edgeBps, secret, pubkey: ed25519.getPublicKey(secret) };
 }
 
-const SOLVER_KEYS: SolverKey[] = [
-  solverKey("Northbridge", 12),
-  solverKey("Quiet Lot", 28),
-  solverKey("Harbor", 70),
-];
+export const SOLVER_NAMES = ["Northbridge", "Quiet Lot", "Harbor"];
 
-export const SOLVER_NAMES = SOLVER_KEYS.map((solver) => solver.name);
+let cachedSolverKeys: SolverKey[] | null = null;
+
+function getSolverKeys(): SolverKey[] {
+  if (!cachedSolverKeys) {
+    cachedSolverKeys = [
+      solverKey("Northbridge", 12),
+      solverKey("Quiet Lot", 28),
+      solverKey("Harbor", 70),
+    ];
+  }
+  return cachedSolverKeys;
+}
 
 export function collectQuotes(commitment: Uint8Array, referenceAskMicro: number): Quote[] {
-  return SOLVER_KEYS.map((solver) => {
+  return getSolverKeys().map((solver) => {
     const priceMicro = Number((BigInt(referenceAskMicro) * BigInt(10_000 + solver.edgeBps)) / 10_000n);
     const signature = ed25519.sign(quoteMessage(commitment, priceMicro, solver.pubkey), solver.secret);
     return {
@@ -78,7 +85,7 @@ export function buildFillProof(input: {
   priceMicro: number;
   fillMicro: number;
 }): FillProof {
-  const solver = SOLVER_KEYS.find((key) => base58.encode(key.pubkey) === input.solverPubkey);
+  const solver = getSolverKeys().find((key) => base58.encode(key.pubkey) === input.solverPubkey);
   if (!solver) throw new ProtocolError(ErrorCodes.UNAUTHORIZED, "Unknown solver");
   const sharesMicro = sharesFor(input.fillMicro, input.priceMicro);
   const polygonTx = sha256(concatTx(input.commitment, solver.pubkey));

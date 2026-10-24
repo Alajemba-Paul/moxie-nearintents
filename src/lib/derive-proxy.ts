@@ -1,5 +1,8 @@
-import { ethers } from "ethers";
+import { keccak_256 } from "@noble/hashes/sha3.js";
 import { NEAR_DERIVATION_PREFIX, NEAR_MPC_CONTRACT } from "../config/constants.ts";
+import { toChecksumAddress } from "./moxie/codec.ts";
+
+const textEncoder = new TextEncoder();
 
 /**
  * Derives a deterministic EVM address on Polygon
@@ -10,14 +13,19 @@ export function derivePolygonAddress(
   solanaPubkey: string,
   nearContractId: string = NEAR_MPC_CONTRACT,
 ): string {
-  const path = `${NEAR_DERIVATION_PREFIX},${solanaPubkey}`;
+  const cleanKey = (solanaPubkey ?? "").trim();
+  if (!cleanKey) {
+    return "0x0000000000000000000000000000000000000000";
+  }
+  const path = `${NEAR_DERIVATION_PREFIX},${cleanKey}`;
   const combinedSeed = `${nearContractId},${path}`;
-  const hash = ethers.keccak256(ethers.toUtf8Bytes(combinedSeed));
+  const digest = keccak_256(textEncoder.encode(combinedSeed));
 
-  // Format the last 20 bytes as an EVM checksum address
-  return ethers.getAddress("0x" + hash.slice(-40));
+  // Format the last 20 bytes as an EIP-55 checksum address
+  return toChecksumAddress(digest.slice(12));
 }
 
 export function derivationPathOf(solanaPubkey: string): string {
   return `${NEAR_DERIVATION_PREFIX},${solanaPubkey}`;
 }
+

@@ -84,7 +84,19 @@ export function injectedProvider(which: InjectedWallet): SolanaProvider | null {
   return host.backpack ?? (host.solana?.isBackpack ? host.solana : null);
 }
 
+function bytesToBase64(bytes: Uint8Array): string {
+  if (typeof Buffer !== "undefined") {
+    return Buffer.from(bytes).toString("base64");
+  }
+  let binary = "";
+  for (let i = 0; i < bytes.length; i += 1) {
+    binary += String.fromCharCode(bytes[i]!);
+  }
+  return btoa(binary);
+}
+
 export function openMobileWallet(): void {
+  if (typeof window === "undefined") return;
   const origin = window.location.origin;
   const url = `solana-wallet://v1/connect?cluster=devnet&app_url=${encodeURIComponent(origin)}&redirect_link=${encodeURIComponent(origin)}`;
   window.location.assign(url);
@@ -188,7 +200,7 @@ export async function buildWithdrawUsdcTransaction(input: {
 
   const raw = tx.serialize({ requireAllSignatures: false, verifySignatures: false });
   return {
-    txBase64: Buffer.from(raw).toString("base64"),
+    txBase64: bytesToBase64(raw),
     signaturePreview: `5MoxieCashOut${fromPubkey.toBase58().slice(0, 12)}${toPubkey.toBase58().slice(0, 12)}${Date.now().toString(36)}`,
   };
 }

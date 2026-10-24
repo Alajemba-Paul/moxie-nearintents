@@ -26,7 +26,10 @@ export function isSolanaSignature(value: string | null | undefined): boolean {
 }
 
 async function broadcastAmoy(to: string, data: string): Promise<string> {
-  const key = process.env.SOLVER_EVM_PRIVATE_KEY?.trim();
+  const key =
+    typeof process !== "undefined" && process?.env
+      ? process.env.SOLVER_EVM_PRIVATE_KEY?.trim()
+      : undefined;
   if (!key) {
     throw new Error("No solver key on this server, so the Amoy fill was not broadcast.");
   }

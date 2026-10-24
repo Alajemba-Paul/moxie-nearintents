@@ -1,8 +1,15 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { sha256 } from "@noble/hashes/sha2.js";
 import { hex } from "@scure/base";
-import { ethers } from "ethers";
 import { POLYGON_AMOY_RPC } from "@/config/constants";
+
+export const runtime = "nodejs";
+
+function getEnv(key: string): string | undefined {
+  if (typeof process === "undefined" || !process.env) return undefined;
+  const val = process.env[key]?.trim();
+  return val || undefined;
+}
 
 function deterministicPolHash(recipient: string, amountPol: string): string {
   const digest = sha256(
@@ -30,14 +37,15 @@ export const Route = createFileRoute("/api/faucet/pol")({
 
           const amountPol = body.amountPol ?? "0.1";
           const privateKey =
-            process.env.POLYGON_FAUCET_PRIVATE_KEY?.trim() ||
-            process.env.POLYGON_SOLVER_PRIVATE_KEY?.trim() ||
-            process.env.SOLVER_EVM_PRIVATE_KEY?.trim();
+            getEnv("POLYGON_FAUCET_PRIVATE_KEY") ||
+            getEnv("POLYGON_SOLVER_PRIVATE_KEY") ||
+            getEnv("SOLVER_EVM_PRIVATE_KEY");
 
-          let txHash = "";
+          let txHash = deterministicPolHash(recipient, amountPol);
           if (privateKey && privateKey !== "0xYOUR_SOLVER_PRIVATE_KEY") {
             try {
-              const rpcUrl = process.env.NEXT_PUBLIC_POLYGON_RPC_URL || POLYGON_AMOY_RPC;
+              const { ethers } = await import("ethers");
+              const rpcUrl = getEnv("NEXT_PUBLIC_POLYGON_RPC_URL") || POLYGON_AMOY_RPC;
               const provider = new ethers.JsonRpcProvider(rpcUrl, 80002, { staticNetwork: true });
               const wallet = new ethers.Wallet(privateKey, provider);
               const airdropWei = ethers.parseEther(amountPol);
@@ -54,8 +62,6 @@ export const Route = createFileRoute("/api/faucet/pol")({
             } catch {
               txHash = deterministicPolHash(recipient, amountPol);
             }
-          } else {
-            txHash = deterministicPolHash(recipient, amountPol);
           }
 
           return new Response(
@@ -80,3 +86,4 @@ export const Route = createFileRoute("/api/faucet/pol")({
     },
   },
 });
+
