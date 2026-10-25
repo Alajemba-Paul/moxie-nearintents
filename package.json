@@ -33,6 +33,7 @@
     "audit:daily": "node --experimental-strip-types scripts/daily-audit.ts"
   },
   "dependencies": {
+    "bigint-buffer": "^1.1.5",
     "@electric-sql/pglite": "^0.5.4",
     "@hookform/resolvers": "^5.7.0",
     "@noble/curves": "^2.4.0",

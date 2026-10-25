@@ -1,3 +1,4 @@
+import path from "node:path";
 import { readdirSync } from "node:fs";
 import { join } from "node:path";
 import type { Plugin } from "vite";
@@ -168,7 +169,12 @@ export default defineConfig(({ command, mode, isPreview }) => {
       port: 8081,
       strictPort: true,
     },
-    resolve: { tsconfigPaths: true },
+    resolve: {
+      tsconfigPaths: true,
+      alias: {
+        "bigint-buffer": path.resolve(__dirname, "./src/lib/bigint-buffer-stub.ts"),
+      },
+    },
     plugins: [
       pgliteBootstrapPlugin(),
       // Before tanstackStart so /auth/popup never falls through to the SPA.
@@ -200,12 +206,16 @@ export default defineConfig(({ command, mode, isPreview }) => {
                 "@tanstack/start",
                 /@tanstack\//,
               ],
+              alias: {
+                "bigint-buffer": path.resolve(__dirname, "./src/lib/bigint-buffer-stub.ts"),
+              },
               externals: {
                 inline: [
                   "@tanstack/router-core",
                   "@tanstack/react-router",
                   "@tanstack/react-start",
                   "@tanstack/start",
+                  "bigint-buffer",
                 ],
               },
               rollupConfig: {

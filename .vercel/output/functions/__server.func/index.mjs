@@ -16,7 +16,6 @@ import http from "http";
 import https, { Agent } from "https";
 import Url from "url";
 import { Buffer as Buffer$1 } from "buffer";
-import { toBigIntBE, toBigIntLE, toBufferBE, toBufferLE } from "bigint-buffer";
 // \0rolldown/runtime.js
 var __create = Object.create;
 var __defProp$1 = Object.defineProperty;
@@ -22230,10 +22229,10 @@ var init_client = __esmMin((() => {
 	init_makeSerovalPlugin();
 	init_headers();
 }));
-// node_modules/.nitro/vite/services/ssr/assets/_tanstack-start-manifest_v-BWdNRa6O.js
-var _tanstack_start_manifest_v_BWdNRa6O_exports = /* @__PURE__ */ __exportAll$1({ tsrStartManifest: () => tsrStartManifest });
+// node_modules/.nitro/vite/services/ssr/assets/_tanstack-start-manifest_v-BxBE_py1.js
+var _tanstack_start_manifest_v_BxBE_py1_exports = /* @__PURE__ */ __exportAll$1({ tsrStartManifest: () => tsrStartManifest });
 var tsrStartManifest;
-var init__tanstack_start_manifest_v_BWdNRa6O = __esmMin((() => {
+var init__tanstack_start_manifest_v_BxBE_py1 = __esmMin((() => {
 	tsrStartManifest = () => ({ routes: {
 		__root__: {
 			filePath: "/app/applet/src/routes/__root.tsx",
@@ -22254,7 +22253,7 @@ var init__tanstack_start_manifest_v_BWdNRa6O = __esmMin((() => {
 				"/api/trade/settle"
 			],
 			preloads: [
-				"/assets/index-CGGNiLpn.js",
+				"/assets/index-CS-uOTCu.js",
 				"/assets/jsx-runtime-C40oxPSl.js",
 				"/assets/link-h7aSzMxR.js",
 				"/assets/preload-helper-DOenk-Dg.js",
@@ -22263,13 +22262,13 @@ var init__tanstack_start_manifest_v_BWdNRa6O = __esmMin((() => {
 			scripts: [{ attrs: {
 				type: "module",
 				async: !0,
-				src: "/assets/index-CGGNiLpn.js"
+				src: "/assets/index-CS-uOTCu.js"
 			} }]
 		},
 		"/": {
 			filePath: "/app/applet/src/routes/index.tsx",
 			children: void 0,
-			preloads: ["/assets/routes-DqITlzCN.js", "/assets/lock-D9zz-7Bz.js"]
+			preloads: ["/assets/routes-DlfY1KOB.js", "/assets/lock-8OGK3w4l.js"]
 		},
 		"/$": {
 			filePath: "/app/applet/src/routes/$.tsx",
@@ -22279,12 +22278,12 @@ var init__tanstack_start_manifest_v_BWdNRa6O = __esmMin((() => {
 		"/markets": {
 			filePath: "/app/applet/src/routes/markets.tsx",
 			children: void 0,
-			preloads: ["/assets/markets-D5dQhqmQ.js"]
+			preloads: ["/assets/markets-BgYcQPhq.js"]
 		},
 		"/portfolio": {
 			filePath: "/app/applet/src/routes/portfolio.tsx",
 			children: void 0,
-			preloads: ["/assets/portfolio-x481EJ7k.js", "/assets/position-manager-card-BM0a1o2F.js"]
+			preloads: ["/assets/portfolio-CHWSSjEo.js", "/assets/position-manager-card-DElJp42P.js"]
 		},
 		"/privacy": {
 			filePath: "/app/applet/src/routes/privacy.tsx",
@@ -22299,16 +22298,16 @@ var init__tanstack_start_manifest_v_BWdNRa6O = __esmMin((() => {
 		"/thank-you": {
 			filePath: "/app/applet/src/routes/thank-you.tsx",
 			children: void 0,
-			preloads: ["/assets/thank-you-BSyKWOMG.js", "/assets/circle-check-CPCtZboQ.js"]
+			preloads: ["/assets/thank-you-DdHm7zAA.js", "/assets/circle-check-vU7EZXAr.js"]
 		},
 		"/trade/$marketId": {
 			filePath: "/app/applet/src/routes/trade.$marketId.tsx",
 			children: void 0,
 			preloads: [
-				"/assets/trade._marketId-BtK6-v_q.js",
-				"/assets/position-manager-card-BM0a1o2F.js",
-				"/assets/circle-check-CPCtZboQ.js",
-				"/assets/lock-D9zz-7Bz.js"
+				"/assets/trade._marketId-DK3_Zk_a.js",
+				"/assets/position-manager-card-DElJp42P.js",
+				"/assets/circle-check-vU7EZXAr.js",
+				"/assets/lock-8OGK3w4l.js"
 			]
 		}
 	} });
@@ -119399,6 +119398,21 @@ var init_base = __esmMin((() => {
 		};
 	};
 }));
+// src/lib/bigint-buffer-stub.ts
+function toBufferBE(num, width) {
+	const hex = num.toString(16).padStart(width * 2, "0");
+	return Buffer.from(hex, "hex");
+}
+function toBufferLE(num, width) {
+	return toBufferBE(num, width).reverse();
+}
+function toBigIntBE(buf) {
+	return BigInt("0x" + buf.toString("hex"));
+}
+function toBigIntLE(buf) {
+	return toBigIntBE(Buffer.from(buf).reverse());
+}
+var init_bigint_buffer_stub = __esmMin((() => {}));
 // node_modules/@solana/buffer-layout-utils/lib/esm/bigint.mjs
 function assertValidBigInteger(untrustedInput) {
 	if (typeof untrustedInput !== "bigint") throw new Error("Expected a `BigInt`");
@@ -119425,6 +119439,7 @@ function bigInt_IMPL(littleEndian, length) {
 var import_Layout$62, bigInt, u64;
 var init_bigint = __esmMin((() => {
 	import_Layout$62 = /* @__PURE__ */ __toESM(require_Layout(), 1);
+	init_bigint_buffer_stub();
 	init_base();
 	bigInt = /* @__PURE__ */ bigInt_IMPL.bind(null, true);
 	u64 = /* @__PURE__ */ bigInt(8);
@@ -127689,7 +127704,7 @@ function getSerializedResponseState() {
 * the dev styles URL for route-scoped CSS collection.
 */
 async function getStartManifest(matchedRoutes) {
-	const { tsrStartManifest } = await Promise.resolve().then(() => (init__tanstack_start_manifest_v_BWdNRa6O(), _tanstack_start_manifest_v_BWdNRa6O_exports));
+	const { tsrStartManifest } = await Promise.resolve().then(() => (init__tanstack_start_manifest_v_BxBE_py1(), _tanstack_start_manifest_v_BxBE_py1_exports));
 	const startManifest = tsrStartManifest();
 	let routes = startManifest.routes;
 	routes[rootRouteId];
