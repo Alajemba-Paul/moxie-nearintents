@@ -94,17 +94,32 @@ export async function executeSolanaCollateralLock(
       ASSOCIATED_TOKEN_PROGRAM_ID,
     );
 
-    // Verify user ATA exists
+    // Verify user ATA exists; if missing, auto-create and check SOL balance for rent (~0.00204 SOL)
     const userAtaInfo = await connection.getAccountInfo(userAta);
-    if (!userAtaInfo) {
-      throw new Error("No USDC token account found. Please claim Devnet USDC from the faucet first.");
-    }
-
     const transaction = new Transaction();
     transaction.add(
-      ComputeBudgetProgram.setComputeUnitLimit({ units: 120_000 }),
+      ComputeBudgetProgram.setComputeUnitLimit({ units: 150_000 }),
       ComputeBudgetProgram.setComputeUnitPrice({ microLamports: 10_000 }),
     );
+
+    if (!userAtaInfo) {
+      const lamports = await connection.getBalance(makerKey, "confirmed");
+      if (lamports < 2_040_000) {
+        throw new Error(
+          "Insufficient Devnet SOL to pay for USDC token account rent (~0.002 SOL). Claim SOL from the faucet first.",
+        );
+      }
+      transaction.add(
+        createAssociatedTokenAccountInstruction(
+          makerKey,
+          userAta,
+          makerKey,
+          mintPubkey,
+          TOKEN_PROGRAM_ID,
+          ASSOCIATED_TOKEN_PROGRAM_ID,
+        ),
+      );
+    }
 
     // Check if vault ATA exists, if not prepend creation instruction
     const vaultAtaInfo = await connection.getAccountInfo(vaultAta);
