@@ -211,10 +211,23 @@ export default defineConfig(({ command, mode, isPreview }) => {
               rollupConfig: {
                 output: {
                   manualChunks(id) {
-                    if (id.includes("@tanstack")) {
+                    if (
+                      id.includes("@tanstack") ||
+                      id.includes("router-core") ||
+                      id.includes("react-router") ||
+                      id.includes("react-start")
+                    ) {
                       return undefined;
                     }
                   },
+                },
+              },
+              hooks: {
+                "rollup:before"(_nitro, rollupConfig) {
+                  if (rollupConfig && rollupConfig.output) {
+                    rollupConfig.output.codeSplitting = false;
+                    rollupConfig.output.manualChunks = undefined;
+                  }
                 },
               },
             }),
