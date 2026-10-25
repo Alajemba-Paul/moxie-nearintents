@@ -49,3 +49,42 @@
   ➜  Local:   http://127.0.0.1:8081/
 (node:7871) [DEP0040] DeprecationWarning: The `punycode` module is deprecated. Please use a userland alternative instead.
 (Use `node --trace-deprecation ...` to show where the warning was created)
+
+> preview
+> node scripts/with-app-env.mjs vite preview
+
+
+ ╭────────── [Build Info] ─────────────╮
+ │                                     │
+ │  - Build Directory: .vercel/output  │
+ │  - Date: 10/25/2026, 1:25:33 AM     │
+ │  - Nitro Version: 3.0.260610-beta   │
+ │  - Nitro Preset: vercel             │
+ │                                     │
+ ╰─────────────────────────────────────╯
+
+  ➜  Local:   http://127.0.0.1:8081/
+(node:8589) [DEP0040] DeprecationWarning: The `punycode` module is deprecated. Please use a userland alternative instead.
+(Use `node --trace-deprecation ...` to show where the warning was created)
+Error in renderToReadableStream: TypeError: text.trim is not a function
+    at parseUsdc (file:///app/applet/.vercel/output/functions/__server.func/index.mjs:121501:23)
+    at TradeExecutionDesk (file:///app/applet/.vercel/output/functions/__server.func/index.mjs:120013:22)
+    at renderWithHooks (file:///app/applet/.vercel/output/functions/__server.func/index.mjs:20370:18)
+    at renderElement (file:///app/applet/.vercel/output/functions/__server.func/index.mjs:20447:16)
+    at retryNode (file:///app/applet/.vercel/output/functions/__server.func/index.mjs:20887:12)
+    at renderNodeDestructive (file:///app/applet/.vercel/output/functions/__server.func/index.mjs:20783:235)
+    at finishFunctionComponent (file:///app/applet/.vercel/output/functions/__server.func/index.mjs:20386:232)
+    at renderElement (file:///app/applet/.vercel/output/functions/__server.func/index.mjs:20449:4)
+    at retryNode (file:///app/applet/.vercel/output/functions/__server.func/index.mjs:20887:12)
+    at renderNodeDestructive (file:///app/applet/.vercel/output/functions/__server.func/index.mjs:20783:235) { componentStack: [Getter] }
+Error in renderToReadableStream: TypeError: text.trim is not a function
+    at parseUsdc (file:///app/applet/.vercel/output/functions/__server.func/index.mjs:121501:23)
+    at TradeExecutionDesk (file:///app/applet/.vercel/output/functions/__server.func/index.mjs:120013:22)
+    at renderWithHooks (file:///app/applet/.vercel/output/functions/__server.func/index.mjs:20370:18)
+    at renderElement (file:///app/applet/.vercel/output/functions/__server.func/index.mjs:20447:16)
+    at retryNode (file:///app/applet/.vercel/output/functions/__server.func/index.mjs:20887:12)
+    at renderNodeDestructive (file:///app/applet/.vercel/output/functions/__server.func/index.mjs:20783:235)
+    at finishFunctionComponent (file:///app/applet/.vercel/output/functions/__server.func/index.mjs:20386:232)
+    at renderElement (file:///app/applet/.vercel/output/functions/__server.func/index.mjs:20449:4)
+    at retryNode (file:///app/applet/.vercel/output/functions/__server.func/index.mjs:20887:12)
+    at renderNodeDestructive (file:///app/applet/.vercel/output/functions/__server.func/index.mjs:20783:235) { componentStack: [Getter] }

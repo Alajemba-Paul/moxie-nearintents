@@ -21,9 +21,9 @@ export const Route = createFileRoute("/thank-you")({
 
 function ThankYou() {
   const search = Route.useSearch();
-  const market = search.market ?? "your market";
-  const side = search.side ?? "yes";
-  const amount = search.amount ?? "";
+  const market = search?.market ?? "your market";
+  const side = search?.side ?? "yes";
+  const amount = search?.amount ?? "";
   const text = `I just traded ${side.toUpperCase()} on "${market}"${amount ? ` for $${amount} USDC` : ""} privately on @moxiedotmarkets.`;
   const share = encodeURIComponent(text);
 

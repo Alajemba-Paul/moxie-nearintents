@@ -1,5 +1,6 @@
 {
-  "name": "app-builder-workspace",
+  "name": "moxie-markets",
+  "description": "Private, one-click prediction market trading on Solana, settled via NEAR Intents and Polymarket.",
   "private": true,
   "sideEffects": false,
   "type": "module",
