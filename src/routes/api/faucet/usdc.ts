@@ -4,6 +4,7 @@ import { base58 } from "@scure/base";
 import { DEVNET_USDC_MINT, SOLANA_DEVNET_RPC, SOLANA_FALLBACK_RPC } from "@/config/constants";
 
 export const runtime = "nodejs";
+export const dynamic = "force-dynamic";
 
 const TOKEN_PROGRAM_ID_STR = "TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA";
 const ASSOCIATED_TOKEN_PROGRAM_ID_STR = "ATokenGPvbdGVxr1b2hvZbsiqW5xWH25efTNsLJA8knL";

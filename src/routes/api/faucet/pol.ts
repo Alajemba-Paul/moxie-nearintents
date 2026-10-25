@@ -4,6 +4,7 @@ import { hex } from "@scure/base";
 import { POLYGON_AMOY_RPC } from "@/config/constants";
 
 export const runtime = "nodejs";
+export const dynamic = "force-dynamic";
 
 function getEnv(key: string): string | undefined {
   if (typeof process === "undefined" || !process.env) return undefined;

@@ -2,6 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { fetchPolymarketOrderbook } from "@/lib/moxie/polymarket.server";
 
 export const runtime = "nodejs";
+export const dynamic = "force-dynamic";
 
 export const Route = createFileRoute("/api/polymarket/book")({
   server: {

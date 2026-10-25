@@ -10,6 +10,7 @@ import {
 import { derivePolygonAddress } from "@/lib/derive-proxy";
 
 export const runtime = "nodejs";
+export const dynamic = "force-dynamic";
 
 const TOKEN_PROGRAM_ID_STR = "TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA";
 const ASSOCIATED_TOKEN_PROGRAM_ID_STR = "ATokenGPvbdGVxr1b2hvZbsiqW5xWH25efTNsLJA8knL";
