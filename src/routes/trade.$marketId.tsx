@@ -44,11 +44,18 @@ import type { DeskOrder } from "@/lib/moxie/types";
 import { lockDevnetIntent } from "@/lib/solana/escrow-tx";
 import { injectedProvider, type InjectedWallet } from "@/lib/solana/wallet";
 
+interface TradeSearchSchema {
+  side?: "yes" | "no";
+  amount?: string;
+}
+
 export const Route = createFileRoute("/trade/$marketId")({
-  validateSearch: (search: Record<string, unknown>): { side?: "yes" | "no"; amount?: string } => ({
-    side: search.side === "no" ? "no" : search.side === "yes" ? "yes" : undefined,
-    amount: typeof search.amount === "string" ? search.amount : undefined,
-  }),
+  validateSearch: (search: Record<string, unknown>): TradeSearchSchema => {
+    return {
+      side: search.side === "yes" || search.side === "no" ? search.side : undefined,
+      amount: typeof search.amount === "string" ? search.amount : undefined,
+    };
+  },
   head: ({ params }) => {
     const market = MARKETS.find((m) => m.id === params.marketId);
     return {
@@ -133,7 +140,7 @@ function trackerStepIndex(order: DeskOrder | null): { activeStep: number; state:
 
 function TradeExecutionDesk() {
   const { marketId } = Route.useParams();
-  const search = Route.useSearch();
+  const { side: searchSide, amount: searchAmount } = Route.useSearch();
   const navigate = useNavigate();
   const reduce = useReducedMotion();
 
@@ -144,8 +151,8 @@ function TradeExecutionDesk() {
 
   const [ready, setReady] = useState(false);
   const [market, setMarket] = useState<Market>(baseMarket);
-  const [side, setSide] = useState<"yes" | "no">(search.side ?? "yes");
-  const [amountInput, setAmountInput] = useState(search.amount ?? "25");
+  const [side, setSide] = useState<"yes" | "no">(searchSide ?? "yes");
+  const [amountInput, setAmountInput] = useState(searchAmount ?? "25");
   const [formError, setFormError] = useState<string | null>(null);
   const [timeframe, setTimeframe] = useState<ChartTimeframe>("1D");
   const [hoverIdx, setHoverIdx] = useState<number | null>(null);
@@ -186,8 +193,8 @@ function TradeExecutionDesk() {
   }, [baseMarket]);
 
   useEffect(() => {
-    if (search.side) setSide(search.side);
-  }, [search.side]);
+    if (searchSide) setSide(searchSide);
+  }, [searchSide]);
 
   // Fetch live orderbook from /api/polymarket/book and stream updates
   useEffect(() => {

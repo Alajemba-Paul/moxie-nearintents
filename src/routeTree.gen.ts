@@ -11,10 +11,17 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as SplatRouteImport } from './routes/$'
+import { Route as MarketsRouteImport } from './routes/markets'
 import { Route as PortfolioRouteImport } from './routes/portfolio'
 import { Route as PrivacyRouteImport } from './routes/privacy'
 import { Route as TermsRouteImport } from './routes/terms'
 import { Route as ThankYouRouteImport } from './routes/thank-you'
+import { Route as TradeMarketIdRouteImport } from './routes/trade.$marketId'
+import { Route as ApiFaucetAutoOnboardRouteImport } from './routes/api/faucet/auto-onboard'
+import { Route as ApiFaucetPolRouteImport } from './routes/api/faucet/pol'
+import { Route as ApiFaucetUsdcRouteImport } from './routes/api/faucet/usdc'
+import { Route as ApiPolymarketBookRouteImport } from './routes/api/polymarket/book'
+import { Route as ApiPolymarketMarketsRouteImport } from './routes/api/polymarket/markets'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -24,6 +31,11 @@ const IndexRoute = IndexRouteImport.update({
 const SplatRoute = SplatRouteImport.update({
   id: '/$',
   path: '/$',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const MarketsRoute = MarketsRouteImport.update({
+  id: '/markets',
+  path: '/markets',
   getParentRoute: () => rootRouteImport,
 } as any)
 const PortfolioRoute = PortfolioRouteImport.update({
@@ -46,54 +58,145 @@ const ThankYouRoute = ThankYouRouteImport.update({
   path: '/thank-you',
   getParentRoute: () => rootRouteImport,
 } as any)
+const TradeMarketIdRoute = TradeMarketIdRouteImport.update({
+  id: '/trade/$marketId',
+  path: '/trade/$marketId',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiFaucetAutoOnboardRoute = ApiFaucetAutoOnboardRouteImport.update({
+  id: '/api/faucet/auto-onboard',
+  path: '/api/faucet/auto-onboard',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiFaucetPolRoute = ApiFaucetPolRouteImport.update({
+  id: '/api/faucet/pol',
+  path: '/api/faucet/pol',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiFaucetUsdcRoute = ApiFaucetUsdcRouteImport.update({
+  id: '/api/faucet/usdc',
+  path: '/api/faucet/usdc',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiPolymarketBookRoute = ApiPolymarketBookRouteImport.update({
+  id: '/api/polymarket/book',
+  path: '/api/polymarket/book',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiPolymarketMarketsRoute = ApiPolymarketMarketsRouteImport.update({
+  id: '/api/polymarket/markets',
+  path: '/api/polymarket/markets',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/$': typeof SplatRoute
+  '/markets': typeof MarketsRoute
   '/portfolio': typeof PortfolioRoute
   '/privacy': typeof PrivacyRoute
   '/terms': typeof TermsRoute
   '/thank-you': typeof ThankYouRoute
+  '/trade/$marketId': typeof TradeMarketIdRoute
+  '/api/faucet/auto-onboard': typeof ApiFaucetAutoOnboardRoute
+  '/api/faucet/pol': typeof ApiFaucetPolRoute
+  '/api/faucet/usdc': typeof ApiFaucetUsdcRoute
+  '/api/polymarket/book': typeof ApiPolymarketBookRoute
+  '/api/polymarket/markets': typeof ApiPolymarketMarketsRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/$': typeof SplatRoute
+  '/markets': typeof MarketsRoute
   '/portfolio': typeof PortfolioRoute
   '/privacy': typeof PrivacyRoute
   '/terms': typeof TermsRoute
   '/thank-you': typeof ThankYouRoute
+  '/trade/$marketId': typeof TradeMarketIdRoute
+  '/api/faucet/auto-onboard': typeof ApiFaucetAutoOnboardRoute
+  '/api/faucet/pol': typeof ApiFaucetPolRoute
+  '/api/faucet/usdc': typeof ApiFaucetUsdcRoute
+  '/api/polymarket/book': typeof ApiPolymarketBookRoute
+  '/api/polymarket/markets': typeof ApiPolymarketMarketsRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/$': typeof SplatRoute
+  '/markets': typeof MarketsRoute
   '/portfolio': typeof PortfolioRoute
   '/privacy': typeof PrivacyRoute
   '/terms': typeof TermsRoute
   '/thank-you': typeof ThankYouRoute
+  '/trade/$marketId': typeof TradeMarketIdRoute
+  '/api/faucet/auto-onboard': typeof ApiFaucetAutoOnboardRoute
+  '/api/faucet/pol': typeof ApiFaucetPolRoute
+  '/api/faucet/usdc': typeof ApiFaucetUsdcRoute
+  '/api/polymarket/book': typeof ApiPolymarketBookRoute
+  '/api/polymarket/markets': typeof ApiPolymarketMarketsRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/$' | '/portfolio' | '/privacy' | '/terms' | '/thank-you'
-  fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/$' | '/portfolio' | '/privacy' | '/terms' | '/thank-you'
-  id:
-    | '__root__'
+  fullPaths:
     | '/'
     | '/$'
+    | '/markets'
     | '/portfolio'
     | '/privacy'
     | '/terms'
     | '/thank-you'
+    | '/trade/$marketId'
+    | '/api/faucet/auto-onboard'
+    | '/api/faucet/pol'
+    | '/api/faucet/usdc'
+    | '/api/polymarket/book'
+    | '/api/polymarket/markets'
+  fileRoutesByTo: FileRoutesByTo
+  to:
+    | '/'
+    | '/$'
+    | '/markets'
+    | '/portfolio'
+    | '/privacy'
+    | '/terms'
+    | '/thank-you'
+    | '/trade/$marketId'
+    | '/api/faucet/auto-onboard'
+    | '/api/faucet/pol'
+    | '/api/faucet/usdc'
+    | '/api/polymarket/book'
+    | '/api/polymarket/markets'
+  id:
+    | '__root__'
+    | '/'
+    | '/$'
+    | '/markets'
+    | '/portfolio'
+    | '/privacy'
+    | '/terms'
+    | '/thank-you'
+    | '/trade/$marketId'
+    | '/api/faucet/auto-onboard'
+    | '/api/faucet/pol'
+    | '/api/faucet/usdc'
+    | '/api/polymarket/book'
+    | '/api/polymarket/markets'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   SplatRoute: typeof SplatRoute
+  MarketsRoute: typeof MarketsRoute
   PortfolioRoute: typeof PortfolioRoute
   PrivacyRoute: typeof PrivacyRoute
   TermsRoute: typeof TermsRoute
   ThankYouRoute: typeof ThankYouRoute
+  TradeMarketIdRoute: typeof TradeMarketIdRoute
+  ApiFaucetAutoOnboardRoute: typeof ApiFaucetAutoOnboardRoute
+  ApiFaucetPolRoute: typeof ApiFaucetPolRoute
+  ApiFaucetUsdcRoute: typeof ApiFaucetUsdcRoute
+  ApiPolymarketBookRoute: typeof ApiPolymarketBookRoute
+  ApiPolymarketMarketsRoute: typeof ApiPolymarketMarketsRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -110,6 +213,13 @@ declare module '@tanstack/react-router' {
       path: '/$'
       fullPath: '/$'
       preLoaderRoute: typeof SplatRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/markets': {
+      id: '/markets'
+      path: '/markets'
+      fullPath: '/markets'
+      preLoaderRoute: typeof MarketsRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/portfolio': {
@@ -140,26 +250,66 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ThankYouRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/trade/$marketId': {
+      id: '/trade/$marketId'
+      path: '/trade/$marketId'
+      fullPath: '/trade/$marketId'
+      preLoaderRoute: typeof TradeMarketIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/faucet/auto-onboard': {
+      id: '/api/faucet/auto-onboard'
+      path: '/api/faucet/auto-onboard'
+      fullPath: '/api/faucet/auto-onboard'
+      preLoaderRoute: typeof ApiFaucetAutoOnboardRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/faucet/pol': {
+      id: '/api/faucet/pol'
+      path: '/api/faucet/pol'
+      fullPath: '/api/faucet/pol'
+      preLoaderRoute: typeof ApiFaucetPolRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/faucet/usdc': {
+      id: '/api/faucet/usdc'
+      path: '/api/faucet/usdc'
+      fullPath: '/api/faucet/usdc'
+      preLoaderRoute: typeof ApiFaucetUsdcRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/polymarket/book': {
+      id: '/api/polymarket/book'
+      path: '/api/polymarket/book'
+      fullPath: '/api/polymarket/book'
+      preLoaderRoute: typeof ApiPolymarketBookRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/polymarket/markets': {
+      id: '/api/polymarket/markets'
+      path: '/api/polymarket/markets'
+      fullPath: '/api/polymarket/markets'
+      preLoaderRoute: typeof ApiPolymarketMarketsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   SplatRoute: SplatRoute,
+  MarketsRoute: MarketsRoute,
   PortfolioRoute: PortfolioRoute,
   PrivacyRoute: PrivacyRoute,
   TermsRoute: TermsRoute,
   ThankYouRoute: ThankYouRoute,
+  TradeMarketIdRoute: TradeMarketIdRoute,
+  ApiFaucetAutoOnboardRoute: ApiFaucetAutoOnboardRoute,
+  ApiFaucetPolRoute: ApiFaucetPolRoute,
+  ApiFaucetUsdcRoute: ApiFaucetUsdcRoute,
+  ApiPolymarketBookRoute: ApiPolymarketBookRoute,
+  ApiPolymarketMarketsRoute: ApiPolymarketMarketsRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
-
-import type { getRouter } from './router.tsx'
-import type { createStart } from '@tanstack/react-start'
-declare module '@tanstack/react-start' {
-  interface Register {
-    ssr: true
-    router: Awaited<ReturnType<typeof getRouter>>
-  }
-}

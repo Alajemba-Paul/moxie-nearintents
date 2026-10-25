@@ -22229,10 +22229,10 @@ var init_client = __esmMin((() => {
 	init_makeSerovalPlugin();
 	init_headers();
 }));
-// node_modules/.nitro/vite/services/ssr/assets/_tanstack-start-manifest_v-BaEV-fp3.js
-var _tanstack_start_manifest_v_BaEV_fp3_exports = /* @__PURE__ */ __exportAll$1({ tsrStartManifest: () => tsrStartManifest });
+// node_modules/.nitro/vite/services/ssr/assets/_tanstack-start-manifest_v-C4W6djOC.js
+var _tanstack_start_manifest_v_C4W6djOC_exports = /* @__PURE__ */ __exportAll$1({ tsrStartManifest: () => tsrStartManifest });
 var tsrStartManifest;
-var init__tanstack_start_manifest_v_BaEV_fp3 = __esmMin((() => {
+var init__tanstack_start_manifest_v_C4W6djOC = __esmMin((() => {
 	tsrStartManifest = () => ({ routes: {
 		__root__: {
 			filePath: "/app/applet/src/routes/__root.tsx",
@@ -22252,7 +22252,7 @@ var init__tanstack_start_manifest_v_BaEV_fp3 = __esmMin((() => {
 				"/api/polymarket/markets"
 			],
 			preloads: [
-				"/assets/index-CEgpKTZS.js",
+				"/assets/index-BIA4xLjz.js",
 				"/assets/jsx-runtime-C40oxPSl.js",
 				"/assets/link-h7aSzMxR.js",
 				"/assets/preload-helper-DOenk-Dg.js",
@@ -22261,13 +22261,13 @@ var init__tanstack_start_manifest_v_BaEV_fp3 = __esmMin((() => {
 			scripts: [{ attrs: {
 				type: "module",
 				async: !0,
-				src: "/assets/index-CEgpKTZS.js"
+				src: "/assets/index-BIA4xLjz.js"
 			} }]
 		},
 		"/": {
 			filePath: "/app/applet/src/routes/index.tsx",
 			children: void 0,
-			preloads: ["/assets/routes-UVSWG_vF.js", "/assets/lock-Bw1bOQyW.js"]
+			preloads: ["/assets/routes-r-XsQaFq.js", "/assets/lock-B2BQTpc_.js"]
 		},
 		"/$": {
 			filePath: "/app/applet/src/routes/$.tsx",
@@ -22277,12 +22277,12 @@ var init__tanstack_start_manifest_v_BaEV_fp3 = __esmMin((() => {
 		"/markets": {
 			filePath: "/app/applet/src/routes/markets.tsx",
 			children: void 0,
-			preloads: ["/assets/markets-DwOhrR4M.js"]
+			preloads: ["/assets/markets-Dmf9Um9z.js"]
 		},
 		"/portfolio": {
 			filePath: "/app/applet/src/routes/portfolio.tsx",
 			children: void 0,
-			preloads: ["/assets/portfolio-BvzRNs9n.js", "/assets/position-manager-card-CtzC0jCX.js"]
+			preloads: ["/assets/portfolio-D8dJ1xXg.js", "/assets/position-manager-card-Cn2GH4Zg.js"]
 		},
 		"/privacy": {
 			filePath: "/app/applet/src/routes/privacy.tsx",
@@ -22297,16 +22297,16 @@ var init__tanstack_start_manifest_v_BaEV_fp3 = __esmMin((() => {
 		"/thank-you": {
 			filePath: "/app/applet/src/routes/thank-you.tsx",
 			children: void 0,
-			preloads: ["/assets/thank-you-D4BKP-Y_.js", "/assets/circle-check-WRPM8czI.js"]
+			preloads: ["/assets/thank-you-DsF9NLyb.js", "/assets/circle-check-CV8l3Axa.js"]
 		},
 		"/trade/$marketId": {
 			filePath: "/app/applet/src/routes/trade.$marketId.tsx",
 			children: void 0,
 			preloads: [
-				"/assets/trade._marketId-DGln-dLV.js",
-				"/assets/position-manager-card-CtzC0jCX.js",
-				"/assets/circle-check-WRPM8czI.js",
-				"/assets/lock-Bw1bOQyW.js"
+				"/assets/trade._marketId-CKJc1JF_.js",
+				"/assets/position-manager-card-Cn2GH4Zg.js",
+				"/assets/circle-check-CV8l3Axa.js",
+				"/assets/lock-B2BQTpc_.js"
 			]
 		}
 	} });
@@ -117461,8 +117461,8 @@ var init_index_esm = __esmMin((() => {
 	};
 	LAMPORTS_PER_SOL = 1e9;
 }));
-// node_modules/.nitro/vite/services/ssr/assets/routes-DUXEwseW.js
-var routes_DUXEwseW_exports = /* @__PURE__ */ __exportAll$1({ component: () => LandingPage });
+// node_modules/.nitro/vite/services/ssr/assets/routes-NU-1O74x.js
+var routes_NU_1O74x_exports = /* @__PURE__ */ __exportAll$1({ component: () => LandingPage });
 function LandingPage() {
 	const navigate = useNavigate();
 	const [showcaseIndex, setShowcaseIndex] = (0, import_react$8.useState)(0);
@@ -117755,9 +117755,9 @@ function LandingPage() {
 	});
 }
 var import_react$8, import_jsx_runtime$10, FEATURES;
-var init_routes_DUXEwseW = __esmMin((() => {
+var init_routes_NU_1O74x = __esmMin((() => {
 	init_sound_CZxs7QOq();
-	init_router_CSvPMnxF();
+	init_router_BIlbBlO6();
 	import_react$8 = /* @__PURE__ */ __toESM(require_react());
 	init_esm$2();
 	import_jsx_runtime$10 = require_jsx_runtime();
@@ -118130,7 +118130,7 @@ var init_markets_CA9BkLjQ = __esmMin((() => {
 		mass: .8
 	};
 }));
-// node_modules/.nitro/vite/services/ssr/assets/position-manager-card-V72seBW7.js
+// node_modules/.nitro/vite/services/ssr/assets/position-manager-card-CNJWz-7C.js
 function PositionManagerCard({ item, showMarketLink = true, defaultOpen = false }) {
 	const defaultCents = formatCents(item.liveMarkPriceMicro);
 	const [open, setOpen] = (0, import_react$5.useState)(defaultOpen);
@@ -118585,17 +118585,17 @@ function PositionManagerCard({ item, showMarketLink = true, defaultOpen = false 
 	});
 }
 var import_react$5, import_jsx_runtime$7;
-var init_position_manager_card_V72seBW7 = __esmMin((() => {
+var init_position_manager_card_CNJWz_7C = __esmMin((() => {
 	init_sound_CZxs7QOq();
-	init_router_CSvPMnxF();
+	init_router_BIlbBlO6();
 	import_react$5 = /* @__PURE__ */ __toESM(require_react());
 	init_esm$2();
 	import_jsx_runtime$7 = require_jsx_runtime();
 	init_lucide_react();
 	init_dist$2();
 }));
-// node_modules/.nitro/vite/services/ssr/assets/portfolio-C_cZ3cmY.js
-var portfolio_C_cZ3cmY_exports = /* @__PURE__ */ __exportAll$1({ component: () => PortfolioPage });
+// node_modules/.nitro/vite/services/ssr/assets/portfolio-_S-8wsri.js
+var portfolio__S_8wsri_exports = /* @__PURE__ */ __exportAll$1({ component: () => PortfolioPage });
 function formatBalanceOrZero(micro, isConnected) {
 	if (!isConnected || micro <= 0) return "0.00";
 	return formatUsdc(micro);
@@ -119185,10 +119185,10 @@ function PortfolioPage() {
 	});
 }
 var import_react$4, import_jsx_runtime$6;
-var init_portfolio_C_cZ3cmY = __esmMin((() => {
+var init_portfolio__S_8wsri = __esmMin((() => {
 	init_sound_CZxs7QOq();
-	init_router_CSvPMnxF();
-	init_position_manager_card_V72seBW7();
+	init_router_BIlbBlO6();
+	init_position_manager_card_CNJWz_7C();
 	import_react$4 = /* @__PURE__ */ __toESM(require_react());
 	init_esm$2();
 	import_jsx_runtime$6 = require_jsx_runtime();
@@ -119292,8 +119292,8 @@ var import_jsx_runtime$4;
 var init_terms_R8CauUgn = __esmMin((() => {
 	import_jsx_runtime$4 = require_jsx_runtime();
 }));
-// node_modules/.nitro/vite/services/ssr/assets/thank-you-DnHooJV-.js
-var thank_you_DnHooJV__exports = /* @__PURE__ */ __exportAll$1({ component: () => ThankYou });
+// node_modules/.nitro/vite/services/ssr/assets/thank-you-DNb8bj8G.js
+var thank_you_DNb8bj8G_exports = /* @__PURE__ */ __exportAll$1({ component: () => ThankYou });
 function ThankYou() {
 	const search = Route$6.useSearch();
 	const market = search.market ?? "your market";
@@ -119361,14 +119361,14 @@ function ThankYou() {
 	});
 }
 var import_jsx_runtime$3;
-var init_thank_you_DnHooJV_ = __esmMin((() => {
-	init_router_CSvPMnxF();
+var init_thank_you_DNb8bj8G = __esmMin((() => {
+	init_router_BIlbBlO6();
 	init_esm$2();
 	import_jsx_runtime$3 = require_jsx_runtime();
 	init_lucide_react();
 }));
-// node_modules/.nitro/vite/services/ssr/assets/trade._marketId-BCWrX_5w.js
-var trade__marketId_BCWrX_5w_exports = /* @__PURE__ */ __exportAll$1({ component: () => TradeExecutionDesk });
+// node_modules/.nitro/vite/services/ssr/assets/trade._marketId-BrjSXjR4.js
+var trade__marketId_BrjSXjR4_exports = /* @__PURE__ */ __exportAll$1({ component: () => TradeExecutionDesk });
 function solverKey(name, edgeBps) {
 	const secret = sha256$2(text$1.encode(`moxie.solver.v1|${name}`));
 	return {
@@ -119904,14 +119904,14 @@ function trackerStepIndex(order) {
 }
 function TradeExecutionDesk() {
 	const { marketId } = Route$5.useParams();
-	const search = Route$5.useSearch();
+	const { side: searchSide, amount: searchAmount } = Route$5.useSearch();
 	const navigate = useNavigate();
 	const reduce = useReducedMotion();
 	const baseMarket = (0, import_react$3.useMemo)(() => MARKETS.find((m) => m.id === marketId) ?? MARKETS[0], [marketId]);
 	const [ready, setReady] = (0, import_react$3.useState)(false);
 	const [market, setMarket] = (0, import_react$3.useState)(baseMarket);
-	const [side, setSide] = (0, import_react$3.useState)(search.side ?? "yes");
-	const [amountInput, setAmountInput] = (0, import_react$3.useState)(search.amount ?? "25");
+	const [side, setSide] = (0, import_react$3.useState)(searchSide ?? "yes");
+	const [amountInput, setAmountInput] = (0, import_react$3.useState)(searchAmount ?? "25");
 	const [formError, setFormError] = (0, import_react$3.useState)(null);
 	const [timeframe, setTimeframe] = (0, import_react$3.useState)("1D");
 	const [hoverIdx, setHoverIdx] = (0, import_react$3.useState)(null);
@@ -120899,11 +120899,11 @@ function TradeExecutionDesk() {
 	});
 }
 var import_react$3, import_jsx_runtime$2, text$1, cachedSolverKeys, textEncoder$3, cachedTokenProgramId, cachedProgramId, cachedMint, cachedAssociatedProgramId, SPRING$1, TIMEFRAMES, TRACKER_STEPS;
-var init_trade__marketId_BCWrX_5w = __esmMin((() => {
+var init_trade__marketId_BrjSXjR4 = __esmMin((() => {
 	init_constants_D25iXV32();
 	init_sound_CZxs7QOq();
-	init_router_CSvPMnxF();
-	init_position_manager_card_V72seBW7();
+	init_router_BIlbBlO6();
+	init_position_manager_card_CNJWz_7C();
 	import_react$3 = /* @__PURE__ */ __toESM(require_react());
 	init_esm$2();
 	import_jsx_runtime$2 = require_jsx_runtime();
@@ -120952,8 +120952,8 @@ var init_trade__marketId_BCWrX_5w = __esmMin((() => {
 		}
 	];
 }));
-// node_modules/.nitro/vite/services/ssr/assets/router-CSvPMnxF.js
-var router_CSvPMnxF_exports = /* @__PURE__ */ __exportAll$1({
+// node_modules/.nitro/vite/services/ssr/assets/router-BIlbBlO6.js
+var router_BIlbBlO6_exports = /* @__PURE__ */ __exportAll$1({
 	A: () => derivePolygonAddress,
 	B: () => signIntent,
 	C: () => formatUsdc,
@@ -123612,7 +123612,7 @@ function getRouter() {
 	});
 }
 var import_react$1, import_react$2, import_jsx_runtime$1, __defProp, __exportAll, FALLBACK_MESSAGE, PATH_BASED_PREVIEW_HOSTS, PORT_ID_PREFIX, CONNECTOR_TOKEN_READY_EVENT, PREVIEW_BRIDGE_CHANNEL, EnvelopeSchema, HelloSchema, NavigateSchema, HistorySchema, ConnectorTokenReadySchema, ErrorCodes, ProtocolError, PROGRAM_ID, PAPER_SECRET_HEX, INTENT_DOMAIN, SOLVER_AUTH_DOMAIN, QUOTE_DOMAIN, FILL_DOMAIN, CHAIN_SIG_DOMAIN, text, textEncoder$2, INITIAL_ONBOARD_USDC, MAX_TICKET, createSsrRpc, INTENT_STATUSES, saveIntent, listIntents, reclaimIntentDb, stepSolver, ssrSafeStorage, cachedDefaultPaper, THEME_STORAGE_KEY, EMPTY_LEDGER_SNAPSHOT, useDesk, NAV_LINKS, EXTERNAL_WALLETS, SPRING, LOGO_SRC, styles_default, APP_NAME, Route$13, $$splitComponentImporter$7, Route$12, $$splitComponentImporter$6, Route$11, $$splitComponentImporter$5, Route$10, $$splitComponentImporter$4, Route$9, $$splitComponentImporter$3, Route$8, $$splitComponentImporter$2, Route$7, $$splitComponentImporter$1, Route$6, $$splitComponentImporter, Route$5, TOKEN_PROGRAM_ID_STR$1, ASSOCIATED_TOKEN_PROGRAM_ID_STR$1, SYSVAR_RENT_PUBKEY_STR$1, Route$4, Route$3, TOKEN_PROGRAM_ID_STR, ASSOCIATED_TOKEN_PROGRAM_ID_STR, SYSVAR_RENT_PUBKEY_STR, Route$2, Route$1, Route, rootRouteChildren, routeTree, router_exports;
-var init_router_CSvPMnxF = __esmMin((() => {
+var init_router_BIlbBlO6 = __esmMin((() => {
 	init_ssr();
 	init_constants_D25iXV32();
 	init_sound_CZxs7QOq();
@@ -124306,7 +124306,7 @@ var init_router_CSvPMnxF = __esmMin((() => {
 			})]
 		})
 	});
-	$$splitComponentImporter$7 = () => Promise.resolve().then(() => (init_routes_DUXEwseW(), routes_DUXEwseW_exports));
+	$$splitComponentImporter$7 = () => Promise.resolve().then(() => (init_routes_NU_1O74x(), routes_NU_1O74x_exports));
 	Route$12 = createFileRoute("/")({
 		head: () => ({ meta: [{ title: "Moxie Markets · Trade on global events privately." }, {
 			name: "description",
@@ -124330,7 +124330,7 @@ var init_router_CSvPMnxF = __esmMin((() => {
 		}] }),
 		component: lazyRouteComponent($$splitComponentImporter$5, "component")
 	});
-	$$splitComponentImporter$4 = () => Promise.resolve().then(() => (init_portfolio_C_cZ3cmY(), portfolio_C_cZ3cmY_exports));
+	$$splitComponentImporter$4 = () => Promise.resolve().then(() => (init_portfolio__S_8wsri(), portfolio__S_8wsri_exports));
 	Route$9 = createFileRoute("/portfolio")({
 		head: () => ({ meta: [{ title: "Portfolio · Moxie Markets" }, {
 			name: "description",
@@ -124354,7 +124354,7 @@ var init_router_CSvPMnxF = __esmMin((() => {
 		}] }),
 		component: lazyRouteComponent($$splitComponentImporter$2, "component")
 	});
-	$$splitComponentImporter$1 = () => Promise.resolve().then(() => (init_thank_you_DnHooJV_(), thank_you_DnHooJV__exports));
+	$$splitComponentImporter$1 = () => Promise.resolve().then(() => (init_thank_you_DNb8bj8G(), thank_you_DNb8bj8G_exports));
 	Route$6 = createFileRoute("/thank-you")({
 		validateSearch: (search) => {
 			const rawAmount = typeof search.amount === "string" ? search.amount.replaceAll("\"", "") : void 0;
@@ -124370,12 +124370,14 @@ var init_router_CSvPMnxF = __esmMin((() => {
 		}] }),
 		component: lazyRouteComponent($$splitComponentImporter$1, "component")
 	});
-	$$splitComponentImporter = () => Promise.resolve().then(() => (init_trade__marketId_BCWrX_5w(), trade__marketId_BCWrX_5w_exports));
+	$$splitComponentImporter = () => Promise.resolve().then(() => (init_trade__marketId_BrjSXjR4(), trade__marketId_BrjSXjR4_exports));
 	Route$5 = createFileRoute("/trade/$marketId")({
-		validateSearch: (search) => ({
-			side: search.side === "no" ? "no" : search.side === "yes" ? "yes" : void 0,
-			amount: typeof search.amount === "string" ? search.amount : void 0
-		}),
+		validateSearch: (search) => {
+			return {
+				side: search.side === "yes" || search.side === "no" ? search.side : void 0,
+				amount: typeof search.amount === "string" ? search.amount : void 0
+			};
+		},
 		head: ({ params }) => {
 			const market = MARKETS.find((m) => m.id === params.marketId);
 			return { meta: [{ title: `${market ? market.question : "Trade"} · Moxie Markets` }, {
@@ -125361,7 +125363,7 @@ function getSerializedResponseState() {
 * the dev styles URL for route-scoped CSS collection.
 */
 async function getStartManifest(matchedRoutes) {
-	const { tsrStartManifest } = await Promise.resolve().then(() => (init__tanstack_start_manifest_v_BaEV_fp3(), _tanstack_start_manifest_v_BaEV_fp3_exports));
+	const { tsrStartManifest } = await Promise.resolve().then(() => (init__tanstack_start_manifest_v_C4W6djOC(), _tanstack_start_manifest_v_C4W6djOC_exports));
 	const startManifest = tsrStartManifest();
 	let routes = startManifest.routes;
 	routes[rootRouteId];
@@ -126573,7 +126575,7 @@ function getStartResponseHeaders(router) {
 }
 async function loadEntries() {
 	const [routerEntry, startEntry, pluginAdapters] = await Promise.all([
-		Promise.resolve().then(() => (init_router_CSvPMnxF(), router_CSvPMnxF_exports)).then((n) => n.t),
+		Promise.resolve().then(() => (init_router_BIlbBlO6(), router_BIlbBlO6_exports)).then((n) => n.t),
 		Promise.resolve().then(() => (init_start_COmmreO7(), start_COmmreO7_exports)),
 		Promise.resolve().then(() => (init_empty_plugin_adapters_CeyhLWeJ(), empty_plugin_adapters_CeyhLWeJ_exports))
 	]);
