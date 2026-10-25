@@ -22,6 +22,7 @@ import { Route as ApiFaucetPolRouteImport } from './routes/api/faucet/pol'
 import { Route as ApiFaucetUsdcRouteImport } from './routes/api/faucet/usdc'
 import { Route as ApiPolymarketBookRouteImport } from './routes/api/polymarket/book'
 import { Route as ApiPolymarketMarketsRouteImport } from './routes/api/polymarket/markets'
+import { Route as ApiTradeSettleRouteImport } from './routes/api/trade/settle'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -88,6 +89,11 @@ const ApiPolymarketMarketsRoute = ApiPolymarketMarketsRouteImport.update({
   path: '/api/polymarket/markets',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiTradeSettleRoute = ApiTradeSettleRouteImport.update({
+  id: '/api/trade/settle',
+  path: '/api/trade/settle',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -103,6 +109,7 @@ export interface FileRoutesByFullPath {
   '/api/faucet/usdc': typeof ApiFaucetUsdcRoute
   '/api/polymarket/book': typeof ApiPolymarketBookRoute
   '/api/polymarket/markets': typeof ApiPolymarketMarketsRoute
+  '/api/trade/settle': typeof ApiTradeSettleRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -118,6 +125,7 @@ export interface FileRoutesByTo {
   '/api/faucet/usdc': typeof ApiFaucetUsdcRoute
   '/api/polymarket/book': typeof ApiPolymarketBookRoute
   '/api/polymarket/markets': typeof ApiPolymarketMarketsRoute
+  '/api/trade/settle': typeof ApiTradeSettleRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -134,6 +142,7 @@ export interface FileRoutesById {
   '/api/faucet/usdc': typeof ApiFaucetUsdcRoute
   '/api/polymarket/book': typeof ApiPolymarketBookRoute
   '/api/polymarket/markets': typeof ApiPolymarketMarketsRoute
+  '/api/trade/settle': typeof ApiTradeSettleRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -151,6 +160,7 @@ export interface FileRouteTypes {
     | '/api/faucet/usdc'
     | '/api/polymarket/book'
     | '/api/polymarket/markets'
+    | '/api/trade/settle'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -166,6 +176,7 @@ export interface FileRouteTypes {
     | '/api/faucet/usdc'
     | '/api/polymarket/book'
     | '/api/polymarket/markets'
+    | '/api/trade/settle'
   id:
     | '__root__'
     | '/'
@@ -181,6 +192,7 @@ export interface FileRouteTypes {
     | '/api/faucet/usdc'
     | '/api/polymarket/book'
     | '/api/polymarket/markets'
+    | '/api/trade/settle'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -197,6 +209,7 @@ export interface RootRouteChildren {
   ApiFaucetUsdcRoute: typeof ApiFaucetUsdcRoute
   ApiPolymarketBookRoute: typeof ApiPolymarketBookRoute
   ApiPolymarketMarketsRoute: typeof ApiPolymarketMarketsRoute
+  ApiTradeSettleRoute: typeof ApiTradeSettleRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -292,6 +305,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiPolymarketMarketsRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/trade/settle': {
+      id: '/api/trade/settle'
+      path: '/api/trade/settle'
+      fullPath: '/api/trade/settle'
+      preLoaderRoute: typeof ApiTradeSettleRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
@@ -309,7 +329,17 @@ const rootRouteChildren: RootRouteChildren = {
   ApiFaucetUsdcRoute: ApiFaucetUsdcRoute,
   ApiPolymarketBookRoute: ApiPolymarketBookRoute,
   ApiPolymarketMarketsRoute: ApiPolymarketMarketsRoute,
+  ApiTradeSettleRoute: ApiTradeSettleRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
+
+import type { getRouter } from './router.tsx'
+import type { createStart } from '@tanstack/react-start'
+declare module '@tanstack/react-start' {
+  interface Register {
+    ssr: true
+    router: Awaited<ReturnType<typeof getRouter>>
+  }
+}

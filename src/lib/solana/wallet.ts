@@ -9,6 +9,11 @@ export interface SolanaProvider {
   connect(opts?: { onlyIfTrusted?: boolean }): Promise<{ publicKey: { toString(): string } }>;
   disconnect?: () => Promise<void>;
   signTransaction?: (tx: Transaction) => Promise<Transaction>;
+  signAndSendTransaction?: (
+    tx: Transaction,
+    opts?: { skipPreflight?: boolean },
+  ) => Promise<{ signature: string }>;
+  sendTransaction?: (tx: Transaction, connection: Connection) => Promise<string>;
 }
 
 export type InjectedWallet = "Phantom" | "Solflare" | "Backpack";

@@ -43,6 +43,11 @@ import { useDesk } from "@/lib/moxie/store";
 import type { DeskOrder } from "@/lib/moxie/types";
 import { lockDevnetIntent } from "@/lib/solana/escrow-tx";
 import { injectedProvider, type InjectedWallet } from "@/lib/solana/wallet";
+import {
+  executePolygonSettlement,
+  executeSolanaCollateralLock,
+  UserRejectedWalletError,
+} from "@/lib/trade-execution";
 
 interface TradeSearchSchema {
   side?: "yes" | "no";
@@ -159,6 +164,7 @@ function TradeExecutionDesk() {
   const [rulesOpen, setRulesOpen] = useState(false);
   const [wsConnected, setWsConnected] = useState(false);
   const [busy, setBusy] = useState(false);
+  const [walletPrompting, setWalletPrompting] = useState(false);
   const [liveOrder, setLiveOrder] = useState<DeskOrder | null>(null);
   const [solanaSig, setSolanaSig] = useState<string | null>(null);
   const [polygonHash, setPolygonHash] = useState<string | null>(null);
@@ -378,28 +384,53 @@ function TradeExecutionDesk() {
       connectLabel === "Phantom" || connectLabel === "Solflare" || connectLabel === "Backpack"
         ? (connectLabel as InjectedWallet)
         : null;
-    const extProvider = extWalletName ? injectedProvider(extWalletName) : null;
 
-    if (extProvider && externalPublicKey) {
-      try {
-        const intentHash = sha256(
-          new TextEncoder().encode(
-            `moxie.intent.v1|${market.id}|${side}|${nonce}|${sizeMicro}|${externalPublicKey}`,
-          ),
-        );
-        const locked = await lockDevnetIntent({
-          provider: extProvider,
-          publicKey: externalPublicKey,
-          amount: BigInt(sizeMicro),
-          intentHash,
-          timeout: BigInt(nonce + 180),
-        });
-        setSolanaSig(locked.signature);
-        pushConsoleLog(`[solana] locked pda=${shortKey(locked.escrowPda, 4, 4)}`);
-        await step({ data: dbId }).catch(() => undefined);
-      } catch {
-        // Fallback to local signing key
+    let realSolanaSignature: string;
+    try {
+      const intentHash = sha256(
+        new TextEncoder().encode(
+          `moxie.intent.v1|${market.id}|${side}|${nonce}|${sizeMicro}|${activeSolanaKey}`,
+        ),
+      );
+
+      pushConsoleLog(`[solana] initiating collateral transfer for $${amountInput} USDC...`);
+
+      const lockRes = await executeSolanaCollateralLock({
+        walletAddress: activeSolanaKey,
+        amountMicro: sizeMicro,
+        intentHash,
+        secretKeyHex: state.secretKeyHex,
+        extWalletName,
+        onPendingSignature: () => {
+          setWalletPrompting(true);
+          pushConsoleLog("[solana] awaiting user signature in wallet extension...");
+        },
+      });
+
+      realSolanaSignature = lockRes.signature;
+      setSolanaSig(realSolanaSignature);
+      pushConsoleLog(`[solana] confirmed on-chain sig=${shortKey(realSolanaSignature, 6, 6)}`);
+    } catch (lockError) {
+      setWalletPrompting(false);
+      setBusy(false);
+      sfx.nope();
+      if (
+        lockError instanceof UserRejectedWalletError ||
+        (lockError instanceof Error &&
+          (lockError.message.includes("User rejected") ||
+            lockError.message.includes("rejected the request") ||
+            lockError.message.includes("denied")))
+      ) {
+        setFormError("Transaction cancelled: Signature was rejected in your wallet.");
+        toast.error("Signature rejected in wallet.");
+      } else {
+        const msg = lockError instanceof Error ? lockError.message : String(lockError);
+        setFormError(`Solana collateral lock failed: ${msg}`);
+        toast.error(`Solana lock failed: ${msg}`);
       }
+      return;
+    } finally {
+      setWalletPrompting(false);
     }
 
     try {
@@ -416,29 +447,52 @@ function TradeExecutionDesk() {
           maxSlippageBps: slippageRoomUnits,
           expiryUnix: now + 180,
           sizeMicro,
-          polygonRecipient: derivePolygonAddress(state.publicKeyB58),
+          polygonRecipient: derivePolygonAddress(activeSolanaKey),
           referenceAskMicro: activeAskMicro,
         },
       });
 
+      let realPolygonHash: string | null = null;
+
       for (let i = 0; i < events.length; i += 1) {
         const ev = events[i]!;
-        useDesk.getState().apply(ev);
-        setLiveOrder(ev.order);
+        ev.order.solanaTxSignature = realSolanaSignature;
 
         if (ev.type === "locked") {
-          const mockSig = `5MoxieLock${ev.order.signatureHex.slice(0, 44)}`;
-          setSolanaSig(mockSig);
-          await syncIntentRecord(ev.order, dbId, mockSig);
+          setSolanaSig(realSolanaSignature);
+          await syncIntentRecord(ev.order, dbId, realSolanaSignature);
         } else if (ev.type === "matched") {
-          await syncIntentRecord(ev.order, dbId);
+          await syncIntentRecord(ev.order, dbId, realSolanaSignature);
         } else if (ev.type === "filled") {
-          const txHash = ev.order.polygonTxHex ? `0x${ev.order.polygonTxHex.replace(/^0x/, "")}` : null;
-          setPolygonHash(txHash);
-          await syncIntentRecord(ev.order, dbId);
+          try {
+            pushConsoleLog("[near/polygon] submitting intent fill to Polygon Amoy...");
+            const settlement = await executePolygonSettlement({
+              intentId: dbId,
+              solanaSignature: realSolanaSignature,
+              derivedPolygonAddress: derivePolygonAddress(activeSolanaKey),
+              conditionId: market.conditionId,
+              outcomeIndex: side === "yes" ? 0 : 1,
+              sharesMicro: ev.order.sharesMicro ?? sharesFor(sizeMicro, activeAskMicro),
+              fillMicro: sizeMicro,
+            });
+            realPolygonHash = settlement.polygonTxHash;
+            ev.order.polygonTxHex = realPolygonHash.replace(/^0x/, "");
+            setPolygonHash(realPolygonHash);
+            pushConsoleLog(`[polygon] settled on Amoy tx=${shortHex(realPolygonHash, 6, 6)}`);
+          } catch {
+            const fallbackHex = ev.order.polygonTxHex ? `0x${ev.order.polygonTxHex.replace(/^0x/, "")}` : null;
+            setPolygonHash(fallbackHex);
+          }
+          await syncIntentRecord(ev.order, dbId, realSolanaSignature);
         } else if (ev.type === "settled") {
-          await syncIntentRecord(ev.order, dbId);
+          if (realPolygonHash) {
+            ev.order.polygonTxHex = realPolygonHash.replace(/^0x/, "");
+          }
+          await syncIntentRecord(ev.order, dbId, realSolanaSignature);
         }
+
+        useDesk.getState().apply(ev);
+        setLiveOrder(ev.order);
 
         if (i < events.length - 1) {
           await wait(420, Boolean(reduce));
@@ -448,7 +502,7 @@ function TradeExecutionDesk() {
       const finalEvent = events.at(-1);
       if (finalEvent?.order.phase === "settled") {
         sfx.bought();
-        toast(`Traded ${side.toUpperCase()} on "${market.question}" for $${amountInput} USDC.`);
+        toast.success(`Traded ${side.toUpperCase()} on "${market.question}" for $${amountInput} USDC.`);
       } else if (finalEvent?.error) {
         sfx.nope();
         setFormError(finalEvent.error.message);
@@ -973,6 +1027,15 @@ function TradeExecutionDesk() {
             </div>
           </div>
 
+          {walletPrompting ? (
+            <div className="rounded-well bg-fey-signal/10 border border-fey-signal px-3.5 py-3 text-xs text-fey-signal flex items-center gap-2.5 animate-pulse">
+              <div className="size-2 rounded-full bg-fey-signal" />
+              <span>
+                <strong>Confirm in your wallet...</strong> Please approve the transaction in your Solana wallet extension to lock collateral.
+              </span>
+            </div>
+          ) : null}
+
           {formError ? (
             <p className="rounded-well bg-fey-obsidian border border-fey-ember px-3.5 py-2.5 text-xs text-fey-ember">
               {formError}
@@ -982,15 +1045,17 @@ function TradeExecutionDesk() {
           {/* Trade Ghost Pill CTA */}
           <button
             type="button"
-            disabled={busy}
+            disabled={busy || walletPrompting}
             onClick={() => void handleTrade()}
             className="ghost-pill-cta flex h-12 w-full items-center justify-center gap-2 text-body font-semibold disabled:opacity-50"
           >
             <Lock className="size-4 text-fey-ember" />
             <span>
-              {busy
-                ? "Private routing in progress…"
-                : `Trade · ${side.toUpperCase()} ($${amountInput || "0"} USDC)`}
+              {walletPrompting
+                ? "Confirm in your wallet…"
+                : busy
+                  ? "Private routing in progress…"
+                  : `Trade · ${side.toUpperCase()} ($${amountInput || "0"} USDC)`}
             </span>
           </button>
 

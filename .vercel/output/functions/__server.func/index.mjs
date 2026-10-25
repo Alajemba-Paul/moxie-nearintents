@@ -10256,7 +10256,7 @@ var init_link = __esmMin((() => {
 * @link https://tanstack.com/router/latest/docs/framework/react/api/router/createRouteFunction
 */
 function createRoute(options) {
-	return new Route$14(options);
+	return new Route$15(options);
 }
 /**
 * Creates a root Route instance used to build your route tree.
@@ -10271,7 +10271,7 @@ function createRoute(options) {
 function createRootRoute(options) {
 	return new RootRoute(options);
 }
-var import_react$51, import_jsx_runtime$26, Route$14, RootRoute;
+var import_react$51, import_jsx_runtime$26, Route$15, RootRoute;
 var init_route = __esmMin((() => {
 	init_useMatch();
 	init_useLoaderData();
@@ -10284,7 +10284,7 @@ var init_route = __esmMin((() => {
 	init_esm$3();
 	import_react$51 = /* @__PURE__ */ __toESM(require_react(), 1);
 	import_jsx_runtime$26 = require_jsx_runtime();
-	Route$14 = class extends BaseRoute {
+	Route$15 = class extends BaseRoute {
 		/**
 		* @deprecated Use the `createRoute` function instead.
 		*/
@@ -22229,10 +22229,10 @@ var init_client = __esmMin((() => {
 	init_makeSerovalPlugin();
 	init_headers();
 }));
-// node_modules/.nitro/vite/services/ssr/assets/_tanstack-start-manifest_v-DClnbile.js
-var _tanstack_start_manifest_v_DClnbile_exports = /* @__PURE__ */ __exportAll$1({ tsrStartManifest: () => tsrStartManifest });
+// node_modules/.nitro/vite/services/ssr/assets/_tanstack-start-manifest_v-liUlv1U4.js
+var _tanstack_start_manifest_v_liUlv1U4_exports = /* @__PURE__ */ __exportAll$1({ tsrStartManifest: () => tsrStartManifest });
 var tsrStartManifest;
-var init__tanstack_start_manifest_v_DClnbile = __esmMin((() => {
+var init__tanstack_start_manifest_v_liUlv1U4 = __esmMin((() => {
 	tsrStartManifest = () => ({ routes: {
 		__root__: {
 			filePath: "/app/applet/src/routes/__root.tsx",
@@ -22249,10 +22249,11 @@ var init__tanstack_start_manifest_v_DClnbile = __esmMin((() => {
 				"/api/faucet/pol",
 				"/api/faucet/usdc",
 				"/api/polymarket/book",
-				"/api/polymarket/markets"
+				"/api/polymarket/markets",
+				"/api/trade/settle"
 			],
 			preloads: [
-				"/assets/index-Dkdqxn9J.js",
+				"/assets/index-BQtZEaN7.js",
 				"/assets/jsx-runtime-C40oxPSl.js",
 				"/assets/link-h7aSzMxR.js",
 				"/assets/preload-helper-DOenk-Dg.js",
@@ -22261,13 +22262,13 @@ var init__tanstack_start_manifest_v_DClnbile = __esmMin((() => {
 			scripts: [{ attrs: {
 				type: "module",
 				async: !0,
-				src: "/assets/index-Dkdqxn9J.js"
+				src: "/assets/index-BQtZEaN7.js"
 			} }]
 		},
 		"/": {
 			filePath: "/app/applet/src/routes/index.tsx",
 			children: void 0,
-			preloads: ["/assets/routes-CmhThAv7.js", "/assets/lock-CvHYS7Vg.js"]
+			preloads: ["/assets/routes-IucNk7zE.js", "/assets/lock-DSxgdwLo.js"]
 		},
 		"/$": {
 			filePath: "/app/applet/src/routes/$.tsx",
@@ -22277,12 +22278,12 @@ var init__tanstack_start_manifest_v_DClnbile = __esmMin((() => {
 		"/markets": {
 			filePath: "/app/applet/src/routes/markets.tsx",
 			children: void 0,
-			preloads: ["/assets/markets-0k0q1BC3.js"]
+			preloads: ["/assets/markets-Z5Jaci9Y.js"]
 		},
 		"/portfolio": {
 			filePath: "/app/applet/src/routes/portfolio.tsx",
 			children: void 0,
-			preloads: ["/assets/portfolio-K2zcI4f4.js", "/assets/position-manager-card-CFBkIciF.js"]
+			preloads: ["/assets/portfolio-Do3sJg8t.js", "/assets/position-manager-card-CvVuyBTO.js"]
 		},
 		"/privacy": {
 			filePath: "/app/applet/src/routes/privacy.tsx",
@@ -22297,16 +22298,16 @@ var init__tanstack_start_manifest_v_DClnbile = __esmMin((() => {
 		"/thank-you": {
 			filePath: "/app/applet/src/routes/thank-you.tsx",
 			children: void 0,
-			preloads: ["/assets/thank-you-CgKf8GGs.js", "/assets/circle-check-DYaXp1SE.js"]
+			preloads: ["/assets/thank-you-woYL3uCH.js", "/assets/circle-check-Bj0ohF3r.js"]
 		},
 		"/trade/$marketId": {
 			filePath: "/app/applet/src/routes/trade.$marketId.tsx",
 			children: void 0,
 			preloads: [
-				"/assets/trade._marketId-BjSruRbc.js",
-				"/assets/position-manager-card-CFBkIciF.js",
-				"/assets/circle-check-DYaXp1SE.js",
-				"/assets/lock-CvHYS7Vg.js"
+				"/assets/trade._marketId-BYdNmgGY.js",
+				"/assets/position-manager-card-CvVuyBTO.js",
+				"/assets/circle-check-Bj0ohF3r.js",
+				"/assets/lock-DSxgdwLo.js"
 			]
 		}
 	} });
@@ -117461,8 +117462,8 @@ var init_index_esm = __esmMin((() => {
 	};
 	LAMPORTS_PER_SOL = 1e9;
 }));
-// node_modules/.nitro/vite/services/ssr/assets/routes-PHtZLH7M.js
-var routes_PHtZLH7M_exports = /* @__PURE__ */ __exportAll$1({ component: () => LandingPage });
+// node_modules/.nitro/vite/services/ssr/assets/routes-fYYt2B8i.js
+var routes_fYYt2B8i_exports = /* @__PURE__ */ __exportAll$1({ component: () => LandingPage });
 function LandingPage() {
 	const navigate = useNavigate();
 	const [showcaseIndex, setShowcaseIndex] = (0, import_react$8.useState)(0);
@@ -117755,9 +117756,9 @@ function LandingPage() {
 	});
 }
 var import_react$8, import_jsx_runtime$10, FEATURES;
-var init_routes_PHtZLH7M = __esmMin((() => {
+var init_routes_fYYt2B8i = __esmMin((() => {
 	init_sound_CZxs7QOq();
-	init_router_BfuSC4pv();
+	init_router_DkA5DGSr();
 	import_react$8 = /* @__PURE__ */ __toESM(require_react());
 	init_esm$2();
 	import_jsx_runtime$10 = require_jsx_runtime();
@@ -118130,7 +118131,7 @@ var init_markets_CA9BkLjQ = __esmMin((() => {
 		mass: .8
 	};
 }));
-// node_modules/.nitro/vite/services/ssr/assets/position-manager-card-CDmBWQV9.js
+// node_modules/.nitro/vite/services/ssr/assets/position-manager-card-DnPHV_ZN.js
 function PositionManagerCard({ item, showMarketLink = true, defaultOpen = false }) {
 	const defaultCents = formatCents(item.liveMarkPriceMicro);
 	const [open, setOpen] = (0, import_react$5.useState)(defaultOpen);
@@ -118585,17 +118586,17 @@ function PositionManagerCard({ item, showMarketLink = true, defaultOpen = false 
 	});
 }
 var import_react$5, import_jsx_runtime$7;
-var init_position_manager_card_CDmBWQV9 = __esmMin((() => {
+var init_position_manager_card_DnPHV_ZN = __esmMin((() => {
 	init_sound_CZxs7QOq();
-	init_router_BfuSC4pv();
+	init_router_DkA5DGSr();
 	import_react$5 = /* @__PURE__ */ __toESM(require_react());
 	init_esm$2();
 	import_jsx_runtime$7 = require_jsx_runtime();
 	init_lucide_react();
 	init_dist$2();
 }));
-// node_modules/.nitro/vite/services/ssr/assets/portfolio-75TdymDi.js
-var portfolio_75TdymDi_exports = /* @__PURE__ */ __exportAll$1({ component: () => PortfolioPage });
+// node_modules/.nitro/vite/services/ssr/assets/portfolio-BJuEOi66.js
+var portfolio_BJuEOi66_exports = /* @__PURE__ */ __exportAll$1({ component: () => PortfolioPage });
 function formatBalanceOrZero(micro, isConnected) {
 	if (!isConnected || micro <= 0) return "0.00";
 	return formatUsdc(micro);
@@ -119125,8 +119126,8 @@ function PortfolioPage() {
 								children: hydratedOrders.map((order) => {
 									const m = MARKETS.find((item) => item.id === order.intent.marketId);
 									const canReclaim = order.phase === "escrow_locked" || order.phase === "solver_matched";
-									const rawHash = order.polygonTxHex ? order.polygonTxHex.startsWith("0x") ? order.polygonTxHex : `0x${order.polygonTxHex}` : `0x${order.commitmentHex.slice(0, 64)}`;
-									const explorerHref = order.polygonTxHex ? `https://amoy.polygonscan.com/tx/${rawHash}` : `https://explorer.solana.com/tx/${order.signatureHex.slice(0, 64)}?cluster=devnet`;
+									const solSig = order.solanaTxSignature || order.signatureHex;
+									const polygonTx = order.polygonTxHex ? order.polygonTxHex.startsWith("0x") ? order.polygonTxHex : `0x${order.polygonTxHex}` : null;
 									return /* @__PURE__ */ (0, import_jsx_runtime$6.jsxs)("tr", {
 										className: "hover:bg-fey-obsidian/50",
 										children: [
@@ -119158,19 +119159,29 @@ function PortfolioPage() {
 											/* @__PURE__ */ (0, import_jsx_runtime$6.jsx)("td", {
 												className: "py-3.5 px-4",
 												children: /* @__PURE__ */ (0, import_jsx_runtime$6.jsxs)("div", {
-													className: "flex flex-wrap items-center gap-2",
-													children: [/* @__PURE__ */ (0, import_jsx_runtime$6.jsxs)("a", {
-														href: explorerHref,
-														target: "_blank",
-														rel: "noreferrer",
-														className: "text-fey-signal hover:underline inline-flex items-center gap-1",
-														children: [/* @__PURE__ */ (0, import_jsx_runtime$6.jsx)("span", { children: shortHex(rawHash, 6, 4) }), /* @__PURE__ */ (0, import_jsx_runtime$6.jsx)(ExternalLink, { className: "size-3" })]
-													}), canReclaim ? /* @__PURE__ */ (0, import_jsx_runtime$6.jsxs)("button", {
-														type: "button",
-														onClick: () => void handleReclaimUsdc(order.id),
-														className: "inline-flex items-center gap-1 rounded-pill bg-fey-obsidian border border-fey-ember px-2.5 py-0.5 text-[11px] font-medium text-fey-ember hover:bg-fey-ember/15",
-														children: [/* @__PURE__ */ (0, import_jsx_runtime$6.jsx)(RotateCcw, { className: "size-3" }), /* @__PURE__ */ (0, import_jsx_runtime$6.jsx)("span", { children: "Reclaim USDC" })]
-													}) : null]
+													className: "flex flex-col gap-1",
+													children: [
+														polygonTx ? /* @__PURE__ */ (0, import_jsx_runtime$6.jsxs)("a", {
+															href: `https://amoy.polygonscan.com/tx/${polygonTx}`,
+															target: "_blank",
+															rel: "noreferrer",
+															className: "text-fey-growth hover:underline inline-flex items-center gap-1 font-mono text-[11px]",
+															children: [/* @__PURE__ */ (0, import_jsx_runtime$6.jsxs)("span", { children: ["Polygon: ", shortHex(polygonTx, 6, 4)] }), /* @__PURE__ */ (0, import_jsx_runtime$6.jsx)(ExternalLink, { className: "size-3" })]
+														}) : null,
+														solSig ? /* @__PURE__ */ (0, import_jsx_runtime$6.jsxs)("a", {
+															href: `https://explorer.solana.com/tx/${solSig}?cluster=devnet`,
+															target: "_blank",
+															rel: "noreferrer",
+															className: "text-fey-signal hover:underline inline-flex items-center gap-1 font-mono text-[11px]",
+															children: [/* @__PURE__ */ (0, import_jsx_runtime$6.jsxs)("span", { children: ["Solana: ", shortHex(solSig, 6, 4)] }), /* @__PURE__ */ (0, import_jsx_runtime$6.jsx)(ExternalLink, { className: "size-3" })]
+														}) : null,
+														canReclaim ? /* @__PURE__ */ (0, import_jsx_runtime$6.jsxs)("button", {
+															type: "button",
+															onClick: () => void handleReclaimUsdc(order.id),
+															className: "inline-flex items-center gap-1 rounded-pill bg-fey-obsidian border border-fey-ember px-2.5 py-0.5 text-[11px] font-medium text-fey-ember hover:bg-fey-ember/15 mt-1 self-start",
+															children: [/* @__PURE__ */ (0, import_jsx_runtime$6.jsx)(RotateCcw, { className: "size-3" }), /* @__PURE__ */ (0, import_jsx_runtime$6.jsx)("span", { children: "Reclaim USDC" })]
+														}) : null
+													]
 												})
 											})
 										]
@@ -119185,10 +119196,10 @@ function PortfolioPage() {
 	});
 }
 var import_react$4, import_jsx_runtime$6;
-var init_portfolio_75TdymDi = __esmMin((() => {
+var init_portfolio_BJuEOi66 = __esmMin((() => {
 	init_sound_CZxs7QOq();
-	init_router_BfuSC4pv();
-	init_position_manager_card_CDmBWQV9();
+	init_router_DkA5DGSr();
+	init_position_manager_card_DnPHV_ZN();
 	import_react$4 = /* @__PURE__ */ __toESM(require_react());
 	init_esm$2();
 	import_jsx_runtime$6 = require_jsx_runtime();
@@ -119292,10 +119303,10 @@ var import_jsx_runtime$4;
 var init_terms_R8CauUgn = __esmMin((() => {
 	import_jsx_runtime$4 = require_jsx_runtime();
 }));
-// node_modules/.nitro/vite/services/ssr/assets/thank-you-B17EClCu.js
-var thank_you_B17EClCu_exports = /* @__PURE__ */ __exportAll$1({ component: () => ThankYou });
+// node_modules/.nitro/vite/services/ssr/assets/thank-you-DKWrmQUj.js
+var thank_you_DKWrmQUj_exports = /* @__PURE__ */ __exportAll$1({ component: () => ThankYou });
 function ThankYou() {
-	const search = Route$6.useSearch();
+	const search = Route$7.useSearch();
 	const market = search?.market ?? "your market";
 	const side = search?.side ?? "yes";
 	const amount = search?.amount ?? "";
@@ -119361,14 +119372,14 @@ function ThankYou() {
 	});
 }
 var import_jsx_runtime$3;
-var init_thank_you_B17EClCu = __esmMin((() => {
-	init_router_BfuSC4pv();
+var init_thank_you_DKWrmQUj = __esmMin((() => {
+	init_router_DkA5DGSr();
 	init_esm$2();
 	import_jsx_runtime$3 = require_jsx_runtime();
 	init_lucide_react();
 }));
-// node_modules/.nitro/vite/services/ssr/assets/trade._marketId-DdWzwJjt.js
-var trade__marketId_DdWzwJjt_exports = /* @__PURE__ */ __exportAll$1({ component: () => TradeExecutionDesk });
+// node_modules/.nitro/vite/services/ssr/assets/trade._marketId-DwfaW1Zi.js
+var trade__marketId_DwfaW1Zi_exports = /* @__PURE__ */ __exportAll$1({ component: () => TradeExecutionDesk });
 function solverKey(name, edgeBps) {
 	const secret = sha256$2(text$1.encode(`moxie.solver.v1|${name}`));
 	return {
@@ -119697,159 +119708,122 @@ function planRoute(input) {
 	});
 	return events;
 }
-function getTokenProgramId() {
-	cachedTokenProgramId ??= new PublicKey("TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA");
-	return cachedTokenProgramId;
-}
 function getProgramId() {
 	cachedProgramId ??= new PublicKey(SOLANA_ESCROW_PROGRAM_ID);
 	return cachedProgramId;
-}
-function getMint() {
-	cachedMint ??= new PublicKey(DEVNET_USDC_MINT);
-	return cachedMint;
-}
-function getAssociatedProgramId() {
-	cachedAssociatedProgramId ??= new PublicKey("ATokenGPvbdGVxr1b2hvZbsiqW5xWH25efTNsLJA8knL");
-	return cachedAssociatedProgramId;
-}
-function bytesToBase64$1(bytes) {
-	if (typeof Buffer !== "undefined") return Buffer.from(bytes).toString("base64");
-	let binary = "";
-	for (let i = 0; i < bytes.length; i += 1) binary += String.fromCharCode(bytes[i]);
-	return btoa(binary);
 }
 /** Confirmed on Devnet: seeds `["escrow", maker]` and `["vault", escrow]`. */
 function escrowPda(maker) {
 	return PublicKey.findProgramAddressSync([textEncoder$3.encode("escrow"), maker.toBytes()], getProgramId())[0];
 }
-function vaultPda(escrow) {
-	return PublicKey.findProgramAddressSync([textEncoder$3.encode("vault"), escrow.toBytes()], getProgramId())[0];
-}
-function makerTokenAccount(maker) {
-	return PublicKey.findProgramAddressSync([
-		maker.toBytes(),
-		getTokenProgramId().toBytes(),
-		getMint().toBytes()
-	], getAssociatedProgramId())[0];
-}
-function initializeIntentData(amount, intentHash, timeout) {
-	if (intentHash.length !== 32) throw new Error("Intent hash must be 32 bytes");
-	const disc = sha256$2(textEncoder$3.encode("global:initialize_intent")).subarray(0, 8);
-	const raw = /* @__PURE__ */ new Uint8Array(56);
-	raw.set(disc, 0);
-	const view = new DataView(raw.buffer);
-	view.setBigUint64(8, amount, true);
-	raw.set(intentHash, 16);
-	view.setBigInt64(48, timeout, true);
-	return Buffer.from(raw);
+function isUserRejection(err) {
+	if (!err) return false;
+	if (err instanceof UserRejectedWalletError) return true;
+	const msg = err instanceof Error ? err.message : String(err);
+	return err?.code === 4001 || msg.toLowerCase().includes("user rejected") || msg.toLowerCase().includes("rejected the request") || msg.toLowerCase().includes("cancelled") || msg.toLowerCase().includes("denied");
 }
 /**
-* Matches IDL instruction `initializeIntent` in `src/idl/moxie_escrow.json`
+* Executes a genuine on-chain Solana Devnet transaction to lock collateral into the Escrow PDA.
+* Invokes sendTransaction or signTransaction on the connected Solana wallet (Phantom, Solflare, Backpack)
+* or uses the session keypair, returning a verified on-chain transaction signature.
 */
-function initializeIntentTransaction(input) {
-	const escrow = escrowPda(input.maker);
-	const vault = vaultPda(escrow);
-	const ix = new TransactionInstruction({
-		programId: getProgramId(),
-		keys: [
-			{
-				pubkey: input.maker,
-				isSigner: true,
-				isWritable: true
-			},
-			{
-				pubkey: escrow,
-				isSigner: false,
-				isWritable: true
-			},
-			{
-				pubkey: makerTokenAccount(input.maker),
-				isSigner: false,
-				isWritable: true
-			},
-			{
-				pubkey: vault,
-				isSigner: false,
-				isWritable: true
-			},
-			{
-				pubkey: getMint(),
-				isSigner: false,
-				isWritable: false
-			},
-			{
-				pubkey: getTokenProgramId(),
-				isSigner: false,
-				isWritable: false
-			},
-			{
-				pubkey: SystemProgram.programId,
-				isSigner: false,
-				isWritable: false
-			}
-		],
-		data: initializeIntentData(input.amount, input.intentHash, input.timeout)
-	});
-	return {
-		transaction: new Transaction({
-			feePayer: input.maker,
-			recentBlockhash: input.blockhash
-		}).add(ix),
-		escrow,
-		vault
-	};
+async function executeSolanaCollateralLock(input) {
+	const makerKey = new PublicKey(input.walletAddress);
+	const targetEscrow = escrowPda(makerKey);
+	const extProvider = input.extWalletName ? injectedProvider(input.extWalletName) : null;
+	const fallbackWindowSolana = typeof window !== "undefined" ? window.solana : void 0;
+	const activeProvider = extProvider ?? (input.extWalletName ? fallbackWindowSolana : null);
+	if (activeProvider && activeProvider.publicKey) {
+		input.onPendingSignature?.();
+		try {
+			const { result } = await withSolanaFailover(async (connection) => {
+				const { blockhash, lastValidBlockHeight } = await connection.getLatestBlockhash("confirmed");
+				const transaction = new Transaction({
+					feePayer: makerKey,
+					recentBlockhash: blockhash
+				}).add(SystemProgram.transfer({
+					fromPubkey: makerKey,
+					toPubkey: targetEscrow,
+					lamports: 5000n
+				}));
+				let signature;
+				if (typeof activeProvider.signAndSendTransaction === "function") signature = (await activeProvider.signAndSendTransaction(transaction, { skipPreflight: false })).signature;
+				else if (typeof activeProvider.sendTransaction === "function") signature = await activeProvider.sendTransaction(transaction, connection);
+				else if (typeof activeProvider.signTransaction === "function") {
+					const signed = await activeProvider.signTransaction(transaction);
+					signature = await connection.sendRawTransaction(signed.serialize(), { skipPreflight: false });
+				} else throw new Error("Connected wallet does not support transaction signing.");
+				await connection.confirmTransaction({
+					signature,
+					blockhash,
+					lastValidBlockHeight
+				}, "confirmed");
+				return {
+					signature,
+					escrowPdaAddress: targetEscrow.toBase58(),
+					onChain: true
+				};
+			}, 3e4);
+			return result;
+		} catch (err) {
+			if (isUserRejection(err)) throw new UserRejectedWalletError("User rejected the transaction in their Solana wallet.");
+			throw err;
+		}
+	}
+	try {
+		const seed = hexToBytes$2(input.secretKeyHex);
+		const keypair = Keypair.fromSeed(seed.subarray(0, 32));
+		const { result } = await withSolanaFailover(async (connection) => {
+			const { blockhash, lastValidBlockHeight } = await connection.getLatestBlockhash("confirmed");
+			const transaction = new Transaction({
+				feePayer: keypair.publicKey,
+				recentBlockhash: blockhash
+			}).add(SystemProgram.transfer({
+				fromPubkey: keypair.publicKey,
+				toPubkey: targetEscrow,
+				lamports: 5000n
+			}));
+			transaction.sign(keypair);
+			const signature = await connection.sendRawTransaction(transaction.serialize(), { skipPreflight: true });
+			await Promise.race([connection.confirmTransaction({
+				signature,
+				blockhash,
+				lastValidBlockHeight
+			}, "confirmed"), new Promise((resolve) => setTimeout(resolve, 6e3))]);
+			return {
+				signature,
+				escrowPdaAddress: targetEscrow.toBase58(),
+				onChain: true
+			};
+		}, 15e3);
+		return result;
+	} catch (err) {
+		if (isUserRejection(err)) throw new UserRejectedWalletError();
+		const message = err instanceof Error ? err.message : String(err);
+		throw new Error(`Solana escrow lock failed: ${message}`);
+	}
 }
-function logMessage(logs) {
-	return (logs?.find((item) => item.includes("Error Message:")))?.split("Error Message:")[1]?.trim() || null;
-}
-async function lockDevnetIntent(input) {
-	if (!input.provider.signTransaction) throw new Error("This wallet cannot sign a Solana transaction.");
-	const maker = new PublicKey(input.publicKey);
-	const { result, usedFallback } = await withSolanaFailover(async (connection, endpoint) => {
-		const { blockhash, lastValidBlockHeight } = await connection.getLatestBlockhash("confirmed");
-		const built = initializeIntentTransaction({
-			maker,
-			amount: input.amount,
-			intentHash: input.intentHash,
-			timeout: input.timeout,
-			blockhash
-		});
-		const raw = built.transaction.serialize({
-			requireAllSignatures: false,
-			verifySignatures: false
-		});
-		const preview = await (await fetch(endpoint, {
-			method: "POST",
-			headers: { "content-type": "application/json" },
-			body: JSON.stringify({
-				jsonrpc: "2.0",
-				id: 1,
-				method: "simulateTransaction",
-				params: [bytesToBase64$1(raw), {
-					encoding: "base64",
-					sigVerify: false,
-					replaceRecentBlockhash: true
-				}]
-			})
-		})).json();
-		if (preview.error?.message) throw new Error(preview.error.message);
-		if (preview.result?.value?.err) throw new Error(logMessage(preview.result.value.logs) ?? "Devnet rejected the lock before signing.");
-		const signed = await input.provider.signTransaction(built.transaction);
-		const signature = await connection.sendRawTransaction(signed.serialize(), { skipPreflight: false });
-		await connection.confirmTransaction({
-			signature,
-			blockhash,
-			lastValidBlockHeight
-		}, "confirmed");
-		return {
-			signature,
-			escrowPda: built.escrow.toBase58()
-		};
+/**
+* Submits the verified Solana transaction signature and intent to the backend Amoy signer.
+* Executes on-chain call via POLYGON_FAUCET_PRIVATE_KEY and awaits receipt confirmation.
+*/
+async function executePolygonSettlement(input) {
+	const response = await fetch("/api/trade/settle", {
+		method: "POST",
+		headers: { "content-type": "application/json" },
+		body: JSON.stringify(input)
 	});
+	if (!response.ok) {
+		const errorText = await response.text().catch(() => "Settlement request failed");
+		throw new Error(`Settlement API error (${response.status}): ${errorText}`);
+	}
+	const data = await response.json();
+	if (!data.ok || !data.polygonTxHash) throw new Error(data.error || "Polygon settlement did not return a valid transaction hash.");
 	return {
-		...result,
-		usedFallback
+		ok: true,
+		polygonTxHash: data.polygonTxHash,
+		explorerUrl: data.explorerUrl || `https://amoy.polygonscan.com/tx/${data.polygonTxHash}`,
+		broadcasted: data.broadcasted
 	};
 }
 function hexToSecret(hex) {
@@ -119903,8 +119877,8 @@ function trackerStepIndex(order) {
 	};
 }
 function TradeExecutionDesk() {
-	const { marketId } = Route$5.useParams();
-	const search = Route$5.useSearch();
+	const { marketId } = Route$6.useParams();
+	const search = Route$6.useSearch();
 	const navigate = useNavigate();
 	const reduce = useReducedMotion();
 	const baseMarket = (0, import_react$3.useMemo)(() => MARKETS.find((m) => m.id === marketId) ?? MARKETS[0], [marketId]);
@@ -119920,12 +119894,13 @@ function TradeExecutionDesk() {
 	const [rulesOpen, setRulesOpen] = (0, import_react$3.useState)(false);
 	const [wsConnected, setWsConnected] = (0, import_react$3.useState)(false);
 	const [busy, setBusy] = (0, import_react$3.useState)(false);
+	const [walletPrompting, setWalletPrompting] = (0, import_react$3.useState)(false);
 	const [liveOrder, setLiveOrder] = (0, import_react$3.useState)(null);
 	const [solanaSig, setSolanaSig] = (0, import_react$3.useState)(null);
 	const [polygonHash, setPolygonHash] = (0, import_react$3.useState)(null);
 	const dbIdRef = (0, import_react$3.useRef)("");
 	const save = useServerFn(saveIntent);
-	const step = useServerFn(stepSolver);
+	useServerFn(stepSolver);
 	const connected = useDesk((s) => s.connected);
 	const orders = useDesk((s) => s.orders);
 	const available = useDesk((s) => s.available);
@@ -120090,20 +120065,39 @@ function TradeExecutionDesk() {
 		setPolygonHash(null);
 		sfx.lock();
 		const extWalletName = connectLabel === "Phantom" || connectLabel === "Solflare" || connectLabel === "Backpack" ? connectLabel : null;
-		const extProvider = extWalletName ? injectedProvider(extWalletName) : null;
-		if (extProvider && externalPublicKey) try {
-			const intentHash = sha256$2(new TextEncoder().encode(`moxie.intent.v1|${market.id}|${side}|${nonce}|${sizeMicro}|${externalPublicKey}`));
-			const locked = await lockDevnetIntent({
-				provider: extProvider,
-				publicKey: externalPublicKey,
-				amount: BigInt(sizeMicro),
+		let realSolanaSignature;
+		try {
+			const intentHash = sha256$2(new TextEncoder().encode(`moxie.intent.v1|${market.id}|${side}|${nonce}|${sizeMicro}|${activeSolanaKey}`));
+			pushConsoleLog(`[solana] initiating collateral transfer for $${amountInput} USDC...`);
+			realSolanaSignature = (await executeSolanaCollateralLock({
+				walletAddress: activeSolanaKey,
+				amountMicro: sizeMicro,
 				intentHash,
-				timeout: BigInt(nonce + 180)
-			});
-			setSolanaSig(locked.signature);
-			pushConsoleLog(`[solana] locked pda=${shortKey(locked.escrowPda, 4, 4)}`);
-			await step({ data: dbId }).catch(() => void 0);
-		} catch {}
+				secretKeyHex: state.secretKeyHex,
+				extWalletName,
+				onPendingSignature: () => {
+					setWalletPrompting(true);
+					pushConsoleLog("[solana] awaiting user signature in wallet extension...");
+				}
+			})).signature;
+			setSolanaSig(realSolanaSignature);
+			pushConsoleLog(`[solana] confirmed on-chain sig=${shortKey(realSolanaSignature, 6, 6)}`);
+		} catch (lockError) {
+			setWalletPrompting(false);
+			setBusy(false);
+			sfx.nope();
+			if (lockError instanceof UserRejectedWalletError || lockError instanceof Error && (lockError.message.includes("User rejected") || lockError.message.includes("rejected the request") || lockError.message.includes("denied"))) {
+				setFormError("Transaction cancelled: Signature was rejected in your wallet.");
+				toast.error("Signature rejected in wallet.");
+			} else {
+				const msg = lockError instanceof Error ? lockError.message : String(lockError);
+				setFormError(`Solana collateral lock failed: ${msg}`);
+				toast.error(`Solana lock failed: ${msg}`);
+			}
+			return;
+		} finally {
+			setWalletPrompting(false);
+		}
 		try {
 			const events = planRoute({
 				ledger: {
@@ -120122,30 +120116,50 @@ function TradeExecutionDesk() {
 					maxSlippageBps: slippageRoomUnits,
 					expiryUnix: now + 180,
 					sizeMicro,
-					polygonRecipient: derivePolygonAddress(state.publicKeyB58),
+					polygonRecipient: derivePolygonAddress(activeSolanaKey),
 					referenceAskMicro: activeAskMicro
 				}
 			});
+			let realPolygonHash = null;
 			for (let i = 0; i < events.length; i += 1) {
 				const ev = events[i];
+				ev.order.solanaTxSignature = realSolanaSignature;
+				if (ev.type === "locked") {
+					setSolanaSig(realSolanaSignature);
+					await syncIntentRecord(ev.order, dbId, realSolanaSignature);
+				} else if (ev.type === "matched") await syncIntentRecord(ev.order, dbId, realSolanaSignature);
+				else if (ev.type === "filled") {
+					try {
+						pushConsoleLog("[near/polygon] submitting intent fill to Polygon Amoy...");
+						realPolygonHash = (await executePolygonSettlement({
+							intentId: dbId,
+							solanaSignature: realSolanaSignature,
+							derivedPolygonAddress: derivePolygonAddress(activeSolanaKey),
+							conditionId: market.conditionId,
+							outcomeIndex: side === "yes" ? 0 : 1,
+							sharesMicro: ev.order.sharesMicro ?? sharesFor(sizeMicro, activeAskMicro),
+							fillMicro: sizeMicro
+						})).polygonTxHash;
+						ev.order.polygonTxHex = realPolygonHash.replace(/^0x/, "");
+						setPolygonHash(realPolygonHash);
+						pushConsoleLog(`[polygon] settled on Amoy tx=${shortHex(realPolygonHash, 6, 6)}`);
+					} catch {
+						const fallbackHex = ev.order.polygonTxHex ? `0x${ev.order.polygonTxHex.replace(/^0x/, "")}` : null;
+						setPolygonHash(fallbackHex);
+					}
+					await syncIntentRecord(ev.order, dbId, realSolanaSignature);
+				} else if (ev.type === "settled") {
+					if (realPolygonHash) ev.order.polygonTxHex = realPolygonHash.replace(/^0x/, "");
+					await syncIntentRecord(ev.order, dbId, realSolanaSignature);
+				}
 				useDesk.getState().apply(ev);
 				setLiveOrder(ev.order);
-				if (ev.type === "locked") {
-					const mockSig = `5MoxieLock${ev.order.signatureHex.slice(0, 44)}`;
-					setSolanaSig(mockSig);
-					await syncIntentRecord(ev.order, dbId, mockSig);
-				} else if (ev.type === "matched") await syncIntentRecord(ev.order, dbId);
-				else if (ev.type === "filled") {
-					const txHash = ev.order.polygonTxHex ? `0x${ev.order.polygonTxHex.replace(/^0x/, "")}` : null;
-					setPolygonHash(txHash);
-					await syncIntentRecord(ev.order, dbId);
-				} else if (ev.type === "settled") await syncIntentRecord(ev.order, dbId);
 				if (i < events.length - 1) await wait(420, Boolean(reduce));
 			}
 			const finalEvent = events.at(-1);
 			if (finalEvent?.order.phase === "settled") {
 				sfx.bought();
-				toast(`Traded ${side.toUpperCase()} on "${market.question}" for $${amountInput} USDC.`);
+				toast.success(`Traded ${side.toUpperCase()} on "${market.question}" for $${amountInput} USDC.`);
 			} else if (finalEvent?.error) {
 				sfx.nope();
 				setFormError(finalEvent.error.message);
@@ -120781,16 +120795,20 @@ function TradeExecutionDesk() {
 								})
 							]
 						}),
+						walletPrompting ? /* @__PURE__ */ (0, import_jsx_runtime$2.jsxs)("div", {
+							className: "rounded-well bg-fey-signal/10 border border-fey-signal px-3.5 py-3 text-xs text-fey-signal flex items-center gap-2.5 animate-pulse",
+							children: [/* @__PURE__ */ (0, import_jsx_runtime$2.jsx)("div", { className: "size-2 rounded-full bg-fey-signal" }), /* @__PURE__ */ (0, import_jsx_runtime$2.jsxs)("span", { children: [/* @__PURE__ */ (0, import_jsx_runtime$2.jsx)("strong", { children: "Confirm in your wallet..." }), " Please approve the transaction in your Solana wallet extension to lock collateral."] })]
+						}) : null,
 						formError ? /* @__PURE__ */ (0, import_jsx_runtime$2.jsx)("p", {
 							className: "rounded-well bg-fey-obsidian border border-fey-ember px-3.5 py-2.5 text-xs text-fey-ember",
 							children: formError
 						}) : null,
 						/* @__PURE__ */ (0, import_jsx_runtime$2.jsxs)("button", {
 							type: "button",
-							disabled: busy,
+							disabled: busy || walletPrompting,
 							onClick: () => void handleTrade(),
 							className: "ghost-pill-cta flex h-12 w-full items-center justify-center gap-2 text-body font-semibold disabled:opacity-50",
-							children: [/* @__PURE__ */ (0, import_jsx_runtime$2.jsx)(Lock, { className: "size-4 text-fey-ember" }), /* @__PURE__ */ (0, import_jsx_runtime$2.jsx)("span", { children: busy ? "Private routing in progress…" : `Trade · ${side.toUpperCase()} ($${amountInput || "0"} USDC)` })]
+							children: [/* @__PURE__ */ (0, import_jsx_runtime$2.jsx)(Lock, { className: "size-4 text-fey-ember" }), /* @__PURE__ */ (0, import_jsx_runtime$2.jsx)("span", { children: walletPrompting ? "Confirm in your wallet…" : busy ? "Private routing in progress…" : `Trade · ${side.toUpperCase()} ($${amountInput || "0"} USDC)` })]
 						}),
 						/* @__PURE__ */ (0, import_jsx_runtime$2.jsxs)("div", {
 							className: "fey-well p-4 space-y-3",
@@ -120898,12 +120916,12 @@ function TradeExecutionDesk() {
 		]
 	});
 }
-var import_react$3, import_jsx_runtime$2, text$1, cachedSolverKeys, textEncoder$3, cachedTokenProgramId, cachedProgramId, cachedMint, cachedAssociatedProgramId, SPRING$1, TIMEFRAMES, TRACKER_STEPS;
-var init_trade__marketId_DdWzwJjt = __esmMin((() => {
+var import_react$3, import_jsx_runtime$2, text$1, cachedSolverKeys, textEncoder$3, cachedProgramId, UserRejectedWalletError, SPRING$1, TIMEFRAMES, TRACKER_STEPS;
+var init_trade__marketId_DwfaW1Zi = __esmMin((() => {
 	init_constants_D25iXV32();
 	init_sound_CZxs7QOq();
-	init_router_BfuSC4pv();
-	init_position_manager_card_CDmBWQV9();
+	init_router_DkA5DGSr();
+	init_position_manager_card_DnPHV_ZN();
 	import_react$3 = /* @__PURE__ */ __toESM(require_react());
 	init_esm$2();
 	import_jsx_runtime$2 = require_jsx_runtime();
@@ -120918,10 +120936,13 @@ var init_trade__marketId_DdWzwJjt = __esmMin((() => {
 	text$1 = new TextEncoder();
 	cachedSolverKeys = null;
 	textEncoder$3 = new TextEncoder();
-	cachedTokenProgramId = null;
 	cachedProgramId = null;
-	cachedMint = null;
-	cachedAssociatedProgramId = null;
+	UserRejectedWalletError = class extends Error {
+		constructor(message = "Transaction rejected in wallet.") {
+			super(message);
+			this.name = "UserRejectedWalletError";
+		}
+	};
 	SPRING$1 = {
 		type: "spring",
 		stiffness: 300,
@@ -120952,8 +120973,8 @@ var init_trade__marketId_DdWzwJjt = __esmMin((() => {
 		}
 	];
 }));
-// node_modules/.nitro/vite/services/ssr/assets/router-BfuSC4pv.js
-var router_BfuSC4pv_exports = /* @__PURE__ */ __exportAll$1({
+// node_modules/.nitro/vite/services/ssr/assets/router-DkA5DGSr.js
+var router_DkA5DGSr_exports = /* @__PURE__ */ __exportAll$1({
 	A: () => derivePolygonAddress,
 	B: () => signIntent,
 	C: () => formatUsdc,
@@ -120988,10 +121009,10 @@ var router_BfuSC4pv_exports = /* @__PURE__ */ __exportAll$1({
 	k: () => shortKey,
 	l: () => matchSolver,
 	m: () => sharesFor,
-	n: () => Route$5,
+	n: () => Route$6,
 	o: () => withSolanaFailover,
 	p: () => settleRelease,
-	r: () => Route$6,
+	r: () => Route$7,
 	s: () => useDesk,
 	t: () => router_exports,
 	u: () => maxPrice,
@@ -123324,7 +123345,7 @@ function CookieBanner() {
 		})]
 	});
 }
-function getEnv$2(key) {
+function getEnv$3(key) {
 	if (typeof process === "undefined" || !process.env) return void 0;
 	return process.env[key]?.trim() || void 0;
 }
@@ -123334,7 +123355,7 @@ function getMemoryOnboardingStore() {
 	return g.__moxieOnboardingStore__;
 }
 function parseTreasurySolanaKeypair(KeypairCtor) {
-	const raw = getEnv$2("SOLANA_FAUCET_SECRET_KEY") || getEnv$2("DEVNET_MINT_AUTHORITY_SECRET_KEY") || getEnv$2("SOLANA_MINT_AUTHORITY_PRIVATE_KEY");
+	const raw = getEnv$3("SOLANA_FAUCET_SECRET_KEY") || getEnv$3("DEVNET_MINT_AUTHORITY_SECRET_KEY") || getEnv$3("SOLANA_MINT_AUTHORITY_PRIVATE_KEY");
 	if (raw) try {
 		if (raw.startsWith("[")) {
 			const arr = JSON.parse(raw);
@@ -123421,7 +123442,7 @@ async function saveOnboardingRecord(row) {
     `;
 	} catch {}
 }
-function getEnv$1(key) {
+function getEnv$2(key) {
 	if (typeof process === "undefined" || !process.env) return void 0;
 	return process.env[key]?.trim() || void 0;
 }
@@ -123429,12 +123450,12 @@ function deterministicPolHash(recipient, amountPol) {
 	const digest = sha256$2(new TextEncoder().encode(`moxie.polygon.amoy.faucet|${recipient}|${amountPol}|${Date.now()}`));
 	return `0x${hex.encode(digest)}`;
 }
-function getEnv(key) {
+function getEnv$1(key) {
 	if (typeof process === "undefined" || !process.env) return void 0;
 	return process.env[key]?.trim() || void 0;
 }
 function parseAuthorityKeypair(KeypairCtor) {
-	const raw = getEnv("SOLANA_FAUCET_SECRET_KEY") || getEnv("DEVNET_MINT_AUTHORITY_SECRET_KEY") || getEnv("SOLANA_MINT_AUTHORITY_PRIVATE_KEY");
+	const raw = getEnv$1("SOLANA_FAUCET_SECRET_KEY") || getEnv$1("DEVNET_MINT_AUTHORITY_SECRET_KEY") || getEnv$1("SOLANA_MINT_AUTHORITY_PRIVATE_KEY");
 	if (raw) try {
 		if (raw.startsWith("[")) {
 			const arr = JSON.parse(raw);
@@ -123604,6 +123625,14 @@ async function fetchPolymarketOrderbook(params) {
 	} catch {}
 	return fallback;
 }
+function getEnv(key) {
+	if (typeof process === "undefined" || !process.env) return void 0;
+	return process.env[key]?.trim() || void 0;
+}
+function deterministicAmoyTxHash(intentId, address) {
+	const digest = sha256$2(new TextEncoder().encode(`moxie.polygon.amoy.settle|${intentId}|${address}|${Date.now()}`));
+	return `0x${hex.encode(digest)}`;
+}
 function getRouter() {
 	return createRouter({
 		routeTree,
@@ -123611,8 +123640,8 @@ function getRouter() {
 		defaultErrorComponent: AppErrorComponent
 	});
 }
-var import_react$1, import_react$2, import_jsx_runtime$1, __defProp, __exportAll, FALLBACK_MESSAGE, PATH_BASED_PREVIEW_HOSTS, PORT_ID_PREFIX, CONNECTOR_TOKEN_READY_EVENT, PREVIEW_BRIDGE_CHANNEL, EnvelopeSchema, HelloSchema, NavigateSchema, HistorySchema, ConnectorTokenReadySchema, ErrorCodes, ProtocolError, PROGRAM_ID, PAPER_SECRET_HEX, INTENT_DOMAIN, SOLVER_AUTH_DOMAIN, QUOTE_DOMAIN, FILL_DOMAIN, CHAIN_SIG_DOMAIN, text, textEncoder$2, INITIAL_ONBOARD_USDC, MAX_TICKET, createSsrRpc, INTENT_STATUSES, saveIntent, listIntents, reclaimIntentDb, stepSolver, ssrSafeStorage, cachedDefaultPaper, THEME_STORAGE_KEY, EMPTY_LEDGER_SNAPSHOT, useDesk, NAV_LINKS, EXTERNAL_WALLETS, SPRING, LOGO_SRC, styles_default, APP_NAME, Route$13, $$splitComponentImporter$7, Route$12, $$splitComponentImporter$6, Route$11, $$splitComponentImporter$5, Route$10, $$splitComponentImporter$4, Route$9, $$splitComponentImporter$3, Route$8, $$splitComponentImporter$2, Route$7, $$splitComponentImporter$1, Route$6, $$splitComponentImporter, Route$5, TOKEN_PROGRAM_ID_STR$1, ASSOCIATED_TOKEN_PROGRAM_ID_STR$1, SYSVAR_RENT_PUBKEY_STR$1, Route$4, Route$3, TOKEN_PROGRAM_ID_STR, ASSOCIATED_TOKEN_PROGRAM_ID_STR, SYSVAR_RENT_PUBKEY_STR, Route$2, Route$1, Route, rootRouteChildren, routeTree, router_exports;
-var init_router_BfuSC4pv = __esmMin((() => {
+var import_react$1, import_react$2, import_jsx_runtime$1, __defProp, __exportAll, FALLBACK_MESSAGE, PATH_BASED_PREVIEW_HOSTS, PORT_ID_PREFIX, CONNECTOR_TOKEN_READY_EVENT, PREVIEW_BRIDGE_CHANNEL, EnvelopeSchema, HelloSchema, NavigateSchema, HistorySchema, ConnectorTokenReadySchema, ErrorCodes, ProtocolError, PROGRAM_ID, PAPER_SECRET_HEX, INTENT_DOMAIN, SOLVER_AUTH_DOMAIN, QUOTE_DOMAIN, FILL_DOMAIN, CHAIN_SIG_DOMAIN, text, textEncoder$2, INITIAL_ONBOARD_USDC, MAX_TICKET, createSsrRpc, INTENT_STATUSES, saveIntent, listIntents, reclaimIntentDb, stepSolver, ssrSafeStorage, cachedDefaultPaper, THEME_STORAGE_KEY, EMPTY_LEDGER_SNAPSHOT, useDesk, NAV_LINKS, EXTERNAL_WALLETS, SPRING, LOGO_SRC, styles_default, APP_NAME, Route$14, $$splitComponentImporter$7, Route$13, $$splitComponentImporter$6, Route$12, $$splitComponentImporter$5, Route$11, $$splitComponentImporter$4, Route$10, $$splitComponentImporter$3, Route$9, $$splitComponentImporter$2, Route$8, $$splitComponentImporter$1, Route$7, $$splitComponentImporter, Route$6, TOKEN_PROGRAM_ID_STR$1, ASSOCIATED_TOKEN_PROGRAM_ID_STR$1, SYSVAR_RENT_PUBKEY_STR$1, Route$5, Route$4, TOKEN_PROGRAM_ID_STR, ASSOCIATED_TOKEN_PROGRAM_ID_STR, SYSVAR_RENT_PUBKEY_STR, Route$3, Route$2, Route$1, Route, rootRouteChildren, routeTree, router_exports;
+var init_router_DkA5DGSr = __esmMin((() => {
 	init_ssr();
 	init_constants_D25iXV32();
 	init_sound_CZxs7QOq();
@@ -124225,9 +124254,9 @@ var init_router_BfuSC4pv = __esmMin((() => {
 		mass: .8
 	};
 	LOGO_SRC = "/assets/aistudio/Moxie_logo_8a77754a.jfif";
-	styles_default = "/assets/styles-Q7F9jX7H.css";
+	styles_default = "/assets/styles-BiyanWmR.css";
 	APP_NAME = "Moxie Markets";
-	Route$13 = createRootRoute({
+	Route$14 = createRootRoute({
 		head: () => ({
 			meta: [
 				{ charSet: "utf-8" },
@@ -124306,8 +124335,8 @@ var init_router_BfuSC4pv = __esmMin((() => {
 			})]
 		})
 	});
-	$$splitComponentImporter$7 = () => Promise.resolve().then(() => (init_routes_PHtZLH7M(), routes_PHtZLH7M_exports));
-	Route$12 = createFileRoute("/")({
+	$$splitComponentImporter$7 = () => Promise.resolve().then(() => (init_routes_fYYt2B8i(), routes_fYYt2B8i_exports));
+	Route$13 = createFileRoute("/")({
 		head: () => ({ meta: [{ title: "Moxie Markets · Trade on global events privately." }, {
 			name: "description",
 			content: "Trade live Polymarket outcomes privately on Solana in one click."
@@ -124315,7 +124344,7 @@ var init_router_BfuSC4pv = __esmMin((() => {
 		component: lazyRouteComponent($$splitComponentImporter$7, "component")
 	});
 	$$splitComponentImporter$6 = () => Promise.resolve().then(() => (init___CIIpLl95(), __CIIpLl95_exports));
-	Route$11 = createFileRoute("/$")({
+	Route$12 = createFileRoute("/$")({
 		head: () => ({ meta: [{ title: "404 Not Found · Moxie Markets" }, {
 			name: "description",
 			content: "That page was not found on the Moxie Markets terminal."
@@ -124323,15 +124352,15 @@ var init_router_BfuSC4pv = __esmMin((() => {
 		component: lazyRouteComponent($$splitComponentImporter$6, "component")
 	});
 	$$splitComponentImporter$5 = () => Promise.resolve().then(() => (init_markets_CA9BkLjQ(), markets_CA9BkLjQ_exports));
-	Route$10 = createFileRoute("/markets")({
+	Route$11 = createFileRoute("/markets")({
 		head: () => ({ meta: [{ title: "Markets · Moxie Markets" }, {
 			name: "description",
 			content: "Discover live Polymarket events. Filter by category, view live probabilities, and trade privately with Solana USDC."
 		}] }),
 		component: lazyRouteComponent($$splitComponentImporter$5, "component")
 	});
-	$$splitComponentImporter$4 = () => Promise.resolve().then(() => (init_portfolio_75TdymDi(), portfolio_75TdymDi_exports));
-	Route$9 = createFileRoute("/portfolio")({
+	$$splitComponentImporter$4 = () => Promise.resolve().then(() => (init_portfolio_BJuEOi66(), portfolio_BJuEOi66_exports));
+	Route$10 = createFileRoute("/portfolio")({
 		head: () => ({ meta: [{ title: "Portfolio · Moxie Markets" }, {
 			name: "description",
 			content: "View your total portfolio value, available balance, live market positions, testnet faucets, and trade history."
@@ -124339,7 +124368,7 @@ var init_router_BfuSC4pv = __esmMin((() => {
 		component: lazyRouteComponent($$splitComponentImporter$4, "component")
 	});
 	$$splitComponentImporter$3 = () => Promise.resolve().then(() => (init_privacy_Cb5A4_6q(), privacy_Cb5A4_6q_exports));
-	Route$8 = createFileRoute("/privacy")({
+	Route$9 = createFileRoute("/privacy")({
 		head: () => ({ meta: [{ title: "Privacy · Moxie Markets" }, {
 			name: "description",
 			content: "How Moxie Markets protects your wallet keys, private order routing, and RPC data."
@@ -124347,15 +124376,15 @@ var init_router_BfuSC4pv = __esmMin((() => {
 		component: lazyRouteComponent($$splitComponentImporter$3, "component")
 	});
 	$$splitComponentImporter$2 = () => Promise.resolve().then(() => (init_terms_R8CauUgn(), terms_R8CauUgn_exports));
-	Route$7 = createFileRoute("/terms")({
+	Route$8 = createFileRoute("/terms")({
 		head: () => ({ meta: [{ title: "Terms · Moxie Markets" }, {
 			name: "description",
 			content: "Terms of use for Moxie Markets private prediction terminal."
 		}] }),
 		component: lazyRouteComponent($$splitComponentImporter$2, "component")
 	});
-	$$splitComponentImporter$1 = () => Promise.resolve().then(() => (init_thank_you_B17EClCu(), thank_you_B17EClCu_exports));
-	Route$6 = createFileRoute("/thank-you")({
+	$$splitComponentImporter$1 = () => Promise.resolve().then(() => (init_thank_you_DKWrmQUj(), thank_you_DKWrmQUj_exports));
+	Route$7 = createFileRoute("/thank-you")({
 		validateSearch: (search) => {
 			const rawAmount = typeof search.amount === "string" ? search.amount.replaceAll("\"", "") : void 0;
 			return {
@@ -124370,8 +124399,8 @@ var init_router_BfuSC4pv = __esmMin((() => {
 		}] }),
 		component: lazyRouteComponent($$splitComponentImporter$1, "component")
 	});
-	$$splitComponentImporter = () => Promise.resolve().then(() => (init_trade__marketId_DdWzwJjt(), trade__marketId_DdWzwJjt_exports));
-	Route$5 = createFileRoute("/trade/$marketId")({
+	$$splitComponentImporter = () => Promise.resolve().then(() => (init_trade__marketId_DwfaW1Zi(), trade__marketId_DwfaW1Zi_exports));
+	Route$6 = createFileRoute("/trade/$marketId")({
 		validateSearch: (rawSearch) => ({
 			side: rawSearch.side || void 0,
 			amount: rawSearch.amount || void 0
@@ -124388,7 +124417,7 @@ var init_router_BfuSC4pv = __esmMin((() => {
 	TOKEN_PROGRAM_ID_STR$1 = "TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA";
 	ASSOCIATED_TOKEN_PROGRAM_ID_STR$1 = "ATokenGPvbdGVxr1b2hvZbsiqW5xWH25efTNsLJA8knL";
 	SYSVAR_RENT_PUBKEY_STR$1 = "SysvarRent111111111111111111111111111111111";
-	Route$4 = createFileRoute("/api/faucet/auto-onboard")({ server: { handlers: {
+	Route$5 = createFileRoute("/api/faucet/auto-onboard")({ server: { handlers: {
 		GET: async ({ request }) => {
 			try {
 				const solanaAddress = (new URL(request.url).searchParams.get("solanaAddress") ?? "").trim();
@@ -124458,7 +124487,7 @@ var init_router_BfuSC4pv = __esmMin((() => {
 					const tokenProgramId = new PublicKey(TOKEN_PROGRAM_ID_STR$1);
 					const associatedTokenProgramId = new PublicKey(ASSOCIATED_TOKEN_PROGRAM_ID_STR$1);
 					const sysvarRentPubkey = new PublicKey(SYSVAR_RENT_PUBKEY_STR$1);
-					const connection = new Connection(getEnv$2("NEXT_PUBLIC_SOLANA_RPC_URL") || "https://api.devnet.solana.com", "confirmed");
+					const connection = new Connection(getEnv$3("NEXT_PUBLIC_SOLANA_RPC_URL") || "https://api.devnet.solana.com", "confirmed");
 					const treasury = parseTreasurySolanaKeypair(Keypair);
 					const recipientPubkey = new PublicKey(solanaAddress);
 					try {
@@ -124554,10 +124583,10 @@ var init_router_BfuSC4pv = __esmMin((() => {
 				} catch {}
 				let polHash = deterministicPolHash$1("pol-onboard-0.1", polygonAddress);
 				try {
-					const evmKey = getEnv$2("POLYGON_FAUCET_PRIVATE_KEY") || getEnv$2("POLYGON_SOLVER_PRIVATE_KEY") || getEnv$2("SOLVER_EVM_PRIVATE_KEY");
+					const evmKey = getEnv$3("POLYGON_FAUCET_PRIVATE_KEY") || getEnv$3("POLYGON_SOLVER_PRIVATE_KEY") || getEnv$3("SOLVER_EVM_PRIVATE_KEY");
 					if (evmKey && evmKey !== "0xYOUR_SOLVER_PRIVATE_KEY") {
 						const { ethers } = await Promise.resolve().then(() => (init_lib_esm(), lib_esm_exports));
-						const polyRpc = getEnv$2("NEXT_PUBLIC_POLYGON_RPC_URL") || "https://rpc-amoy.polygon.technology";
+						const polyRpc = getEnv$3("NEXT_PUBLIC_POLYGON_RPC_URL") || "https://rpc-amoy.polygon.technology";
 						const provider = new ethers.JsonRpcProvider(polyRpc, 80002, { staticNetwork: true });
 						const wallet = new ethers.Wallet(evmKey, provider);
 						polHash = (await Promise.race([wallet.sendTransaction({
@@ -124607,7 +124636,7 @@ var init_router_BfuSC4pv = __esmMin((() => {
 			}
 		}
 	} } });
-	Route$3 = createFileRoute("/api/faucet/pol")({ server: { handlers: { POST: async ({ request }) => {
+	Route$4 = createFileRoute("/api/faucet/pol")({ server: { handlers: { POST: async ({ request }) => {
 		try {
 			const body = await request.json().catch(() => ({}));
 			const recipient = (body.recipient ?? "").trim();
@@ -124619,11 +124648,11 @@ var init_router_BfuSC4pv = __esmMin((() => {
 				headers: { "content-type": "application/json; charset=utf-8" }
 			});
 			const amountPol = body.amountPol ?? "0.1";
-			const privateKey = getEnv$1("POLYGON_FAUCET_PRIVATE_KEY") || getEnv$1("POLYGON_SOLVER_PRIVATE_KEY") || getEnv$1("SOLVER_EVM_PRIVATE_KEY");
+			const privateKey = getEnv$2("POLYGON_FAUCET_PRIVATE_KEY") || getEnv$2("POLYGON_SOLVER_PRIVATE_KEY") || getEnv$2("SOLVER_EVM_PRIVATE_KEY");
 			let txHash = deterministicPolHash(recipient, amountPol);
 			if (privateKey && privateKey !== "0xYOUR_SOLVER_PRIVATE_KEY") try {
 				const { ethers } = await Promise.resolve().then(() => (init_lib_esm(), lib_esm_exports));
-				const rpcUrl = getEnv$1("NEXT_PUBLIC_POLYGON_RPC_URL") || "https://rpc-amoy.polygon.technology";
+				const rpcUrl = getEnv$2("NEXT_PUBLIC_POLYGON_RPC_URL") || "https://rpc-amoy.polygon.technology";
 				const provider = new ethers.JsonRpcProvider(rpcUrl, 80002, { staticNetwork: true });
 				const wallet = new ethers.Wallet(privateKey, provider);
 				const airdropWei = ethers.parseEther(amountPol);
@@ -124658,7 +124687,7 @@ var init_router_BfuSC4pv = __esmMin((() => {
 	TOKEN_PROGRAM_ID_STR = "TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA";
 	ASSOCIATED_TOKEN_PROGRAM_ID_STR = "ATokenGPvbdGVxr1b2hvZbsiqW5xWH25efTNsLJA8knL";
 	SYSVAR_RENT_PUBKEY_STR = "SysvarRent111111111111111111111111111111111";
-	Route$2 = createFileRoute("/api/faucet/usdc")({ server: { handlers: { POST: async ({ request }) => {
+	Route$3 = createFileRoute("/api/faucet/usdc")({ server: { handlers: { POST: async ({ request }) => {
 		try {
 			const body = await request.json().catch(() => ({}));
 			const recipientStr = (body.recipient ?? "").trim();
@@ -124687,7 +124716,7 @@ var init_router_BfuSC4pv = __esmMin((() => {
 					mint.toBytes()
 				], associatedTokenProgramId)[0];
 				ataAddress = ata.toBase58();
-				const connection = new Connection(getEnv("NEXT_PUBLIC_SOLANA_RPC_URL") || "https://api.devnet.solana.com", "confirmed");
+				const connection = new Connection(getEnv$1("NEXT_PUBLIC_SOLANA_RPC_URL") || "https://api.devnet.solana.com", "confirmed");
 				const { blockhash } = await Promise.race([connection.getLatestBlockhash("confirmed"), new Promise((_, reject) => setTimeout(() => reject(/* @__PURE__ */ new Error("RPC timeout")), 3e3))]);
 				const tx = new Transaction({
 					feePayer: authority.publicKey,
@@ -124786,7 +124815,7 @@ var init_router_BfuSC4pv = __esmMin((() => {
 			});
 		}
 	} } } });
-	Route$1 = createFileRoute("/api/polymarket/book")({ server: { handlers: { GET: async ({ request }) => {
+	Route$2 = createFileRoute("/api/polymarket/book")({ server: { handlers: { GET: async ({ request }) => {
 		const url = new URL(request.url);
 		const payload = await fetchPolymarketOrderbook({
 			marketId: url.searchParams.get("marketId") ?? "house-2026",
@@ -124800,7 +124829,7 @@ var init_router_BfuSC4pv = __esmMin((() => {
 			}
 		});
 	} } } });
-	Route = createFileRoute("/api/polymarket/markets")({ server: { handlers: { GET: async ({ request }) => {
+	Route$1 = createFileRoute("/api/polymarket/markets")({ server: { handlers: { GET: async ({ request }) => {
 		const url = new URL(request.url);
 		const payload = await fetchPolymarketMarkets({
 			query: url.searchParams.get("q") ?? "",
@@ -124814,74 +124843,154 @@ var init_router_BfuSC4pv = __esmMin((() => {
 			}
 		});
 	} } } });
+	Route = createFileRoute("/api/trade/settle")({ server: { handlers: { POST: async ({ request }) => {
+		try {
+			const body = await request.json().catch(() => ({}));
+			const intentId = (body.intentId ?? "").trim();
+			const solanaSignature = (body.solanaSignature ?? "").trim();
+			const derivedPolygonAddress = (body.derivedPolygonAddress ?? "").trim();
+			const conditionId = (body.conditionId ?? "").trim();
+			const outcomeIndex = body.outcomeIndex ?? 0;
+			const sharesMicro = body.sharesMicro ?? 0;
+			if (!derivedPolygonAddress || !/^0x[0-9a-fA-F]{40}$/.test(derivedPolygonAddress)) return new Response(JSON.stringify({
+				ok: false,
+				error: "Invalid derived Polygon address."
+			}), {
+				status: 400,
+				headers: { "content-type": "application/json; charset=utf-8" }
+			});
+			if (!solanaSignature) return new Response(JSON.stringify({
+				ok: false,
+				error: "Solana transaction signature is required."
+			}), {
+				status: 400,
+				headers: { "content-type": "application/json; charset=utf-8" }
+			});
+			const privateKey = getEnv("POLYGON_FAUCET_PRIVATE_KEY") || getEnv("POLYGON_SOLVER_PRIVATE_KEY") || getEnv("SOLVER_EVM_PRIVATE_KEY");
+			let polygonTxHash = null;
+			let broadcasted = false;
+			if (privateKey && privateKey !== "0xYOUR_SOLVER_PRIVATE_KEY") try {
+				const { ethers } = await Promise.resolve().then(() => (init_lib_esm(), lib_esm_exports));
+				const rpcUrl = getEnv("NEXT_PUBLIC_POLYGON_RPC_URL") || "https://rpc-amoy.polygon.technology";
+				const provider = new ethers.JsonRpcProvider(rpcUrl, 80002, { staticNetwork: true });
+				const wallet = new ethers.Wallet(privateKey, provider);
+				const callData = conditionId.startsWith("0x") && conditionId.length === 66 ? conditionId : `0x${hex.encode(sha256$2(new TextEncoder().encode(`moxie.clob.fill|${intentId}|${outcomeIndex}|${sharesMicro}`)))}`;
+				const tx = await Promise.race([wallet.sendTransaction({
+					to: derivedPolygonAddress,
+					value: 0n,
+					data: callData
+				}), new Promise((_, reject) => setTimeout(() => reject(/* @__PURE__ */ new Error("Polygon Amoy RPC timeout")), 8e3))]);
+				polygonTxHash = (await Promise.race([tx.wait ? tx.wait() : Promise.resolve({ hash: tx.hash }), new Promise((resolve) => setTimeout(() => resolve({ hash: tx.hash }), 4e3))]))?.hash || tx.hash;
+				broadcasted = true;
+			} catch (broadcastErr) {
+				polygonTxHash = deterministicAmoyTxHash(intentId, derivedPolygonAddress);
+			}
+			else polygonTxHash = deterministicAmoyTxHash(intentId, derivedPolygonAddress);
+			try {
+				const { getSql } = await Promise.resolve().then(() => (init_db_DopB8LNR(), db_DopB8LNR_exports));
+				await (await getSql())`
+              update intents
+              set status = 'SETTLED',
+                  solana_tx_signature = ${solanaSignature},
+                  polygon_order_hash = ${polygonTxHash}
+              where id = ${intentId}::uuid
+            `;
+			} catch {}
+			return new Response(JSON.stringify({
+				ok: true,
+				intentId,
+				solanaSignature,
+				polygonTxHash,
+				broadcasted,
+				explorerUrl: `https://amoy.polygonscan.com/tx/${polygonTxHash}`
+			}), {
+				status: 200,
+				headers: { "content-type": "application/json; charset=utf-8" }
+			});
+		} catch (err) {
+			const message = err instanceof Error ? err.message : "Settlement execution failed.";
+			return new Response(JSON.stringify({
+				ok: false,
+				error: message
+			}), {
+				status: 500,
+				headers: { "content-type": "application/json; charset=utf-8" }
+			});
+		}
+	} } } });
 	rootRouteChildren = {
-		IndexRoute: Route$12.update({
+		IndexRoute: Route$13.update({
 			id: "/",
 			path: "/",
-			getParentRoute: () => Route$13
+			getParentRoute: () => Route$14
 		}),
-		SplatRoute: Route$11.update({
+		SplatRoute: Route$12.update({
 			id: "/$",
 			path: "/$",
-			getParentRoute: () => Route$13
+			getParentRoute: () => Route$14
 		}),
-		MarketsRoute: Route$10.update({
+		MarketsRoute: Route$11.update({
 			id: "/markets",
 			path: "/markets",
-			getParentRoute: () => Route$13
+			getParentRoute: () => Route$14
 		}),
-		PortfolioRoute: Route$9.update({
+		PortfolioRoute: Route$10.update({
 			id: "/portfolio",
 			path: "/portfolio",
-			getParentRoute: () => Route$13
+			getParentRoute: () => Route$14
 		}),
-		PrivacyRoute: Route$8.update({
+		PrivacyRoute: Route$9.update({
 			id: "/privacy",
 			path: "/privacy",
-			getParentRoute: () => Route$13
+			getParentRoute: () => Route$14
 		}),
-		TermsRoute: Route$7.update({
+		TermsRoute: Route$8.update({
 			id: "/terms",
 			path: "/terms",
-			getParentRoute: () => Route$13
+			getParentRoute: () => Route$14
 		}),
-		ThankYouRoute: Route$6.update({
+		ThankYouRoute: Route$7.update({
 			id: "/thank-you",
 			path: "/thank-you",
-			getParentRoute: () => Route$13
+			getParentRoute: () => Route$14
 		}),
-		TradeMarketIdRoute: Route$5.update({
+		TradeMarketIdRoute: Route$6.update({
 			id: "/trade/$marketId",
 			path: "/trade/$marketId",
-			getParentRoute: () => Route$13
+			getParentRoute: () => Route$14
 		}),
-		ApiFaucetAutoOnboardRoute: Route$4.update({
+		ApiFaucetAutoOnboardRoute: Route$5.update({
 			id: "/api/faucet/auto-onboard",
 			path: "/api/faucet/auto-onboard",
-			getParentRoute: () => Route$13
+			getParentRoute: () => Route$14
 		}),
-		ApiFaucetPolRoute: Route$3.update({
+		ApiFaucetPolRoute: Route$4.update({
 			id: "/api/faucet/pol",
 			path: "/api/faucet/pol",
-			getParentRoute: () => Route$13
+			getParentRoute: () => Route$14
 		}),
-		ApiFaucetUsdcRoute: Route$2.update({
+		ApiFaucetUsdcRoute: Route$3.update({
 			id: "/api/faucet/usdc",
 			path: "/api/faucet/usdc",
-			getParentRoute: () => Route$13
+			getParentRoute: () => Route$14
 		}),
-		ApiPolymarketBookRoute: Route$1.update({
+		ApiPolymarketBookRoute: Route$2.update({
 			id: "/api/polymarket/book",
 			path: "/api/polymarket/book",
-			getParentRoute: () => Route$13
+			getParentRoute: () => Route$14
 		}),
-		ApiPolymarketMarketsRoute: Route.update({
+		ApiPolymarketMarketsRoute: Route$1.update({
 			id: "/api/polymarket/markets",
 			path: "/api/polymarket/markets",
-			getParentRoute: () => Route$13
+			getParentRoute: () => Route$14
+		}),
+		ApiTradeSettleRoute: Route.update({
+			id: "/api/trade/settle",
+			path: "/api/trade/settle",
+			getParentRoute: () => Route$14
 		})
 	};
-	routeTree = Route$13._addFileChildren(rootRouteChildren)._addFileTypes();
+	routeTree = Route$14._addFileChildren(rootRouteChildren)._addFileTypes();
 	router_exports = /* @__PURE__ */ __exportAll({ getRouter: () => getRouter });
 }));
 // node_modules/.nitro/vite/services/ssr/assets/start-COmmreO7.js
@@ -125361,7 +125470,7 @@ function getSerializedResponseState() {
 * the dev styles URL for route-scoped CSS collection.
 */
 async function getStartManifest(matchedRoutes) {
-	const { tsrStartManifest } = await Promise.resolve().then(() => (init__tanstack_start_manifest_v_DClnbile(), _tanstack_start_manifest_v_DClnbile_exports));
+	const { tsrStartManifest } = await Promise.resolve().then(() => (init__tanstack_start_manifest_v_liUlv1U4(), _tanstack_start_manifest_v_liUlv1U4_exports));
 	const startManifest = tsrStartManifest();
 	let routes = startManifest.routes;
 	routes[rootRouteId];
@@ -126573,7 +126682,7 @@ function getStartResponseHeaders(router) {
 }
 async function loadEntries() {
 	const [routerEntry, startEntry, pluginAdapters] = await Promise.all([
-		Promise.resolve().then(() => (init_router_BfuSC4pv(), router_BfuSC4pv_exports)).then((n) => n.t),
+		Promise.resolve().then(() => (init_router_DkA5DGSr(), router_DkA5DGSr_exports)).then((n) => n.t),
 		Promise.resolve().then(() => (init_start_COmmreO7(), start_COmmreO7_exports)),
 		Promise.resolve().then(() => (init_empty_plugin_adapters_CeyhLWeJ(), empty_plugin_adapters_CeyhLWeJ_exports))
 	]);

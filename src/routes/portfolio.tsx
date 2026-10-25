@@ -588,14 +588,12 @@ function PortfolioPage() {
                     const m = MARKETS.find((item) => item.id === order.intent.marketId);
                     const canReclaim =
                       order.phase === "escrow_locked" || order.phase === "solver_matched";
-                    const rawHash = order.polygonTxHex
+                    const solSig = order.solanaTxSignature || order.signatureHex;
+                    const polygonTx = order.polygonTxHex
                       ? order.polygonTxHex.startsWith("0x")
                         ? order.polygonTxHex
                         : `0x${order.polygonTxHex}`
-                      : `0x${order.commitmentHex.slice(0, 64)}`;
-                    const explorerHref = order.polygonTxHex
-                      ? `https://amoy.polygonscan.com/tx/${rawHash}`
-                      : `https://explorer.solana.com/tx/${order.signatureHex.slice(0, 64)}?cluster=devnet`;
+                      : null;
 
                     return (
                       <tr key={order.id} className="hover:bg-fey-obsidian/50">
@@ -631,21 +629,34 @@ function PortfolioPage() {
                           </span>
                         </td>
                         <td className="py-3.5 px-4">
-                          <div className="flex flex-wrap items-center gap-2">
-                            <a
-                              href={explorerHref}
-                              target="_blank"
-                              rel="noreferrer"
-                              className="text-fey-signal hover:underline inline-flex items-center gap-1"
-                            >
-                              <span>{shortHex(rawHash, 6, 4)}</span>
-                              <ExternalLink className="size-3" />
-                            </a>
+                          <div className="flex flex-col gap-1">
+                            {polygonTx ? (
+                              <a
+                                href={`https://amoy.polygonscan.com/tx/${polygonTx}`}
+                                target="_blank"
+                                rel="noreferrer"
+                                className="text-fey-growth hover:underline inline-flex items-center gap-1 font-mono text-[11px]"
+                              >
+                                <span>Polygon: {shortHex(polygonTx, 6, 4)}</span>
+                                <ExternalLink className="size-3" />
+                              </a>
+                            ) : null}
+                            {solSig ? (
+                              <a
+                                href={`https://explorer.solana.com/tx/${solSig}?cluster=devnet`}
+                                target="_blank"
+                                rel="noreferrer"
+                                className="text-fey-signal hover:underline inline-flex items-center gap-1 font-mono text-[11px]"
+                              >
+                                <span>Solana: {shortHex(solSig, 6, 4)}</span>
+                                <ExternalLink className="size-3" />
+                              </a>
+                            ) : null}
                             {canReclaim ? (
                               <button
                                 type="button"
                                 onClick={() => void handleReclaimUsdc(order.id)}
-                                className="inline-flex items-center gap-1 rounded-pill bg-fey-obsidian border border-fey-ember px-2.5 py-0.5 text-[11px] font-medium text-fey-ember hover:bg-fey-ember/15"
+                                className="inline-flex items-center gap-1 rounded-pill bg-fey-obsidian border border-fey-ember px-2.5 py-0.5 text-[11px] font-medium text-fey-ember hover:bg-fey-ember/15 mt-1 self-start"
                               >
                                 <RotateCcw className="size-3" />
                                 <span>Reclaim USDC</span>

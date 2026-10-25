@@ -59,6 +59,7 @@ export interface DeskOrder {
   quotes: Quote[];
   solverName?: string;
   solverPubkey?: string;
+  solanaTxSignature?: string;
   polygonTxHex?: string;
   sharesMicro?: number;
   fillMicro?: number;

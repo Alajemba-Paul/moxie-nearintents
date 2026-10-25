@@ -88,3 +88,20 @@ Error in renderToReadableStream: TypeError: text.trim is not a function
     at renderElement (file:///app/applet/.vercel/output/functions/__server.func/index.mjs:20449:4)
     at retryNode (file:///app/applet/.vercel/output/functions/__server.func/index.mjs:20887:12)
     at renderNodeDestructive (file:///app/applet/.vercel/output/functions/__server.func/index.mjs:20783:235) { componentStack: [Getter] }
+
+> preview
+> node scripts/with-app-env.mjs vite preview
+
+
+ ╭────────── [Build Info] ─────────────╮
+ │                                     │
+ │  - Build Directory: .vercel/output  │
+ │  - Date: 10/25/2026, 1:46:15 AM     │
+ │  - Nitro Version: 3.0.260610-beta   │
+ │  - Nitro Preset: vercel             │
+ │                                     │
+ ╰─────────────────────────────────────╯
+
+  ➜  Local:   http://127.0.0.1:8081/
+(node:9255) [DEP0040] DeprecationWarning: The `punycode` module is deprecated. Please use a userland alternative instead.
+(Use `node --trace-deprecation ...` to show where the warning was created)
