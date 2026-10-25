@@ -1,4 +1,4 @@
-// node_modules/.nitro/vite/services/ssr/assets/_tanstack-start-manifest_v-QfB9tDiJ.js
+// node_modules/.nitro/vite/services/ssr/assets/_tanstack-start-manifest_v-BaEV-fp3.js
 var tsrStartManifest = () => ({ routes: {
 	__root__: {
 		filePath: "/app/applet/src/routes/__root.tsx",
@@ -18,7 +18,7 @@ var tsrStartManifest = () => ({ routes: {
 			"/api/polymarket/markets"
 		],
 		preloads: [
-			"/assets/index-BUOr716t.js",
+			"/assets/index-CEgpKTZS.js",
 			"/assets/jsx-runtime-C40oxPSl.js",
 			"/assets/link-h7aSzMxR.js",
 			"/assets/preload-helper-DOenk-Dg.js",
@@ -27,13 +27,13 @@ var tsrStartManifest = () => ({ routes: {
 		scripts: [{ attrs: {
 			type: "module",
 			async: !0,
-			src: "/assets/index-BUOr716t.js"
+			src: "/assets/index-CEgpKTZS.js"
 		} }]
 	},
 	"/": {
 		filePath: "/app/applet/src/routes/index.tsx",
 		children: void 0,
-		preloads: ["/assets/routes-B2Eji4zW.js", "/assets/lock-EmSJGIQK.js"]
+		preloads: ["/assets/routes-UVSWG_vF.js", "/assets/lock-Bw1bOQyW.js"]
 	},
 	"/$": {
 		filePath: "/app/applet/src/routes/$.tsx",
@@ -43,12 +43,12 @@ var tsrStartManifest = () => ({ routes: {
 	"/markets": {
 		filePath: "/app/applet/src/routes/markets.tsx",
 		children: void 0,
-		preloads: ["/assets/markets-DU3JARjW.js"]
+		preloads: ["/assets/markets-DwOhrR4M.js"]
 	},
 	"/portfolio": {
 		filePath: "/app/applet/src/routes/portfolio.tsx",
 		children: void 0,
-		preloads: ["/assets/portfolio-CONF-s7s.js", "/assets/position-manager-card-DFeLyaYp.js"]
+		preloads: ["/assets/portfolio-BvzRNs9n.js", "/assets/position-manager-card-CtzC0jCX.js"]
 	},
 	"/privacy": {
 		filePath: "/app/applet/src/routes/privacy.tsx",
@@ -63,16 +63,16 @@ var tsrStartManifest = () => ({ routes: {
 	"/thank-you": {
 		filePath: "/app/applet/src/routes/thank-you.tsx",
 		children: void 0,
-		preloads: ["/assets/thank-you-8DjZc8E5.js", "/assets/circle-check-BvrhOi4q.js"]
+		preloads: ["/assets/thank-you-D4BKP-Y_.js", "/assets/circle-check-WRPM8czI.js"]
 	},
 	"/trade/$marketId": {
 		filePath: "/app/applet/src/routes/trade.$marketId.tsx",
 		children: void 0,
 		preloads: [
-			"/assets/trade._marketId-BuTRwzGy.js",
-			"/assets/position-manager-card-DFeLyaYp.js",
-			"/assets/circle-check-BvrhOi4q.js",
-			"/assets/lock-EmSJGIQK.js"
+			"/assets/trade._marketId-DGln-dLV.js",
+			"/assets/position-manager-card-CtzC0jCX.js",
+			"/assets/circle-check-WRPM8czI.js",
+			"/assets/lock-Bw1bOQyW.js"
 		]
 	}
 } });

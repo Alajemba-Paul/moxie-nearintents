@@ -1,15 +1,15 @@
 import { o as __toESM } from "../_runtime.mjs";
 import { C as require_jsx_runtime, J as require_react, b as Link, x as useNavigate } from "../_libs/@tanstack/react-router+[...].mjs";
-import { H as bytesToHex, I as sha256, y as ed25519 } from "../_libs/noble__curves+noble__hashes.mjs";
+import { F as ed25519, H as bytesToHex, I as sha256 } from "../_libs/noble__curves+noble__hashes.mjs";
 import { A as ChevronDown, C as ExternalLink, O as CircleCheck, P as ArrowLeft, b as Lock, k as ChevronUp } from "../_libs/lucide-react.mjs";
 import { n as motion, r as AnimatePresence, t as useReducedMotion } from "../_libs/framer-motion+[...].mjs";
 import { l as SOLANA_ESCROW_PROGRAM_ID, s as POLYMARKET_WS_URL, t as DEVNET_USDC_MINT } from "./constants-D25iXV32.mjs";
 import { n as toast } from "../_libs/sonner.mjs";
-import { a as SystemProgram, i as PublicKey, o as Transaction, s as TransactionInstruction } from "../_libs/@solana/web3.js.mjs";
 import { t as base58 } from "../_libs/scure__base.mjs";
-import { B as parseUsdc, C as buildOrderbook, D as ProtocolError, E as ErrorCodes, F as formatCents, G as useServerFn, H as shortHex, I as formatShares, J as outcomeTokenId, K as buildPriceHistory, L as formatUsdc, M as stepSolver, N as MAX_TICKET, O as asProtocolError, P as enrichPosition, S as quoteMessage, T as solverAuthMessage, U as shortKey, V as positionsOf, W as derivePolygonAddress$1, Y as sfx, b as fillMessage, c as lockEscrow, d as recordFill, f as refundEscrow, g as commitmentOf, h as MARKETS, i as injectedProvider, j as saveIntent, l as matchSolver, m as sharesFor, n as Route$5, o as withSolanaFailover, p as settleRelease, q as complementAsk, s as useDesk, u as maxPrice, v as encodeIntent, w as signIntent, x as publicKeyFromSecret, y as escrowAddress, z as money6 } from "./router-itBMdy9l.mjs";
-import { t as PositionManagerCard } from "./position-manager-card-BTM-1l_D.mjs";
-// node_modules/.nitro/vite/services/ssr/assets/trade._marketId-CVxTYygU.js
+import { a as Transaction, i as SystemProgram, o as TransactionInstruction, r as PublicKey } from "../_libs/@solana/web3.js.mjs";
+import { A as derivePolygonAddress, B as signIntent, C as formatUsdc, D as positionsOf, E as parseUsdc, F as escrowAddress, G as useServerFn, H as ErrorCodes, I as fillMessage, J as outcomeTokenId, K as buildPriceHistory, L as publicKeyFromSecret, M as commitmentOf, O as shortHex, P as encodeIntent, R as quoteMessage, S as formatShares, T as money6, U as ProtocolError, V as solverAuthMessage, W as asProtocolError, Y as sfx, _ as saveIntent, b as enrichPosition, c as lockEscrow, d as recordFill, f as refundEscrow, i as injectedProvider, j as MARKETS, k as shortKey, l as matchSolver, m as sharesFor, n as Route$5, o as withSolanaFailover, p as settleRelease, q as complementAsk, s as useDesk, u as maxPrice, v as stepSolver, x as formatCents, y as MAX_TICKET, z as buildOrderbook } from "./router-CSvPMnxF.mjs";
+import { t as PositionManagerCard } from "./position-manager-card-V72seBW7.mjs";
+// node_modules/.nitro/vite/services/ssr/assets/trade._marketId-BCWrX_5w.js
 var import_react = /* @__PURE__ */ __toESM(require_react());
 var import_jsx_runtime = require_jsx_runtime();
 var text = new TextEncoder();
@@ -22,14 +22,17 @@ function solverKey(name, edgeBps) {
 		pubkey: ed25519.getPublicKey(secret)
 	};
 }
-var SOLVER_KEYS = [
-	solverKey("Northbridge", 12),
-	solverKey("Quiet Lot", 28),
-	solverKey("Harbor", 70)
-];
-SOLVER_KEYS.map((solver) => solver.name);
+var cachedSolverKeys = null;
+function getSolverKeys() {
+	if (!cachedSolverKeys) cachedSolverKeys = [
+		solverKey("Northbridge", 12),
+		solverKey("Quiet Lot", 28),
+		solverKey("Harbor", 70)
+	];
+	return cachedSolverKeys;
+}
 function collectQuotes(commitment, referenceAskMicro) {
-	return SOLVER_KEYS.map((solver) => {
+	return getSolverKeys().map((solver) => {
 		const priceMicro = Number(BigInt(referenceAskMicro) * BigInt(1e4 + solver.edgeBps) / 10000n);
 		const signature = ed25519.sign(quoteMessage(commitment, priceMicro, solver.pubkey), solver.secret);
 		return {
@@ -60,7 +63,7 @@ function bestQuote(quotes, referenceAskMicro, slippageBps, commitment) {
 	return quotes.filter((quote) => quote.priceMicro <= ceiling && quoteVerified(quote, commitment)).sort((a, b) => a.priceMicro - b.priceMicro)[0] ?? null;
 }
 function buildFillProof(input) {
-	const solver = SOLVER_KEYS.find((key) => base58.encode(key.pubkey) === input.solverPubkey);
+	const solver = getSolverKeys().find((key) => base58.encode(key.pubkey) === input.solverPubkey);
 	if (!solver) throw new ProtocolError(ErrorCodes.UNAUTHORIZED, "Unknown solver");
 	const sharesMicro = sharesFor(input.fillMicro, input.priceMicro);
 	const polygonTx = sha256(concatTx(input.commitment, solver.pubkey));
@@ -339,33 +342,57 @@ function planRoute(input) {
 	});
 	return events;
 }
-var TOKEN_PROGRAM_ID = new PublicKey("TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA");
-var PROGRAM_ID = new PublicKey(SOLANA_ESCROW_PROGRAM_ID);
-var MINT = new PublicKey(DEVNET_USDC_MINT);
+var textEncoder = new TextEncoder();
+var cachedTokenProgramId = null;
+var cachedProgramId = null;
+var cachedMint = null;
+var cachedAssociatedProgramId = null;
+function getTokenProgramId() {
+	cachedTokenProgramId ??= new PublicKey("TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA");
+	return cachedTokenProgramId;
+}
+function getProgramId() {
+	cachedProgramId ??= new PublicKey(SOLANA_ESCROW_PROGRAM_ID);
+	return cachedProgramId;
+}
+function getMint() {
+	cachedMint ??= new PublicKey(DEVNET_USDC_MINT);
+	return cachedMint;
+}
+function getAssociatedProgramId() {
+	cachedAssociatedProgramId ??= new PublicKey("ATokenGPvbdGVxr1b2hvZbsiqW5xWH25efTNsLJA8knL");
+	return cachedAssociatedProgramId;
+}
+function bytesToBase64(bytes) {
+	if (typeof Buffer !== "undefined") return Buffer.from(bytes).toString("base64");
+	let binary = "";
+	for (let i = 0; i < bytes.length; i += 1) binary += String.fromCharCode(bytes[i]);
+	return btoa(binary);
+}
 /** Confirmed on Devnet: seeds `["escrow", maker]` and `["vault", escrow]`. */
 function escrowPda(maker) {
-	return PublicKey.findProgramAddressSync([Buffer.from("escrow"), maker.toBuffer()], PROGRAM_ID)[0];
+	return PublicKey.findProgramAddressSync([textEncoder.encode("escrow"), maker.toBytes()], getProgramId())[0];
 }
 function vaultPda(escrow) {
-	return PublicKey.findProgramAddressSync([Buffer.from("vault"), escrow.toBuffer()], PROGRAM_ID)[0];
+	return PublicKey.findProgramAddressSync([textEncoder.encode("vault"), escrow.toBytes()], getProgramId())[0];
 }
 function makerTokenAccount(maker) {
-	const associated = new PublicKey("ATokenGPvbdGVxr1b2hvZbsiqW5xWH25efTNsLJA8knL");
 	return PublicKey.findProgramAddressSync([
-		maker.toBuffer(),
-		TOKEN_PROGRAM_ID.toBuffer(),
-		MINT.toBuffer()
-	], associated)[0];
+		maker.toBytes(),
+		getTokenProgramId().toBytes(),
+		getMint().toBytes()
+	], getAssociatedProgramId())[0];
 }
 function initializeIntentData(amount, intentHash, timeout) {
 	if (intentHash.length !== 32) throw new Error("Intent hash must be 32 bytes");
-	const disc = Buffer.from(sha256(new TextEncoder().encode("global:initialize_intent"))).subarray(0, 8);
-	const data = Buffer.alloc(56);
-	disc.copy(data, 0);
-	data.writeBigUInt64LE(amount, 8);
-	Buffer.from(intentHash).copy(data, 16);
-	data.writeBigInt64LE(timeout, 48);
-	return data;
+	const disc = sha256(textEncoder.encode("global:initialize_intent")).subarray(0, 8);
+	const raw = /* @__PURE__ */ new Uint8Array(56);
+	raw.set(disc, 0);
+	const view = new DataView(raw.buffer);
+	view.setBigUint64(8, amount, true);
+	raw.set(intentHash, 16);
+	view.setBigInt64(48, timeout, true);
+	return Buffer.from(raw);
 }
 /**
 * Matches IDL instruction `initializeIntent` in `src/idl/moxie_escrow.json`
@@ -374,7 +401,7 @@ function initializeIntentTransaction(input) {
 	const escrow = escrowPda(input.maker);
 	const vault = vaultPda(escrow);
 	const ix = new TransactionInstruction({
-		programId: PROGRAM_ID,
+		programId: getProgramId(),
 		keys: [
 			{
 				pubkey: input.maker,
@@ -397,12 +424,12 @@ function initializeIntentTransaction(input) {
 				isWritable: true
 			},
 			{
-				pubkey: MINT,
+				pubkey: getMint(),
 				isSigner: false,
 				isWritable: false
 			},
 			{
-				pubkey: TOKEN_PROGRAM_ID,
+				pubkey: getTokenProgramId(),
 				isSigner: false,
 				isWritable: false
 			},
@@ -449,7 +476,7 @@ async function lockDevnetIntent(input) {
 				jsonrpc: "2.0",
 				id: 1,
 				method: "simulateTransaction",
-				params: [Buffer.from(raw).toString("base64"), {
+				params: [bytesToBase64(raw), {
 					encoding: "base64",
 					sigVerify: false,
 					replaceRecentBlockhash: true
@@ -511,7 +538,7 @@ function hexToSecret(hex) {
 }
 function wait(ms, reduce) {
 	return new Promise((resolve) => {
-		window.setTimeout(resolve, reduce ? 0 : ms);
+		setTimeout(resolve, reduce ? 0 : ms);
 	});
 }
 function dbStatusOf(order) {
@@ -601,6 +628,7 @@ function TradeExecutionDesk() {
 		if (search.side) setSide(search.side);
 	}, [search.side]);
 	(0, import_react.useEffect)(() => {
+		if (typeof window === "undefined") return;
 		let cancelled = false;
 		async function fetchBook() {
 			try {
@@ -614,29 +642,31 @@ function TradeExecutionDesk() {
 		fetchBook();
 		let ws = null;
 		try {
-			ws = new WebSocket(POLYMARKET_WS_URL);
-			ws.onopen = () => {
-				if (!cancelled) {
-					setWsConnected(true);
-					ws?.send(JSON.stringify({
-						assets_ids: market.clobTokenIds,
-						type: "market"
-					}));
-				}
-			};
-			ws.onmessage = () => {
-				if (!cancelled) setOrderbook((prev) => {
-					const delta = (Math.random() - .48) * 1e4;
-					const nextYes = Math.max(8e4, Math.min(92e4, prev.lastPriceCents * 1e4 + delta));
-					return buildOrderbook(market, nextYes);
-				});
-			};
-			ws.onerror = () => {
-				if (!cancelled) setWsConnected(false);
-			};
-			ws.onclose = () => {
-				if (!cancelled) setWsConnected(false);
-			};
+			if (typeof WebSocket !== "undefined") {
+				ws = new WebSocket(POLYMARKET_WS_URL);
+				ws.onopen = () => {
+					if (!cancelled) {
+						setWsConnected(true);
+						ws?.send(JSON.stringify({
+							assets_ids: market.clobTokenIds,
+							type: "market"
+						}));
+					}
+				};
+				ws.onmessage = () => {
+					if (!cancelled) setOrderbook((prev) => {
+						const delta = (Math.random() - .48) * 1e4;
+						const nextYes = Math.max(8e4, Math.min(92e4, prev.lastPriceCents * 1e4 + delta));
+						return buildOrderbook(market, nextYes);
+					});
+				};
+				ws.onerror = () => {
+					if (!cancelled) setWsConnected(false);
+				};
+				ws.onclose = () => {
+					if (!cancelled) setWsConnected(false);
+				};
+			}
 		} catch {
 			setWsConnected(false);
 		}
@@ -693,7 +723,7 @@ function TradeExecutionDesk() {
 			await save({ data: {
 				id: dbId,
 				userSolanaPubkey: walletPubkey,
-				derivedPolygonAddress: derivePolygonAddress$1(walletPubkey),
+				derivedPolygonAddress: derivePolygonAddress(walletPubkey),
 				marketConditionId: market.conditionId,
 				outcomeIndex: order.intent.side === "yes" ? 0 : 1,
 				usdcAmountIn: money6(order.intent.sizeMicro),
@@ -772,7 +802,7 @@ function TradeExecutionDesk() {
 					maxSlippageBps: slippageRoomUnits,
 					expiryUnix: now + 180,
 					sizeMicro,
-					polygonRecipient: derivePolygonAddress$1(state.publicKeyB58),
+					polygonRecipient: derivePolygonAddress(state.publicKeyB58),
 					referenceAskMicro: activeAskMicro
 				}
 			});

@@ -1,18 +1,17 @@
 import { o as __toESM } from "../_runtime.mjs";
 import { C as require_jsx_runtime, J as require_react, S as useRouter, W as isRedirect, _ as lazyRouteComponent, b as Link, d as Scripts, f as HeadContent, g as Outlet, h as createRouter, p as useLocation, v as createFileRoute, x as useNavigate, y as createRootRoute } from "../_libs/@tanstack/react-router+[...].mjs";
 import { n as TSS_SERVER_FUNCTION, r as getServerFnById, t as createServerFn } from "./ssr.mjs";
-import { G as hexToBytes, H as bytesToHex, I as sha256, y as ed25519 } from "../_libs/noble__curves+noble__hashes.mjs";
+import { F as ed25519, G as hexToBytes, H as bytesToHex, I as sha256 } from "../_libs/noble__curves+noble__hashes.mjs";
 import { A as ChevronDown, E as Compass, M as ArrowUpRight, S as House, T as Copy, _ as Monitor, c as Smartphone, f as Settings, g as Moon, i as TriangleAlert, j as Check, n as Wallet, o as Sun, p as Search, r as UserCheck, s as Sparkles, t as X, v as Mail, x as KeyRound, y as LogOut } from "../_libs/lucide-react.mjs";
 import { n as motion, r as AnimatePresence } from "../_libs/framer-motion+[...].mjs";
 import { a as POLYMARKET_CLOB_API, c as SOLANA_DEVNET_RPC, n as NEAR_DERIVATION_PREFIX, o as POLYMARKET_GAMMA_API, r as NEAR_MPC_CONTRACT, t as DEVNET_USDC_MINT, u as SOLANA_FALLBACK_RPC } from "./constants-D25iXV32.mjs";
 import { a as union, i as string, n as number, r as object, t as literal } from "../_libs/zod.mjs";
 import { n as toast, t as Toaster } from "../_libs/sonner.mjs";
-import { a as keccak256, i as getAddress, n as Wallet$1, o as parseEther, r as JsonRpcProvider, s as toUtf8Bytes } from "../_libs/ethers.mjs";
-import { r as keccak_256 } from "../_libs/noble__hashes.mjs";
-import { a as SystemProgram, i as PublicKey, n as Keypair, o as Transaction, r as LAMPORTS_PER_SOL, s as TransactionInstruction, t as Connection } from "../_libs/@solana/web3.js.mjs";
-import { n as create, t as persist } from "../_libs/zustand.mjs";
+import { s as keccak_256 } from "../_libs/noble__hashes.mjs";
 import { n as hex, t as base58 } from "../_libs/scure__base.mjs";
-// node_modules/.nitro/vite/services/ssr/assets/sound-lU446rMQ.js
+import { n as persist, r as create, t as createJSONStorage } from "../_libs/zustand.mjs";
+import { a as Transaction, i as SystemProgram, n as LAMPORTS_PER_SOL, r as PublicKey, t as Connection } from "../_libs/@solana/web3.js.mjs";
+// node_modules/.nitro/vite/services/ssr/assets/sound-CZxs7QOq.js
 var MARKET_CATEGORIES = [
 	"All",
 	"Politics",
@@ -237,26 +236,32 @@ function buildPriceHistory(market, timeframe, liveYesMicro) {
 var ctx = null;
 function context() {
 	if (typeof window === "undefined") return null;
-	const AudioCtx = window.AudioContext ?? window.webkitAudioContext;
-	if (!AudioCtx) return null;
-	ctx ??= new AudioCtx();
-	if (ctx.state === "suspended") ctx.resume();
-	return ctx;
+	try {
+		const AudioCtx = window.AudioContext ?? window.webkitAudioContext;
+		if (!AudioCtx) return null;
+		ctx ??= new AudioCtx();
+		if (ctx.state === "suspended") ctx.resume().catch(() => void 0);
+		return ctx;
+	} catch {
+		return null;
+	}
 }
 function blip(freq, dur, type, gainValue) {
-	const audio = context();
-	if (!audio) return;
-	const osc = audio.createOscillator();
-	const gain = audio.createGain();
-	osc.type = type;
-	osc.frequency.setValueAtTime(freq, audio.currentTime);
-	gain.gain.setValueAtTime(1e-4, audio.currentTime);
-	gain.gain.exponentialRampToValueAtTime(gainValue, audio.currentTime + .015);
-	gain.gain.exponentialRampToValueAtTime(1e-4, audio.currentTime + dur);
-	osc.connect(gain);
-	gain.connect(audio.destination);
-	osc.start();
-	osc.stop(audio.currentTime + dur + .02);
+	try {
+		const audio = context();
+		if (!audio) return;
+		const osc = audio.createOscillator();
+		const gain = audio.createGain();
+		osc.type = type;
+		osc.frequency.setValueAtTime(freq, audio.currentTime);
+		gain.gain.setValueAtTime(1e-4, audio.currentTime);
+		gain.gain.exponentialRampToValueAtTime(gainValue, audio.currentTime + .015);
+		gain.gain.exponentialRampToValueAtTime(1e-4, audio.currentTime + dur);
+		osc.connect(gain);
+		gain.connect(audio.destination);
+		osc.start();
+		osc.stop(audio.currentTime + dur + .02);
+	} catch {}
 }
 var sfx = {
 	tap() {
@@ -268,13 +273,13 @@ var sfx = {
 	},
 	bought() {
 		blip(523, .08, "triangle", .05);
-		window.setTimeout(() => blip(784, .12, "triangle", .05), 70);
+		if (typeof window !== "undefined") window.setTimeout(() => blip(784, .12, "triangle", .05), 70);
 	},
 	nope() {
 		blip(140, .16, "sawtooth", .03);
 	}
 };
-// node_modules/.nitro/vite/services/ssr/assets/router-itBMdy9l.js
+// node_modules/.nitro/vite/services/ssr/assets/router-CSvPMnxF.js
 var import_react = /* @__PURE__ */ __toESM(require_react());
 var import_jsx_runtime = require_jsx_runtime();
 var __defProp = Object.defineProperty;
@@ -628,151 +633,6 @@ function PreviewHostBridge() {
 	}, [router]);
 	return null;
 }
-/**
-* Derives a deterministic EVM address on Polygon
-* from the user's Solana public key using NEAR Chain Signatures (`v1.signer-prod.testnet`)
-* with path `moxie-intents,${solanaPubkey}`.
-*/
-function derivePolygonAddress$1(solanaPubkey, nearContractId = NEAR_MPC_CONTRACT) {
-	const combinedSeed = `${nearContractId},${`${NEAR_DERIVATION_PREFIX},${solanaPubkey}`}`;
-	const hash = keccak256(toUtf8Bytes(combinedSeed));
-	return getAddress("0x" + hash.slice(-40));
-}
-var INITIAL_ONBOARD_USDC = 1e9;
-var MAX_TICKET = 5e9;
-function formatUsdc(micro) {
-	const sign = micro < 0 ? "-" : "";
-	const abs = Math.abs(Math.trunc(micro));
-	const whole = Math.floor(abs / 1e6);
-	const frac = abs % 1e6;
-	const grouped = whole.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
-	if (frac === 0) return `${sign}${grouped}`;
-	return `${sign}${grouped}.${frac.toString().padStart(6, "0").replace(/0+$/, "")}`;
-}
-function formatCents(priceMicro) {
-	return (priceMicro / 1e4).toFixed(1);
-}
-function money6(micro) {
-	const abs = Math.abs(Math.trunc(micro));
-	return `${Math.floor(abs / 1e6)}.${(abs % 1e6).toString().padStart(6, "0")}`;
-}
-function formatShares(sharesMicro) {
-	const whole = Math.floor(sharesMicro / 1e6);
-	const frac = Math.floor(sharesMicro % 1e6 / 1e4);
-	return `${whole.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",")}.${frac.toString().padStart(2, "0")}`;
-}
-function parseUsdc(text) {
-	const trimmed = text.trim();
-	if (!/^\d+(\.\d{1,2})?$/.test(trimmed)) return null;
-	const [whole, frac = ""] = trimmed.split(".");
-	const micro = Number(whole) * 1e6 + Number(frac.padEnd(2, "0")) * 1e4;
-	if (!Number.isSafeInteger(micro) || micro <= 0 || micro > 5e9) return null;
-	return micro;
-}
-function shortKey(value, lead = 4, tail = 4) {
-	if (value.length <= lead + tail + 1) return value;
-	return `${value.slice(0, lead)}…${value.slice(-tail)}`;
-}
-function shortHex(value, lead = 6, tail = 4) {
-	const hex = value.replace(/^0x/i, "");
-	if (hex.length <= lead + tail + 1) return value;
-	const body = `${hex.slice(0, lead)}…${hex.slice(-tail)}`;
-	return value.startsWith("0x") || value.startsWith("0X") ? `0x${body}` : body;
-}
-function markValue(sharesMicro, askMicro) {
-	return Number(BigInt(sharesMicro) * BigInt(askMicro) / 1000000n);
-}
-function enrichPosition(pos, market, overrideAskMicro) {
-	const currentAskMicro = overrideAskMicro ?? (pos.side === "yes" ? market.yesAskMicro : complementAsk(market.yesAskMicro));
-	const liveMarkPriceMicro = Math.min(98e4, currentAskMicro + 2e4);
-	const currentValueMicro = markValue(pos.sharesMicro, liveMarkPriceMicro);
-	const pnlMicro = currentValueMicro - pos.costMicro;
-	const pnlPct = pos.costMicro > 0 ? (pnlMicro / pos.costMicro * 100).toFixed(1) : "0.0";
-	return {
-		...pos,
-		market,
-		liveMarkPriceMicro,
-		currentValueMicro,
-		pnlMicro,
-		pnlPct
-	};
-}
-function positionsOf(orders) {
-	const map = /* @__PURE__ */ new Map();
-	for (const order of orders) {
-		if (order.phase !== "settled" || !order.sharesMicro || !order.fillMicro) continue;
-		const key = order.intent.outcomeTokenId;
-		const current = map.get(key);
-		if (!current) map.set(key, {
-			marketId: order.intent.marketId,
-			side: order.intent.side,
-			tokenId: order.intent.outcomeTokenId,
-			sharesMicro: order.sharesMicro,
-			costMicro: order.fillMicro
-		});
-		else {
-			current.sharesMicro += order.sharesMicro;
-			current.costMicro += order.fillMicro;
-		}
-	}
-	return [...map.values()];
-}
-var createSsrRpc = (functionId) => {
-	const url = "/_serverFn/" + functionId;
-	const serverFnMeta = { id: functionId };
-	const fn = async (...args) => {
-		return (await getServerFnById(functionId, { origin: "server" }))(...args);
-	};
-	return Object.assign(fn, {
-		url,
-		serverFnMeta,
-		[TSS_SERVER_FUNCTION]: true
-	});
-};
-var INTENT_STATUSES = [
-	"PENDING_ESCROW",
-	"ESCROW_LOCKED",
-	"SOLVER_BIDDING",
-	"CLOB_SUBMITTED",
-	"SETTLED",
-	"REFUNDED",
-	"EXPIRED"
-];
-function okSignature(value) {
-	return /^[0-9a-f]{64,256}$/i.test(value) || /^[1-9A-HJ-NP-Za-km-z]{32,128}$/.test(value);
-}
-function assertSave(input) {
-	if (!/^[0-9a-f-]{36}$/i.test(input.id)) throw new Error("Invalid intent ID");
-	if (!/^[1-9A-HJ-NP-Za-km-z]{32,44}$/.test(input.userSolanaPubkey)) throw new Error("Invalid Solana public key");
-	if (!/^0x[0-9a-fA-F]{40}$/.test(input.derivedPolygonAddress)) throw new Error("Invalid Polygon address");
-	if (!/^0x[0-9a-fA-F]{64}$/.test(input.marketConditionId)) throw new Error("Invalid market conditionId");
-	if (input.outcomeIndex !== 0 && input.outcomeIndex !== 1) throw new Error("Invalid outcome index");
-	if (!/^\d{1,12}\.\d{6}$/.test(input.usdcAmountIn)) throw new Error("Invalid USDC amount");
-	if (!/^\d{1,12}\.\d{6}$/.test(input.minSharesOut)) throw new Error("Invalid minimum shares");
-	if (input.slippageBps !== void 0) {
-		if (!Number.isInteger(input.slippageBps) || input.slippageBps < 0 || input.slippageBps > 5e3) throw new Error("Slippage must be between 0.1% and 50.0%");
-	}
-	if (input.solanaEscrowPda && !/^[1-9A-HJ-NP-Za-km-z]{32,44}$/.test(input.solanaEscrowPda)) throw new Error("Invalid Solana escrow PDA");
-	if (input.polygonOrderHash && !/^0x[0-9a-fA-F]{64}$/.test(input.polygonOrderHash)) throw new Error("Invalid Polygon order hash");
-	if (input.nearMpcSignature && !okSignature(input.nearMpcSignature)) throw new Error("Invalid signature");
-	if (!INTENT_STATUSES.includes(input.status)) throw new Error("Invalid status");
-	if (Number.isNaN(Date.parse(input.expiryTimestamp))) throw new Error("Invalid expiry timestamp");
-	if (!Number.isSafeInteger(input.nonce) || input.nonce < 0) throw new Error("Invalid nonce");
-	return input;
-}
-var saveIntent = createServerFn({ method: "POST" }).validator(assertSave).handler(createSsrRpc("4171eb3af87777ea8da45346db515e8da1f783eb714190edc94b99627465be45"));
-var listIntents = createServerFn({ method: "GET" }).validator((pubkey) => {
-	if (typeof pubkey !== "string" || !/^[1-9A-HJ-NP-Za-km-z]{32,44}$/.test(pubkey)) throw new Error("Invalid Solana public key");
-	return pubkey;
-}).handler(createSsrRpc("fff1395232e8903f4a50b2aaea3d494ba3acc1139b862d32066e38c9da373fb2"));
-var reclaimIntentDb = createServerFn({ method: "POST" }).validator((id) => {
-	if (!/^[0-9a-f-]{36}$/i.test(id)) throw new Error("Invalid intent ID");
-	return id;
-}).handler(createSsrRpc("d8831bd592b710cad049ac3195206124bf388bdd9f0ae2475de8af7285d74d4e"));
-var stepSolver = createServerFn({ method: "POST" }).validator((id) => {
-	if (!/^[0-9a-f-]{36}$/i.test(id)) throw new Error("Invalid intent ID");
-	return id;
-}).handler(createSsrRpc("11f195d7f2d0fe5b71a98dfff85b6ad125f398a9d4b01f1972baf81163ce55ef"));
 var ErrorCodes = {
 	EXPIRED: "EXPIRED",
 	REPLAY: "REPLAY",
@@ -914,7 +774,7 @@ function fillMessage(proof) {
 	]);
 }
 /** Domain-separated stand-in for a NEAR chain-signature on path `ethereum,137`. */
-function derivePolygonAddress(solanaPubkey) {
+function derivePolygonAddress$1(solanaPubkey) {
 	if (solanaPubkey.length !== 32) throw new ProtocolError(ErrorCodes.INTENT_INCOMPLETE, "Solana key must be 32 bytes");
 	return toChecksumAddress(keccak_256(concatBytes([text.encode(CHAIN_SIG_DOMAIN), solanaPubkey])).slice(12));
 }
@@ -962,6 +822,153 @@ function escrowAddress(taker, nonce) {
 		bump: found.bump
 	};
 }
+var textEncoder = new TextEncoder();
+/**
+* Derives a deterministic EVM address on Polygon
+* from the user's Solana public key using NEAR Chain Signatures (`v1.signer-prod.testnet`)
+* with path `moxie-intents,${solanaPubkey}`.
+*/
+function derivePolygonAddress(solanaPubkey, nearContractId = NEAR_MPC_CONTRACT) {
+	const cleanKey = (solanaPubkey ?? "").trim();
+	if (!cleanKey) return "0x0000000000000000000000000000000000000000";
+	const combinedSeed = `${nearContractId},${`${NEAR_DERIVATION_PREFIX},${cleanKey}`}`;
+	return toChecksumAddress(keccak_256(textEncoder.encode(combinedSeed)).slice(12));
+}
+var INITIAL_ONBOARD_USDC = 1e9;
+var MAX_TICKET = 5e9;
+function formatUsdc(micro) {
+	const sign = micro < 0 ? "-" : "";
+	const abs = Math.abs(Math.trunc(micro));
+	const whole = Math.floor(abs / 1e6);
+	const frac = abs % 1e6;
+	const grouped = whole.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+	if (frac === 0) return `${sign}${grouped}`;
+	return `${sign}${grouped}.${frac.toString().padStart(6, "0").replace(/0+$/, "")}`;
+}
+function formatCents(priceMicro) {
+	return (priceMicro / 1e4).toFixed(1);
+}
+function money6(micro) {
+	const abs = Math.abs(Math.trunc(micro));
+	return `${Math.floor(abs / 1e6)}.${(abs % 1e6).toString().padStart(6, "0")}`;
+}
+function formatShares(sharesMicro) {
+	const whole = Math.floor(sharesMicro / 1e6);
+	const frac = Math.floor(sharesMicro % 1e6 / 1e4);
+	return `${whole.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",")}.${frac.toString().padStart(2, "0")}`;
+}
+function parseUsdc(text) {
+	const trimmed = text.trim();
+	if (!/^\d+(\.\d{1,2})?$/.test(trimmed)) return null;
+	const [whole, frac = ""] = trimmed.split(".");
+	const micro = Number(whole) * 1e6 + Number(frac.padEnd(2, "0")) * 1e4;
+	if (!Number.isSafeInteger(micro) || micro <= 0 || micro > 5e9) return null;
+	return micro;
+}
+function shortKey(value, lead = 4, tail = 4) {
+	if (value.length <= lead + tail + 1) return value;
+	return `${value.slice(0, lead)}…${value.slice(-tail)}`;
+}
+function shortHex(value, lead = 6, tail = 4) {
+	const hex = value.replace(/^0x/i, "");
+	if (hex.length <= lead + tail + 1) return value;
+	const body = `${hex.slice(0, lead)}…${hex.slice(-tail)}`;
+	return value.startsWith("0x") || value.startsWith("0X") ? `0x${body}` : body;
+}
+function markValue(sharesMicro, askMicro) {
+	return Number(BigInt(sharesMicro) * BigInt(askMicro) / 1000000n);
+}
+function enrichPosition(pos, market, overrideAskMicro) {
+	const currentAskMicro = overrideAskMicro ?? (pos.side === "yes" ? market.yesAskMicro : complementAsk(market.yesAskMicro));
+	const liveMarkPriceMicro = Math.min(98e4, currentAskMicro + 2e4);
+	const currentValueMicro = markValue(pos.sharesMicro, liveMarkPriceMicro);
+	const pnlMicro = currentValueMicro - pos.costMicro;
+	const pnlPct = pos.costMicro > 0 ? (pnlMicro / pos.costMicro * 100).toFixed(1) : "0.0";
+	return {
+		...pos,
+		market,
+		liveMarkPriceMicro,
+		currentValueMicro,
+		pnlMicro,
+		pnlPct
+	};
+}
+function positionsOf(orders) {
+	const map = /* @__PURE__ */ new Map();
+	for (const order of orders) {
+		if (order.phase !== "settled" || !order.sharesMicro || !order.fillMicro) continue;
+		const key = order.intent.outcomeTokenId;
+		const current = map.get(key);
+		if (!current) map.set(key, {
+			marketId: order.intent.marketId,
+			side: order.intent.side,
+			tokenId: order.intent.outcomeTokenId,
+			sharesMicro: order.sharesMicro,
+			costMicro: order.fillMicro
+		});
+		else {
+			current.sharesMicro += order.sharesMicro;
+			current.costMicro += order.fillMicro;
+		}
+	}
+	return [...map.values()];
+}
+var createSsrRpc = (functionId) => {
+	const url = "/_serverFn/" + functionId;
+	const serverFnMeta = { id: functionId };
+	const fn = async (...args) => {
+		return (await getServerFnById(functionId, { origin: "server" }))(...args);
+	};
+	return Object.assign(fn, {
+		url,
+		serverFnMeta,
+		[TSS_SERVER_FUNCTION]: true
+	});
+};
+var INTENT_STATUSES = [
+	"PENDING_ESCROW",
+	"ESCROW_LOCKED",
+	"SOLVER_BIDDING",
+	"CLOB_SUBMITTED",
+	"SETTLED",
+	"REFUNDED",
+	"EXPIRED"
+];
+function okSignature(value) {
+	return /^[0-9a-f]{64,256}$/i.test(value) || /^[1-9A-HJ-NP-Za-km-z]{32,128}$/.test(value);
+}
+function assertSave(input) {
+	if (!/^[0-9a-f-]{36}$/i.test(input.id)) throw new Error("Invalid intent ID");
+	if (!/^[1-9A-HJ-NP-Za-km-z]{32,44}$/.test(input.userSolanaPubkey)) throw new Error("Invalid Solana public key");
+	if (!/^0x[0-9a-fA-F]{40}$/.test(input.derivedPolygonAddress)) throw new Error("Invalid Polygon address");
+	if (!/^0x[0-9a-fA-F]{64}$/.test(input.marketConditionId)) throw new Error("Invalid market conditionId");
+	if (input.outcomeIndex !== 0 && input.outcomeIndex !== 1) throw new Error("Invalid outcome index");
+	if (!/^\d{1,12}\.\d{6}$/.test(input.usdcAmountIn)) throw new Error("Invalid USDC amount");
+	if (!/^\d{1,12}\.\d{6}$/.test(input.minSharesOut)) throw new Error("Invalid minimum shares");
+	if (input.slippageBps !== void 0) {
+		if (!Number.isInteger(input.slippageBps) || input.slippageBps < 0 || input.slippageBps > 5e3) throw new Error("Slippage must be between 0.1% and 50.0%");
+	}
+	if (input.solanaEscrowPda && !/^[1-9A-HJ-NP-Za-km-z]{32,44}$/.test(input.solanaEscrowPda)) throw new Error("Invalid Solana escrow PDA");
+	if (input.polygonOrderHash && !/^0x[0-9a-fA-F]{64}$/.test(input.polygonOrderHash)) throw new Error("Invalid Polygon order hash");
+	if (input.nearMpcSignature && !okSignature(input.nearMpcSignature)) throw new Error("Invalid signature");
+	if (!INTENT_STATUSES.includes(input.status)) throw new Error("Invalid status");
+	if (Number.isNaN(Date.parse(input.expiryTimestamp))) throw new Error("Invalid expiry timestamp");
+	if (!Number.isSafeInteger(input.nonce) || input.nonce < 0) throw new Error("Invalid nonce");
+	return input;
+}
+var saveIntent = createServerFn({ method: "POST" }).validator(assertSave).handler(createSsrRpc("4171eb3af87777ea8da45346db515e8da1f783eb714190edc94b99627465be45"));
+var listIntents = createServerFn({ method: "GET" }).validator((pubkey) => {
+	if (typeof pubkey !== "string" || !/^[1-9A-HJ-NP-Za-km-z]{32,44}$/.test(pubkey)) throw new Error("Invalid Solana public key");
+	return pubkey;
+}).handler(createSsrRpc("fff1395232e8903f4a50b2aaea3d494ba3acc1139b862d32066e38c9da373fb2"));
+var reclaimIntentDb = createServerFn({ method: "POST" }).validator((id) => {
+	if (!/^[0-9a-f-]{36}$/i.test(id)) throw new Error("Invalid intent ID");
+	return id;
+}).handler(createSsrRpc("d8831bd592b710cad049ac3195206124bf388bdd9f0ae2475de8af7285d74d4e"));
+var stepSolver = createServerFn({ method: "POST" }).validator((id) => {
+	if (!/^[0-9a-f-]{36}$/i.test(id)) throw new Error("Invalid intent ID");
+	return id;
+}).handler(createSsrRpc("11f195d7f2d0fe5b71a98dfff85b6ad125f398a9d4b01f1972baf81163ce55ef"));
 function nonceKey(taker, nonce) {
 	return `${taker}:${nonce}`;
 }
@@ -1089,11 +1096,40 @@ function refundEscrow(input) {
 		}
 	};
 }
+var ssrSafeStorage = {
+	getItem: (name) => {
+		if (typeof window === "undefined") return null;
+		try {
+			return window.localStorage.getItem(name);
+		} catch {
+			return null;
+		}
+	},
+	setItem: (name, value) => {
+		if (typeof window === "undefined") return;
+		try {
+			window.localStorage.setItem(name, value);
+		} catch {}
+	},
+	removeItem: (name) => {
+		if (typeof window === "undefined") return;
+		try {
+			window.localStorage.removeItem(name);
+		} catch {}
+	}
+};
 function identity(secretHex) {
-	return {
-		secretKeyHex: secretHex,
-		publicKeyB58: base58.encode(publicKeyFromSecret(hexToBytes(secretHex)))
-	};
+	try {
+		return {
+			secretKeyHex: secretHex,
+			publicKeyB58: base58.encode(publicKeyFromSecret(hexToBytes(secretHex)))
+		};
+	} catch {
+		return {
+			secretKeyHex: PAPER_SECRET_HEX,
+			publicKeyB58: "11111111111111111111111111111111"
+		};
+	}
 }
 function deriveWalletIdentity(label, externalPubkey) {
 	const cleanExt = externalPubkey?.trim() || null;
@@ -1108,7 +1144,11 @@ function deriveWalletIdentity(label, externalPubkey) {
 		walletAddress: cleanExt ?? publicKeyB58
 	};
 }
-var defaultPaper = identity(PAPER_SECRET_HEX);
+var cachedDefaultPaper = null;
+function getDefaultPaper() {
+	cachedDefaultPaper ??= identity(PAPER_SECRET_HEX);
+	return cachedDefaultPaper;
+}
 function upsert(orders, order) {
 	return [order, ...orders.filter((item) => item.id !== order.id)].slice(0, 50);
 }
@@ -1299,7 +1339,7 @@ function activeAddressOf(state) {
 	return (state.externalPublicKey ?? state.publicKeyB58).trim();
 }
 var useDesk = create()(persist((set, get) => ({
-	...defaultPaper,
+	...getDefaultPaper(),
 	available: 0,
 	locked: 0,
 	nextNonce: 0,
@@ -1471,7 +1511,7 @@ var useDesk = create()(persist((set, get) => ({
 			maxSlippageBps: Math.round(state.slippagePct * 100),
 			expiryUnix: now + 180,
 			sizeMicro: input.usdcMicro,
-			polygonRecipient: derivePolygonAddress(publicKeyFromSecret(secretBytes)),
+			polygonRecipient: derivePolygonAddress$1(publicKeyFromSecret(secretBytes)),
 			referenceAskMicro: input.executionPriceMicro
 		};
 		const commitmentHex = bytesToHex(commitmentOf(intentObj));
@@ -1690,6 +1730,7 @@ var useDesk = create()(persist((set, get) => ({
 	}
 }), {
 	name: "moxie-session-v3",
+	storage: createJSONStorage(() => ssrSafeStorage),
 	skipHydration: true,
 	partialize: (state) => ({
 		secretKeyHex: state.secretKeyHex,
@@ -1702,10 +1743,12 @@ var useDesk = create()(persist((set, get) => ({
 	}),
 	onRehydrateStorage: () => (state) => {
 		if (!state) return;
-		if (typeof window !== "undefined") {
+		if (typeof window !== "undefined") try {
 			const savedTheme = window.localStorage.getItem(THEME_STORAGE_KEY);
 			if (savedTheme === "dark" || savedTheme === "light" || savedTheme === "system") state.setTheme(savedTheme);
 			else applyThemeToDocument(state.theme ?? "dark");
+		} catch {
+			applyThemeToDocument(state.theme ?? "dark");
 		}
 		if (state.connected && state.connectLabel) state.connect(state.connectLabel, state.externalPublicKey);
 		else state.disconnect();
@@ -1746,7 +1789,14 @@ function injectedProvider(which) {
 	if (which === "Solflare") return host.solflare ?? (host.solana?.isSolflare ? host.solana : null);
 	return host.backpack ?? (host.solana?.isBackpack ? host.solana : null);
 }
+function bytesToBase64(bytes) {
+	if (typeof Buffer !== "undefined") return Buffer.from(bytes).toString("base64");
+	let binary = "";
+	for (let i = 0; i < bytes.length; i += 1) binary += String.fromCharCode(bytes[i]);
+	return btoa(binary);
+}
 function openMobileWallet() {
+	if (typeof window === "undefined") return;
 	const origin = window.location.origin;
 	const url = `solana-wallet://v1/connect?cluster=devnet&app_url=${encodeURIComponent(origin)}&redirect_link=${encodeURIComponent(origin)}`;
 	window.location.assign(url);
@@ -1825,19 +1875,18 @@ async function buildWithdrawUsdcTransaction(input) {
 		endpoint: SOLANA_FALLBACK_RPC,
 		usedFallback: true
 	}));
-	const raw = new Transaction({
-		feePayer: fromPubkey,
-		recentBlockhash: blockhash
-	}).add(SystemProgram.transfer({
-		fromPubkey,
-		toPubkey,
-		lamports: Math.max(1e3, Math.floor(input.amountMicro / 1e3))
-	})).serialize({
-		requireAllSignatures: false,
-		verifySignatures: false
-	});
 	return {
-		txBase64: Buffer.from(raw).toString("base64"),
+		txBase64: bytesToBase64(new Transaction({
+			feePayer: fromPubkey,
+			recentBlockhash: blockhash
+		}).add(SystemProgram.transfer({
+			fromPubkey,
+			toPubkey,
+			lamports: Math.max(1e3, Math.floor(input.amountMicro / 1e3))
+		})).serialize({
+			requireAllSignatures: false,
+			verifySignatures: false
+		})),
 		signaturePreview: `5MoxieCashOut${fromPubkey.toBase58().slice(0, 12)}${toPubkey.toBase58().slice(0, 12)}${Date.now().toString(36)}`
 	};
 }
@@ -1912,19 +1961,26 @@ function Shell({ children }) {
 	const hydrateFromDb = useDesk((s) => s.hydrateFromDb);
 	const [resolvedTheme, setResolvedTheme] = (0, import_react.useState)("dark");
 	const activeSolanaKey = (externalPublicKey ?? publicKeyB58).trim();
-	const derivedPolygon = (0, import_react.useMemo)(() => activeSolanaKey ? derivePolygonAddress$1(activeSolanaKey) : "", [activeSolanaKey]);
+	const derivedPolygon = (0, import_react.useMemo)(() => activeSolanaKey ? derivePolygonAddress(activeSolanaKey) : "", [activeSolanaKey]);
 	(0, import_react.useEffect)(() => {
-		if (typeof window !== "undefined") {
+		if (typeof window !== "undefined") try {
 			const saved = window.localStorage.getItem(THEME_STORAGE_KEY);
 			if (saved === "dark" || saved === "light" || saved === "system") {
 				setTheme(saved);
 				setResolvedTheme(applyThemeToDocument(saved));
 			} else setResolvedTheme(applyThemeToDocument(useDesk.getState().theme));
+		} catch {
+			setResolvedTheme(applyThemeToDocument(useDesk.getState().theme));
 		}
 		Promise.resolve(useDesk.persist.rehydrate()).finally(() => {
 			setReady(true);
 			setSlipInput(useDesk.getState().slippagePct.toFixed(1));
-			const saved = typeof window !== "undefined" ? window.localStorage.getItem(THEME_STORAGE_KEY) : null;
+			let saved = null;
+			if (typeof window !== "undefined") try {
+				saved = window.localStorage.getItem(THEME_STORAGE_KEY);
+			} catch {
+				saved = null;
+			}
 			const effectiveTheme = saved === "dark" || saved === "light" || saved === "system" ? saved : useDesk.getState().theme;
 			setTheme(effectiveTheme);
 			setResolvedTheme(applyThemeToDocument(effectiveTheme));
@@ -1954,7 +2010,13 @@ function Shell({ children }) {
 				const dbRes = await listDbIntents({ data: targetWallet });
 				if (!cancelled) hydrateFromDb(targetWallet, dbRes.rows);
 			} catch {}
-			if (typeof window !== "undefined" && window.localStorage.getItem(storageKey) === "1" || useDesk.getState().onboarded) {
+			let alreadyMarkedLocal = false;
+			if (typeof window !== "undefined") try {
+				alreadyMarkedLocal = window.localStorage.getItem(storageKey) === "1";
+			} catch {
+				alreadyMarkedLocal = false;
+			}
+			if (alreadyMarkedLocal || useDesk.getState().onboarded) {
 				completeAutoOnboard(targetWallet);
 				return;
 			}
@@ -1972,12 +2034,16 @@ function Shell({ children }) {
 				if (!res.ok) return;
 				const data = await res.json();
 				if (cancelled || !data.ok) return;
-				if (typeof window !== "undefined") window.localStorage.setItem(storageKey, "1");
+				if (typeof window !== "undefined") try {
+					window.localStorage.setItem(storageKey, "1");
+				} catch {}
 				completeAutoOnboard(targetWallet);
 				if (!data.alreadyFunded) toast(`Wallet auto-funded: +${data.funded?.sol ?? "0.1"} Devnet SOL, +$${(data.funded?.usdc ?? 1e3).toLocaleString("en-US")} Test USDC & +${data.funded?.pol ?? "0.1"} Testnet POL.`);
 			} catch {
 				if (!cancelled) {
-					if (typeof window !== "undefined") window.localStorage.setItem(storageKey, "1");
+					if (typeof window !== "undefined") try {
+						window.localStorage.setItem(storageKey, "1");
+					} catch {}
 					completeAutoOnboard(targetWallet);
 				}
 			} finally {
@@ -1998,6 +2064,7 @@ function Shell({ children }) {
 		hydrateFromDb
 	]);
 	(0, import_react.useEffect)(() => {
+		if (typeof window === "undefined") return;
 		function onKeyDown(e) {
 			if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === "k") {
 				e.preventDefault();
@@ -2013,6 +2080,7 @@ function Shell({ children }) {
 		return () => window.removeEventListener("keydown", onKeyDown);
 	}, [setActiveModal]);
 	(0, import_react.useEffect)(() => {
+		if (typeof document === "undefined") return;
 		function onDocClick(e) {
 			if (settingsRef.current && !settingsRef.current.contains(e.target)) setSettingsOpen(false);
 			if (walletDropdownRef.current && !walletDropdownRef.current.contains(e.target)) setWalletDropdownOpen(false);
@@ -3120,7 +3188,12 @@ function CommandSearchModal({ onClose, onSelectMarket }) {
 function CookieBanner() {
 	const [open, setOpen] = (0, import_react.useState)(false);
 	(0, import_react.useEffect)(() => {
-		setOpen(window.localStorage.getItem("moxie-cookie") !== "1");
+		if (typeof window === "undefined") return;
+		try {
+			setOpen(window.localStorage.getItem("moxie-cookie") !== "1");
+		} catch {
+			setOpen(false);
+		}
 	}, []);
 	if (!open) return null;
 	return /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
@@ -3128,7 +3201,9 @@ function CookieBanner() {
 		children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", { children: "Moxie Markets stores your session locally in your browser." }), /* @__PURE__ */ (0, import_jsx_runtime.jsx)("button", {
 			type: "button",
 			onClick: () => {
-				window.localStorage.setItem("moxie-cookie", "1");
+				if (typeof window !== "undefined") try {
+					window.localStorage.setItem("moxie-cookie", "1");
+				} catch {}
 				setOpen(false);
 			},
 			className: "ghost-pill-cta h-8 px-3.5 text-xs font-medium shrink-0",
@@ -3217,7 +3292,7 @@ var Route$13 = createRootRoute({
 		})]
 	})
 });
-var $$splitComponentImporter$7 = () => import("./routes-ByEjBTGl.mjs");
+var $$splitComponentImporter$7 = () => import("./routes-DUXEwseW.mjs");
 var Route$12 = createFileRoute("/")({
 	head: () => ({ meta: [{ title: "Moxie Markets · Trade on global events privately." }, {
 		name: "description",
@@ -3233,7 +3308,7 @@ var Route$11 = createFileRoute("/$")({
 	}] }),
 	component: lazyRouteComponent($$splitComponentImporter$6, "component")
 });
-var $$splitComponentImporter$5 = () => import("./markets-PPMCM51k.mjs");
+var $$splitComponentImporter$5 = () => import("./markets-CA9BkLjQ.mjs");
 var Route$10 = createFileRoute("/markets")({
 	head: () => ({ meta: [{ title: "Markets · Moxie Markets" }, {
 		name: "description",
@@ -3241,7 +3316,7 @@ var Route$10 = createFileRoute("/markets")({
 	}] }),
 	component: lazyRouteComponent($$splitComponentImporter$5, "component")
 });
-var $$splitComponentImporter$4 = () => import("./portfolio-Bw947shh.mjs");
+var $$splitComponentImporter$4 = () => import("./portfolio-C_cZ3cmY.mjs");
 var Route$9 = createFileRoute("/portfolio")({
 	head: () => ({ meta: [{ title: "Portfolio · Moxie Markets" }, {
 		name: "description",
@@ -3265,7 +3340,7 @@ var Route$7 = createFileRoute("/terms")({
 	}] }),
 	component: lazyRouteComponent($$splitComponentImporter$2, "component")
 });
-var $$splitComponentImporter$1 = () => import("./thank-you-CknGQOLt.mjs");
+var $$splitComponentImporter$1 = () => import("./thank-you-DnHooJV-.mjs");
 var Route$6 = createFileRoute("/thank-you")({
 	validateSearch: (search) => {
 		const rawAmount = typeof search.amount === "string" ? search.amount.replaceAll("\"", "") : void 0;
@@ -3281,7 +3356,7 @@ var Route$6 = createFileRoute("/thank-you")({
 	}] }),
 	component: lazyRouteComponent($$splitComponentImporter$1, "component")
 });
-var $$splitComponentImporter = () => import("./trade._marketId-CVxTYygU.mjs");
+var $$splitComponentImporter = () => import("./trade._marketId-BCWrX_5w.mjs");
 var Route$5 = createFileRoute("/trade/$marketId")({
 	validateSearch: (search) => ({
 		side: search.side === "no" ? "no" : search.side === "yes" ? "yes" : void 0,
@@ -3296,101 +3371,34 @@ var Route$5 = createFileRoute("/trade/$marketId")({
 	},
 	component: lazyRouteComponent($$splitComponentImporter, "component")
 });
-var TOKEN_PROGRAM_ID$1 = new PublicKey("TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA");
-var ASSOCIATED_TOKEN_PROGRAM_ID$1 = new PublicKey("ATokenGPvbdGVxr1b2hvZbsiqW5xWH25efTNsLJA8knL");
-var SYSVAR_RENT_PUBKEY$1 = new PublicKey("SysvarRent111111111111111111111111111111111");
-function parseTreasurySolanaKeypair() {
-	const raw = process.env.SOLANA_FAUCET_SECRET_KEY?.trim() || process.env.DEVNET_MINT_AUTHORITY_SECRET_KEY?.trim() || process.env.SOLANA_MINT_AUTHORITY_PRIVATE_KEY?.trim();
+var TOKEN_PROGRAM_ID_STR$1 = "TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA";
+var ASSOCIATED_TOKEN_PROGRAM_ID_STR$1 = "ATokenGPvbdGVxr1b2hvZbsiqW5xWH25efTNsLJA8knL";
+var SYSVAR_RENT_PUBKEY_STR$1 = "SysvarRent111111111111111111111111111111111";
+function getEnv$2(key) {
+	if (typeof process === "undefined" || !process.env) return void 0;
+	return process.env[key]?.trim() || void 0;
+}
+function getMemoryOnboardingStore() {
+	const g = globalThis;
+	g.__moxieOnboardingStore__ ??= /* @__PURE__ */ new Map();
+	return g.__moxieOnboardingStore__;
+}
+function parseTreasurySolanaKeypair(KeypairCtor) {
+	const raw = getEnv$2("SOLANA_FAUCET_SECRET_KEY") || getEnv$2("DEVNET_MINT_AUTHORITY_SECRET_KEY") || getEnv$2("SOLANA_MINT_AUTHORITY_PRIVATE_KEY");
 	if (raw) try {
 		if (raw.startsWith("[")) {
 			const arr = JSON.parse(raw);
-			return Keypair.fromSecretKey(Uint8Array.from(arr));
+			return KeypairCtor.fromSecretKey(Uint8Array.from(arr));
 		}
 		if (/^[0-9a-fA-F]{128}$/.test(raw)) {
 			const bytes = /* @__PURE__ */ new Uint8Array(64);
 			for (let i = 0; i < 64; i += 1) bytes[i] = Number.parseInt(raw.slice(i * 2, i * 2 + 2), 16);
-			return Keypair.fromSecretKey(bytes);
+			return KeypairCtor.fromSecretKey(bytes);
 		}
-		return Keypair.fromSecretKey(base58.decode(raw));
+		return KeypairCtor.fromSecretKey(base58.decode(raw));
 	} catch {}
 	const seed = sha256(new TextEncoder().encode("moxie.devnet.master.treasury.v1"));
-	return Keypair.fromSeed(seed);
-}
-function getAssociatedTokenAddress$1(owner, mint) {
-	return PublicKey.findProgramAddressSync([
-		owner.toBuffer(),
-		TOKEN_PROGRAM_ID$1.toBuffer(),
-		mint.toBuffer()
-	], ASSOCIATED_TOKEN_PROGRAM_ID$1)[0];
-}
-function createAssociatedTokenAccountIx$1(payer, ata, owner, mint) {
-	return new TransactionInstruction({
-		programId: ASSOCIATED_TOKEN_PROGRAM_ID$1,
-		keys: [
-			{
-				pubkey: payer,
-				isSigner: true,
-				isWritable: true
-			},
-			{
-				pubkey: ata,
-				isSigner: false,
-				isWritable: true
-			},
-			{
-				pubkey: owner,
-				isSigner: false,
-				isWritable: false
-			},
-			{
-				pubkey: mint,
-				isSigner: false,
-				isWritable: false
-			},
-			{
-				pubkey: SystemProgram.programId,
-				isSigner: false,
-				isWritable: false
-			},
-			{
-				pubkey: TOKEN_PROGRAM_ID$1,
-				isSigner: false,
-				isWritable: false
-			},
-			{
-				pubkey: SYSVAR_RENT_PUBKEY$1,
-				isSigner: false,
-				isWritable: false
-			}
-		],
-		data: Buffer.alloc(0)
-	});
-}
-function createMintToIx$1(mint, destinationAta, authority, amountBaseUnits) {
-	const data = Buffer.alloc(9);
-	data.writeUInt8(7, 0);
-	data.writeBigUInt64LE(amountBaseUnits, 1);
-	return new TransactionInstruction({
-		programId: TOKEN_PROGRAM_ID$1,
-		keys: [
-			{
-				pubkey: mint,
-				isSigner: false,
-				isWritable: true
-			},
-			{
-				pubkey: destinationAta,
-				isSigner: false,
-				isWritable: true
-			},
-			{
-				pubkey: authority,
-				isSigner: true,
-				isWritable: false
-			}
-		],
-		data
-	});
+	return KeypairCtor.fromSeed(seed);
 }
 function deterministicSolSignature(tag, recipient) {
 	const digest = sha256(new TextEncoder().encode(`${tag}|${recipient}|${Date.now()}`));
@@ -3403,23 +3411,65 @@ function deterministicPolHash$1(tag, recipient) {
 	const digest = sha256(new TextEncoder().encode(`${tag}|${recipient}|${Date.now()}`));
 	return `0x${hex.encode(digest)}`;
 }
-async function ensureOnboardingTable() {
-	const { getSql } = await import("./db-hegkCD8P.mjs");
-	const sql = await getSql();
-	await sql`
-    create table if not exists wallet_onboarding (
-      solana_pubkey varchar(44) primary key,
-      polygon_address varchar(42) not null,
-      sol_tx_sig varchar(128) not null,
-      usdc_tx_sig varchar(128) not null,
-      pol_tx_hash varchar(80) not null,
-      sol_amount varchar(16) not null default '0.1',
-      usdc_amount int not null default 1000,
-      pol_amount varchar(16) not null default '0.1',
-      funded_at timestamptz not null default now()
-    )
-  `;
-	return sql;
+async function getOnboardingRecord(solanaAddress) {
+	const mem = getMemoryOnboardingStore();
+	try {
+		const { getSql } = await import("./db-DopB8LNR.mjs");
+		const sql = await getSql();
+		await sql`
+      create table if not exists wallet_onboarding (
+        solana_pubkey varchar(44) primary key,
+        polygon_address varchar(42) not null,
+        sol_tx_sig varchar(128) not null,
+        usdc_tx_sig varchar(128) not null,
+        pol_tx_hash varchar(80) not null,
+        sol_amount varchar(16) not null default '0.1',
+        usdc_amount int not null default 1000,
+        pol_amount varchar(16) not null default '0.1',
+        funded_at timestamptz not null default now()
+      )
+    `;
+		const rows = await sql`
+      select solana_pubkey, polygon_address, sol_tx_sig, usdc_tx_sig, pol_tx_hash,
+             sol_amount, usdc_amount, pol_amount, funded_at::text
+      from wallet_onboarding
+      where solana_pubkey = ${solanaAddress}
+      limit 1
+    `;
+		if (rows[0]) {
+			mem.set(solanaAddress, rows[0]);
+			return rows[0];
+		}
+	} catch {}
+	return mem.get(solanaAddress) ?? null;
+}
+async function saveOnboardingRecord(row) {
+	getMemoryOnboardingStore().set(row.solana_pubkey, row);
+	try {
+		const { getSql } = await import("./db-DopB8LNR.mjs");
+		await (await getSql())`
+      insert into wallet_onboarding (
+        solana_pubkey, polygon_address, sol_tx_sig, usdc_tx_sig, pol_tx_hash,
+        sol_amount, usdc_amount, pol_amount
+      ) values (
+        ${row.solana_pubkey},
+        ${row.polygon_address},
+        ${row.sol_tx_sig},
+        ${row.usdc_tx_sig},
+        ${row.pol_tx_hash},
+        ${row.sol_amount},
+        ${row.usdc_amount},
+        ${row.pol_amount}
+      )
+      on conflict (solana_pubkey) do update set
+        polygon_address = excluded.polygon_address,
+        sol_tx_sig = excluded.sol_tx_sig,
+        usdc_tx_sig = excluded.usdc_tx_sig,
+        pol_tx_hash = excluded.pol_tx_hash,
+        usdc_amount = 1000,
+        funded_at = now()
+    `;
+	} catch {}
 }
 var Route$4 = createFileRoute("/api/faucet/auto-onboard")({ server: { handlers: {
 	GET: async ({ request }) => {
@@ -3432,18 +3482,12 @@ var Route$4 = createFileRoute("/api/faucet/auto-onboard")({ server: { handlers: 
 				status: 400,
 				headers: { "content-type": "application/json; charset=utf-8" }
 			});
-			const rows = await (await ensureOnboardingTable())`
-            select solana_pubkey, polygon_address, sol_tx_sig, usdc_tx_sig, pol_tx_hash,
-                   sol_amount, usdc_amount, pol_amount, funded_at::text
-            from wallet_onboarding
-            where solana_pubkey = ${solanaAddress}
-            limit 1
-          `;
+			const existing = await getOnboardingRecord(solanaAddress);
 			return new Response(JSON.stringify({
 				ok: true,
-				alreadyFunded: Boolean(rows[0]),
-				record: rows[0] ? {
-					...rows[0],
+				alreadyFunded: Boolean(existing),
+				record: existing ? {
+					...existing,
 					usdc_amount: 1e3
 				} : null
 			}), {
@@ -3471,104 +3515,153 @@ var Route$4 = createFileRoute("/api/faucet/auto-onboard")({ server: { handlers: 
 				status: 400,
 				headers: { "content-type": "application/json; charset=utf-8" }
 			});
-			const polygonAddress = body.polygonAddress && /^0x[0-9a-fA-F]{40}$/.test(body.polygonAddress.trim()) ? body.polygonAddress.trim() : derivePolygonAddress$1(solanaAddress);
-			const sql = await ensureOnboardingTable();
-			const existing = await sql`
-            select solana_pubkey, polygon_address, sol_tx_sig, usdc_tx_sig, pol_tx_hash,
-                   sol_amount, usdc_amount, pol_amount, funded_at::text
-            from wallet_onboarding
-            where solana_pubkey = ${solanaAddress}
-            limit 1
-          `;
-			if (existing[0] && !body.force) {
-				if (existing[0].usdc_amount !== 1e3) await sql`
-                update wallet_onboarding
-                set usdc_amount = 1000
-                where solana_pubkey = ${solanaAddress}
-              `.catch(() => void 0);
-				return new Response(JSON.stringify({
-					ok: true,
-					alreadyFunded: true,
-					funded: {
-						sol: existing[0].sol_amount || "0.1",
-						usdc: 1e3,
-						pol: existing[0].pol_amount || "0.1"
-					},
-					signatures: {
-						solSig: existing[0].sol_tx_sig,
-						usdcSig: existing[0].usdc_tx_sig,
-						polHash: existing[0].pol_tx_hash
-					}
-				}), {
-					status: 200,
-					headers: { "content-type": "application/json; charset=utf-8" }
-				});
-			}
-			const rpcUrl = process.env.NEXT_PUBLIC_SOLANA_RPC_URL || "https://api.devnet.solana.com";
-			const connection = new Connection(rpcUrl, "confirmed");
-			const treasury = parseTreasurySolanaKeypair();
-			const recipientPubkey = new PublicKey(solanaAddress);
-			let solSig = "";
+			const polygonAddress = body.polygonAddress && /^0x[0-9a-fA-F]{40}$/.test(body.polygonAddress.trim()) ? body.polygonAddress.trim() : derivePolygonAddress(solanaAddress);
+			const existing = await getOnboardingRecord(solanaAddress);
+			if (existing && !body.force) return new Response(JSON.stringify({
+				ok: true,
+				alreadyFunded: true,
+				funded: {
+					sol: existing.sol_amount || "0.1",
+					usdc: 1e3,
+					pol: existing.pol_amount || "0.1"
+				},
+				signatures: {
+					solSig: existing.sol_tx_sig,
+					usdcSig: existing.usdc_tx_sig,
+					polHash: existing.pol_tx_hash
+				}
+			}), {
+				status: 200,
+				headers: { "content-type": "application/json; charset=utf-8" }
+			});
+			let solSig = deterministicSolSignature("sol-onboard-0.1", solanaAddress);
+			let usdcSig = deterministicSolSignature("usdc-onboard-1000", solanaAddress);
 			try {
-				const lamports = Math.round(.1 * LAMPORTS_PER_SOL);
-				solSig = await Promise.race([connection.requestAirdrop(recipientPubkey, lamports), new Promise((_, reject) => setTimeout(() => reject(/* @__PURE__ */ new Error("Solana airdrop timeout")), 2500))]);
-			} catch {
-				solSig = deterministicSolSignature("sol-onboard-0.1", solanaAddress);
-			}
-			let usdcSig = "";
+				const { Connection, Keypair, LAMPORTS_PER_SOL, PublicKey, SystemProgram, Transaction, TransactionInstruction } = await import("../_libs/@solana/web3.js.mjs").then((n) => n.s);
+				const tokenProgramId = new PublicKey(TOKEN_PROGRAM_ID_STR$1);
+				const associatedTokenProgramId = new PublicKey(ASSOCIATED_TOKEN_PROGRAM_ID_STR$1);
+				const sysvarRentPubkey = new PublicKey(SYSVAR_RENT_PUBKEY_STR$1);
+				const connection = new Connection(getEnv$2("NEXT_PUBLIC_SOLANA_RPC_URL") || "https://api.devnet.solana.com", "confirmed");
+				const treasury = parseTreasurySolanaKeypair(Keypair);
+				const recipientPubkey = new PublicKey(solanaAddress);
+				try {
+					const lamports = Math.round(.1 * LAMPORTS_PER_SOL);
+					solSig = await Promise.race([connection.requestAirdrop(recipientPubkey, lamports), new Promise((_, reject) => setTimeout(() => reject(/* @__PURE__ */ new Error("Solana airdrop timeout")), 2500))]);
+				} catch {
+					solSig = deterministicSolSignature("sol-onboard-0.1", solanaAddress);
+				}
+				try {
+					const mint = new PublicKey(DEVNET_USDC_MINT);
+					const ata = PublicKey.findProgramAddressSync([
+						recipientPubkey.toBytes(),
+						tokenProgramId.toBytes(),
+						mint.toBytes()
+					], associatedTokenProgramId)[0];
+					const { blockhash } = await Promise.race([connection.getLatestBlockhash("confirmed"), new Promise((_, reject) => setTimeout(() => reject(/* @__PURE__ */ new Error("Blockhash timeout")), 2500))]);
+					const tx = new Transaction({
+						feePayer: treasury.publicKey,
+						recentBlockhash: blockhash
+					});
+					tx.add(new TransactionInstruction({
+						programId: associatedTokenProgramId,
+						keys: [
+							{
+								pubkey: treasury.publicKey,
+								isSigner: true,
+								isWritable: true
+							},
+							{
+								pubkey: ata,
+								isSigner: false,
+								isWritable: true
+							},
+							{
+								pubkey: recipientPubkey,
+								isSigner: false,
+								isWritable: false
+							},
+							{
+								pubkey: mint,
+								isSigner: false,
+								isWritable: false
+							},
+							{
+								pubkey: SystemProgram.programId,
+								isSigner: false,
+								isWritable: false
+							},
+							{
+								pubkey: tokenProgramId,
+								isSigner: false,
+								isWritable: false
+							},
+							{
+								pubkey: sysvarRentPubkey,
+								isSigner: false,
+								isWritable: false
+							}
+						],
+						data: /* @__PURE__ */ new Uint8Array(0)
+					}));
+					const mintData = /* @__PURE__ */ new Uint8Array(9);
+					const mintView = new DataView(mintData.buffer);
+					mintView.setUint8(0, 7);
+					mintView.setBigUint64(1, BigInt(1e9), true);
+					tx.add(new TransactionInstruction({
+						programId: tokenProgramId,
+						keys: [
+							{
+								pubkey: mint,
+								isSigner: false,
+								isWritable: true
+							},
+							{
+								pubkey: ata,
+								isSigner: false,
+								isWritable: true
+							},
+							{
+								pubkey: treasury.publicKey,
+								isSigner: true,
+								isWritable: false
+							}
+						],
+						data: mintData
+					}));
+					tx.sign(treasury);
+					const rawSig = tx.signature ? base58.encode(tx.signature) : "";
+					usdcSig = await connection.sendRawTransaction(tx.serialize(), { skipPreflight: true }).catch(() => rawSig) || rawSig || deterministicSolSignature("usdc-onboard-1000", solanaAddress);
+				} catch {
+					usdcSig = deterministicSolSignature("usdc-onboard-1000", solanaAddress);
+				}
+			} catch {}
+			let polHash = deterministicPolHash$1("pol-onboard-0.1", polygonAddress);
 			try {
-				const mint = new PublicKey(DEVNET_USDC_MINT);
-				const ata = getAssociatedTokenAddress$1(recipientPubkey, mint);
-				const { blockhash } = await Promise.race([connection.getLatestBlockhash("confirmed"), new Promise((_, reject) => setTimeout(() => reject(/* @__PURE__ */ new Error("Blockhash timeout")), 2500))]);
-				const tx = new Transaction({
-					feePayer: treasury.publicKey,
-					recentBlockhash: blockhash
-				});
-				tx.add(createAssociatedTokenAccountIx$1(treasury.publicKey, ata, recipientPubkey, mint));
-				tx.add(createMintToIx$1(mint, ata, treasury.publicKey, BigInt(1e9)));
-				tx.sign(treasury);
-				const rawSig = tx.signature ? base58.encode(tx.signature) : "";
-				usdcSig = await connection.sendRawTransaction(tx.serialize(), { skipPreflight: true }).catch(() => rawSig) || rawSig || deterministicSolSignature("usdc-onboard-1000", solanaAddress);
-			} catch {
-				usdcSig = deterministicSolSignature("usdc-onboard-1000", solanaAddress);
-			}
-			let polHash = "";
-			try {
-				const evmKey = process.env.POLYGON_FAUCET_PRIVATE_KEY?.trim() || process.env.POLYGON_SOLVER_PRIVATE_KEY?.trim() || process.env.SOLVER_EVM_PRIVATE_KEY?.trim();
+				const evmKey = getEnv$2("POLYGON_FAUCET_PRIVATE_KEY") || getEnv$2("POLYGON_SOLVER_PRIVATE_KEY") || getEnv$2("SOLVER_EVM_PRIVATE_KEY");
 				if (evmKey && evmKey !== "0xYOUR_SOLVER_PRIVATE_KEY") {
-					const polyRpc = process.env.NEXT_PUBLIC_POLYGON_RPC_URL || "https://rpc-amoy.polygon.technology";
-					const provider = new JsonRpcProvider(polyRpc, 80002, { staticNetwork: true });
-					const wallet = new Wallet$1(evmKey, provider);
+					const { ethers } = await import("../_libs/ethers.mjs").then((n) => n.t);
+					const polyRpc = getEnv$2("NEXT_PUBLIC_POLYGON_RPC_URL") || "https://rpc-amoy.polygon.technology";
+					const provider = new ethers.JsonRpcProvider(polyRpc, 80002, { staticNetwork: true });
+					const wallet = new ethers.Wallet(evmKey, provider);
 					polHash = (await Promise.race([wallet.sendTransaction({
 						to: polygonAddress,
-						value: parseEther("0.1")
+						value: ethers.parseEther("0.1")
 					}), new Promise((_, reject) => setTimeout(() => reject(/* @__PURE__ */ new Error("Polygon RPC timeout")), 2500))])).hash;
-				} else polHash = deterministicPolHash$1("pol-onboard-0.1", polygonAddress);
+				}
 			} catch {
 				polHash = deterministicPolHash$1("pol-onboard-0.1", polygonAddress);
 			}
-			await sql`
-            insert into wallet_onboarding (
-              solana_pubkey, polygon_address, sol_tx_sig, usdc_tx_sig, pol_tx_hash,
-              sol_amount, usdc_amount, pol_amount
-            ) values (
-              ${solanaAddress},
-              ${polygonAddress},
-              ${solSig},
-              ${usdcSig},
-              ${polHash},
-              '0.1',
-              1000,
-              '0.1'
-            )
-            on conflict (solana_pubkey) do update set
-              polygon_address = excluded.polygon_address,
-              sol_tx_sig = excluded.sol_tx_sig,
-              usdc_tx_sig = excluded.usdc_tx_sig,
-              pol_tx_hash = excluded.pol_tx_hash,
-              usdc_amount = 1000,
-              funded_at = now()
-          `;
+			await saveOnboardingRecord({
+				solana_pubkey: solanaAddress,
+				polygon_address: polygonAddress,
+				sol_tx_sig: solSig,
+				usdc_tx_sig: usdcSig,
+				pol_tx_hash: polHash,
+				sol_amount: "0.1",
+				usdc_amount: 1e3,
+				pol_amount: "0.1",
+				funded_at: (/* @__PURE__ */ new Date()).toISOString()
+			});
 			return new Response(JSON.stringify({
 				ok: true,
 				alreadyFunded: false,
@@ -3597,6 +3690,10 @@ var Route$4 = createFileRoute("/api/faucet/auto-onboard")({ server: { handlers: 
 		}
 	}
 } } });
+function getEnv$1(key) {
+	if (typeof process === "undefined" || !process.env) return void 0;
+	return process.env[key]?.trim() || void 0;
+}
 function deterministicPolHash(recipient, amountPol) {
 	const digest = sha256(new TextEncoder().encode(`moxie.polygon.amoy.faucet|${recipient}|${amountPol}|${Date.now()}`));
 	return `0x${hex.encode(digest)}`;
@@ -3613,13 +3710,14 @@ var Route$3 = createFileRoute("/api/faucet/pol")({ server: { handlers: { POST: a
 			headers: { "content-type": "application/json; charset=utf-8" }
 		});
 		const amountPol = body.amountPol ?? "0.1";
-		const privateKey = process.env.POLYGON_FAUCET_PRIVATE_KEY?.trim() || process.env.POLYGON_SOLVER_PRIVATE_KEY?.trim() || process.env.SOLVER_EVM_PRIVATE_KEY?.trim();
-		let txHash = "";
+		const privateKey = getEnv$1("POLYGON_FAUCET_PRIVATE_KEY") || getEnv$1("POLYGON_SOLVER_PRIVATE_KEY") || getEnv$1("SOLVER_EVM_PRIVATE_KEY");
+		let txHash = deterministicPolHash(recipient, amountPol);
 		if (privateKey && privateKey !== "0xYOUR_SOLVER_PRIVATE_KEY") try {
-			const rpcUrl = process.env.NEXT_PUBLIC_POLYGON_RPC_URL || "https://rpc-amoy.polygon.technology";
-			const provider = new JsonRpcProvider(rpcUrl, 80002, { staticNetwork: true });
-			const wallet = new Wallet$1(privateKey, provider);
-			const airdropWei = parseEther(amountPol);
+			const { ethers } = await import("../_libs/ethers.mjs").then((n) => n.t);
+			const rpcUrl = getEnv$1("NEXT_PUBLIC_POLYGON_RPC_URL") || "https://rpc-amoy.polygon.technology";
+			const provider = new ethers.JsonRpcProvider(rpcUrl, 80002, { staticNetwork: true });
+			const wallet = new ethers.Wallet(privateKey, provider);
+			const airdropWei = ethers.parseEther(amountPol);
 			txHash = (await Promise.race([wallet.sendTransaction({
 				to: recipient,
 				value: airdropWei
@@ -3627,7 +3725,6 @@ var Route$3 = createFileRoute("/api/faucet/pol")({ server: { handlers: { POST: a
 		} catch {
 			txHash = deterministicPolHash(recipient, amountPol);
 		}
-		else txHash = deterministicPolHash(recipient, amountPol);
 		return new Response(JSON.stringify({
 			ok: true,
 			txHash,
@@ -3649,101 +3746,29 @@ var Route$3 = createFileRoute("/api/faucet/pol")({ server: { handlers: { POST: a
 		});
 	}
 } } } });
-var TOKEN_PROGRAM_ID = new PublicKey("TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA");
-var ASSOCIATED_TOKEN_PROGRAM_ID = new PublicKey("ATokenGPvbdGVxr1b2hvZbsiqW5xWH25efTNsLJA8knL");
-var SYSVAR_RENT_PUBKEY = new PublicKey("SysvarRent111111111111111111111111111111111");
-function parseAuthorityKeypair() {
-	const raw = process.env.SOLANA_FAUCET_SECRET_KEY?.trim() || process.env.DEVNET_MINT_AUTHORITY_SECRET_KEY?.trim() || process.env.SOLANA_MINT_AUTHORITY_PRIVATE_KEY?.trim();
+var TOKEN_PROGRAM_ID_STR = "TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA";
+var ASSOCIATED_TOKEN_PROGRAM_ID_STR = "ATokenGPvbdGVxr1b2hvZbsiqW5xWH25efTNsLJA8knL";
+var SYSVAR_RENT_PUBKEY_STR = "SysvarRent111111111111111111111111111111111";
+function getEnv(key) {
+	if (typeof process === "undefined" || !process.env) return void 0;
+	return process.env[key]?.trim() || void 0;
+}
+function parseAuthorityKeypair(KeypairCtor) {
+	const raw = getEnv("SOLANA_FAUCET_SECRET_KEY") || getEnv("DEVNET_MINT_AUTHORITY_SECRET_KEY") || getEnv("SOLANA_MINT_AUTHORITY_PRIVATE_KEY");
 	if (raw) try {
 		if (raw.startsWith("[")) {
 			const arr = JSON.parse(raw);
-			return Keypair.fromSecretKey(Uint8Array.from(arr));
+			return KeypairCtor.fromSecretKey(Uint8Array.from(arr));
 		}
 		if (/^[0-9a-fA-F]{128}$/.test(raw)) {
 			const bytes = /* @__PURE__ */ new Uint8Array(64);
 			for (let i = 0; i < 64; i += 1) bytes[i] = Number.parseInt(raw.slice(i * 2, i * 2 + 2), 16);
-			return Keypair.fromSecretKey(bytes);
+			return KeypairCtor.fromSecretKey(bytes);
 		}
-		return Keypair.fromSecretKey(base58.decode(raw));
+		return KeypairCtor.fromSecretKey(base58.decode(raw));
 	} catch {}
 	const seed = sha256(new TextEncoder().encode("moxie.devnet.master.treasury.v1"));
-	return Keypair.fromSeed(seed);
-}
-function getAssociatedTokenAddress(owner, mint) {
-	return PublicKey.findProgramAddressSync([
-		owner.toBuffer(),
-		TOKEN_PROGRAM_ID.toBuffer(),
-		mint.toBuffer()
-	], ASSOCIATED_TOKEN_PROGRAM_ID)[0];
-}
-function createAssociatedTokenAccountIx(payer, ata, owner, mint) {
-	return new TransactionInstruction({
-		programId: ASSOCIATED_TOKEN_PROGRAM_ID,
-		keys: [
-			{
-				pubkey: payer,
-				isSigner: true,
-				isWritable: true
-			},
-			{
-				pubkey: ata,
-				isSigner: false,
-				isWritable: true
-			},
-			{
-				pubkey: owner,
-				isSigner: false,
-				isWritable: false
-			},
-			{
-				pubkey: mint,
-				isSigner: false,
-				isWritable: false
-			},
-			{
-				pubkey: SystemProgram.programId,
-				isSigner: false,
-				isWritable: false
-			},
-			{
-				pubkey: TOKEN_PROGRAM_ID,
-				isSigner: false,
-				isWritable: false
-			},
-			{
-				pubkey: SYSVAR_RENT_PUBKEY,
-				isSigner: false,
-				isWritable: false
-			}
-		],
-		data: Buffer.alloc(0)
-	});
-}
-function createMintToIx(mint, destinationAta, authority, amountBaseUnits) {
-	const data = Buffer.alloc(9);
-	data.writeUInt8(7, 0);
-	data.writeBigUInt64LE(amountBaseUnits, 1);
-	return new TransactionInstruction({
-		programId: TOKEN_PROGRAM_ID,
-		keys: [
-			{
-				pubkey: mint,
-				isSigner: false,
-				isWritable: true
-			},
-			{
-				pubkey: destinationAta,
-				isSigner: false,
-				isWritable: true
-			},
-			{
-				pubkey: authority,
-				isSigner: true,
-				isWritable: false
-			}
-		],
-		data
-	});
+	return KeypairCtor.fromSeed(seed);
 }
 function fallbackSignature(recipient, amountUsdc) {
 	const digest = sha256(new TextEncoder().encode(`moxie.usdc.faucet|${recipient}|${amountUsdc}|${Date.now()}`));
@@ -3765,21 +3790,94 @@ var Route$2 = createFileRoute("/api/faucet/usdc")({ server: { handlers: { POST: 
 		});
 		const dollars = Math.max(10, Math.min(1e3, Number(body.amountUsdc ?? 100)));
 		const amountBaseUnits = BigInt(Math.round(dollars * 1e6));
-		const authority = parseAuthorityKeypair();
-		const recipient = new PublicKey(recipientStr);
-		const mint = new PublicKey(DEVNET_USDC_MINT);
-		const ata = getAssociatedTokenAddress(recipient, mint);
-		let signature = "";
+		let signature = fallbackSignature(recipientStr, dollars);
+		let ataAddress = recipientStr;
 		try {
-			const rpcUrl = process.env.NEXT_PUBLIC_SOLANA_RPC_URL || "https://api.devnet.solana.com";
-			const connection = new Connection(rpcUrl, "confirmed");
+			const { Connection, Keypair, PublicKey, SystemProgram, Transaction, TransactionInstruction } = await import("../_libs/@solana/web3.js.mjs").then((n) => n.s);
+			const tokenProgramId = new PublicKey(TOKEN_PROGRAM_ID_STR);
+			const associatedTokenProgramId = new PublicKey(ASSOCIATED_TOKEN_PROGRAM_ID_STR);
+			const sysvarRentPubkey = new PublicKey(SYSVAR_RENT_PUBKEY_STR);
+			const authority = parseAuthorityKeypair(Keypair);
+			const recipient = new PublicKey(recipientStr);
+			const mint = new PublicKey(DEVNET_USDC_MINT);
+			const ata = PublicKey.findProgramAddressSync([
+				recipient.toBytes(),
+				tokenProgramId.toBytes(),
+				mint.toBytes()
+			], associatedTokenProgramId)[0];
+			ataAddress = ata.toBase58();
+			const connection = new Connection(getEnv("NEXT_PUBLIC_SOLANA_RPC_URL") || "https://api.devnet.solana.com", "confirmed");
 			const { blockhash } = await Promise.race([connection.getLatestBlockhash("confirmed"), new Promise((_, reject) => setTimeout(() => reject(/* @__PURE__ */ new Error("RPC timeout")), 3e3))]);
 			const tx = new Transaction({
 				feePayer: authority.publicKey,
 				recentBlockhash: blockhash
 			});
-			tx.add(createAssociatedTokenAccountIx(authority.publicKey, ata, recipient, mint));
-			tx.add(createMintToIx(mint, ata, authority.publicKey, amountBaseUnits));
+			tx.add(new TransactionInstruction({
+				programId: associatedTokenProgramId,
+				keys: [
+					{
+						pubkey: authority.publicKey,
+						isSigner: true,
+						isWritable: true
+					},
+					{
+						pubkey: ata,
+						isSigner: false,
+						isWritable: true
+					},
+					{
+						pubkey: recipient,
+						isSigner: false,
+						isWritable: false
+					},
+					{
+						pubkey: mint,
+						isSigner: false,
+						isWritable: false
+					},
+					{
+						pubkey: SystemProgram.programId,
+						isSigner: false,
+						isWritable: false
+					},
+					{
+						pubkey: tokenProgramId,
+						isSigner: false,
+						isWritable: false
+					},
+					{
+						pubkey: sysvarRentPubkey,
+						isSigner: false,
+						isWritable: false
+					}
+				],
+				data: /* @__PURE__ */ new Uint8Array(0)
+			}));
+			const mintData = /* @__PURE__ */ new Uint8Array(9);
+			const mintView = new DataView(mintData.buffer);
+			mintView.setUint8(0, 7);
+			mintView.setBigUint64(1, amountBaseUnits, true);
+			tx.add(new TransactionInstruction({
+				programId: tokenProgramId,
+				keys: [
+					{
+						pubkey: mint,
+						isSigner: false,
+						isWritable: true
+					},
+					{
+						pubkey: ata,
+						isSigner: false,
+						isWritable: true
+					},
+					{
+						pubkey: authority.publicKey,
+						isSigner: true,
+						isWritable: false
+					}
+				],
+				data: mintData
+			}));
 			tx.sign(authority);
 			const localSig = tx.signature ? base58.encode(tx.signature) : "";
 			signature = await connection.sendRawTransaction(tx.serialize(), { skipPreflight: true }).catch(() => localSig) || localSig || fallbackSignature(recipientStr, dollars);
@@ -3790,7 +3888,7 @@ var Route$2 = createFileRoute("/api/faucet/usdc")({ server: { handlers: { POST: 
 			ok: true,
 			signature,
 			amountUsdc: dollars,
-			ata: ata.toBase58(),
+			ata: ataAddress,
 			explorerUrl: `https://explorer.solana.com/tx/${signature}?cluster=devnet`
 		}), {
 			status: 200,
@@ -4058,4 +4156,4 @@ function getRouter() {
 		defaultErrorComponent: AppErrorComponent
 	});
 }
-export { reclaimIntentDb as A, parseUsdc as B, buildOrderbook as C, ProtocolError as D, ErrorCodes as E, formatCents as F, useServerFn as G, shortHex as H, formatShares as I, outcomeTokenId as J, buildPriceHistory as K, formatUsdc as L, stepSolver as M, MAX_TICKET as N, asProtocolError as O, enrichPosition as P, markValue as R, quoteMessage as S, solverAuthMessage as T, shortKey as U, positionsOf as V, derivePolygonAddress$1 as W, sfx as Y, MARKET_CATEGORIES as _, requestDevnetSolAirdrop as a, fillMessage as b, lockEscrow as c, recordFill as d, refundEscrow as f, commitmentOf as g, MARKETS as h, injectedProvider as i, saveIntent as j, listIntents as k, matchSolver as l, sharesFor as m, Route$5 as n, withSolanaFailover as o, settleRelease as p, complementAsk as q, Route$6 as r, useDesk as s, router_exports as t, maxPrice as u, encodeIntent as v, signIntent as w, publicKeyFromSecret as x, escrowAddress as y, money6 as z };
+export { derivePolygonAddress as A, signIntent as B, formatUsdc as C, positionsOf as D, parseUsdc as E, escrowAddress as F, useServerFn as G, ErrorCodes as H, fillMessage as I, outcomeTokenId as J, buildPriceHistory as K, publicKeyFromSecret as L, commitmentOf as M, MARKET_CATEGORIES as N, shortHex as O, encodeIntent as P, quoteMessage as R, formatShares as S, money6 as T, ProtocolError as U, solverAuthMessage as V, asProtocolError as W, sfx as Y, saveIntent as _, requestDevnetSolAirdrop as a, enrichPosition as b, lockEscrow as c, recordFill as d, refundEscrow as f, reclaimIntentDb as g, listIntents as h, injectedProvider as i, MARKETS as j, shortKey as k, matchSolver as l, sharesFor as m, Route$5 as n, withSolanaFailover as o, settleRelease as p, complementAsk as q, Route$6 as r, useDesk as s, router_exports as t, maxPrice as u, stepSolver as v, markValue as w, formatCents as x, MAX_TICKET as y, buildOrderbook as z };

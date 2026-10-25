@@ -1,42 +1,27 @@
-import { A as wrapConstructor, B as anumber, C as SHA2, D as createView, E as checkOpts, F as output, J as split$1, K as swap32IfBE, L as abool, M as exists, N as hash, O as toBytes, P as number, R as abytes, S as sha256$1, T as asyncLoop, U as clean, V as aoutput, W as createHasher, _ as toBytes$1, a as rotlBL$2, c as split$2, d as aexists$1, f as anumber$1, g as swap32IfBE$1, h as createHasher$1, i as rotlBH$2, j as bytes, k as u32, l as Hash$1, m as clean$1, o as rotlSH$2, p as aoutput$1, q as u32$1, r as sha256$2, s as rotlSL$2, u as abytes$1, v as u32$2, w as Hash, x as hmac, z as aexists } from "./noble__curves+noble__hashes.mjs";
-// node_modules/ethers/node_modules/@noble/hashes/esm/_u64.js
-var U32_MASK64 = /* @__PURE__ */ BigInt(2 ** 32 - 1);
-var _32n = /* @__PURE__ */ BigInt(32);
-function fromBig(n, le = false) {
-	if (le) return {
-		h: Number(n & U32_MASK64),
-		l: Number(n >> _32n & U32_MASK64)
-	};
-	return {
-		h: Number(n >> _32n & U32_MASK64) | 0,
-		l: Number(n & U32_MASK64) | 0
-	};
-}
-function split(lst, le = false) {
-	let Ah = new Uint32Array(lst.length);
-	let Al = new Uint32Array(lst.length);
-	for (let i = 0; i < lst.length; i++) {
-		const { h, l } = fromBig(lst[i], le);
-		[Ah[i], Al[i]] = [h, l];
-	}
-	return [Ah, Al];
-}
-var rotlSH$1 = (h, l, s) => h << s | l >>> 32 - s;
-var rotlSL$1 = (h, l, s) => l << s | h >>> 32 - s;
-var rotlBH$1 = (h, l, s) => l << s - 32 | h >>> 64 - s;
-var rotlBL$1 = (h, l, s) => h << s - 32 | l >>> 64 - s;
-// node_modules/ethers/node_modules/@noble/hashes/esm/sha3.js
-var [SHA3_PI$2, SHA3_ROTL$2, _SHA3_IOTA$2] = [
-	[],
-	[],
-	[]
-];
-var _0n$2 = /* @__PURE__ */ BigInt(0);
-var _1n$2 = /* @__PURE__ */ BigInt(1);
-var _2n$2 = /* @__PURE__ */ BigInt(2);
-var _7n$2 = /* @__PURE__ */ BigInt(7);
-var _256n$2 = /* @__PURE__ */ BigInt(256);
-var _0x71n$2 = /* @__PURE__ */ BigInt(113);
+import { A as clean$1, B as anumber, C as rotlSL$2, D as aexists$1, E as abytes$1, J as split$1, K as swap32IfBE, L as abool, M as swap32IfBE$1, N as toBytes, O as anumber$1, P as u32$1, R as abytes, S as rotlSH$2, T as Hash, U as clean, V as aoutput, W as createHasher, a as Hash$1, b as rotlBH$2, c as createView, d as wrapConstructor, f as bytes, g as output, h as number, i as SHA2, j as createHasher$1, k as aoutput$1, l as toBytes$1, m as hash, n as hmac, o as asyncLoop, p as exists, q as u32, r as sha256$2, s as checkOpts, u as u32$2, w as split$2, x as rotlBL$2, y as sha256$1, z as aexists } from "./noble__curves+noble__hashes.mjs";
+// node_modules/@noble/hashes/sha3.js
+/**
+* SHA3 (keccak) hash function, based on a new "Sponge function" design.
+* Different from older hashes, the internal state is bigger than output size.
+*
+* Check out
+* {@link https://nvlpubs.nist.gov/nistpubs/FIPS/NIST.FIPS.202.pdf | FIPS-202},
+* {@link https://keccak.team/keccak.html | Website}, and
+* {@link https://crypto.stackexchange.com/q/15727 | the differences between
+* SHA-3 and Keccak}.
+*
+* Check out `sha3-addons` module for cSHAKE, k12, and others.
+* @module
+*/
+var _0n$2 = BigInt(0);
+var _1n$2 = BigInt(1);
+var _2n$2 = BigInt(2);
+var _7n$2 = BigInt(7);
+var _256n$2 = BigInt(256);
+var _0x71n$2 = BigInt(113);
+var SHA3_PI$2 = [];
+var SHA3_ROTL$2 = [];
+var _SHA3_IOTA$2 = [];
 for (let round = 0, R = _1n$2, x = 1, y = 0; round < 24; round++) {
 	[x, y] = [y, (2 * x + 3 * y) % 5];
 	SHA3_PI$2.push(2 * (5 * y + x));
@@ -44,15 +29,39 @@ for (let round = 0, R = _1n$2, x = 1, y = 0; round < 24; round++) {
 	let t = _0n$2;
 	for (let j = 0; j < 7; j++) {
 		R = (R << _1n$2 ^ (R >> _7n$2) * _0x71n$2) % _256n$2;
-		if (R & _2n$2) t ^= _1n$2 << (_1n$2 << /* @__PURE__ */ BigInt(j)) - _1n$2;
+		if (R & _2n$2) t ^= _1n$2 << (_1n$2 << BigInt(j)) - _1n$2;
 	}
 	_SHA3_IOTA$2.push(t);
 }
-var [SHA3_IOTA_H$2, SHA3_IOTA_L$2] = /* @__PURE__ */ split(_SHA3_IOTA$2, true);
+var IOTAS$1 = split$1(_SHA3_IOTA$2, true);
+var SHA3_IOTA_H$2 = IOTAS$1[0];
+var SHA3_IOTA_L$2 = IOTAS$1[1];
+var rotlSH$1 = (h, l, s) => h << s | l >>> 32 - s;
+var rotlSL$1 = (h, l, s) => l << s | h >>> 32 - s;
+var rotlBH$1 = (h, l, s) => l << s - 32 | h >>> 64 - s;
+var rotlBL$1 = (h, l, s) => h << s - 32 | l >>> 64 - s;
 var rotlH$2 = (h, l, s) => s > 32 ? rotlBH$1(h, l, s) : rotlSH$1(h, l, s);
 var rotlL$2 = (h, l, s) => s > 32 ? rotlBL$1(h, l, s) : rotlSL$1(h, l, s);
+var B = /* @__PURE__ */ new Uint32Array(10);
+/**
+* `keccakf1600` internal permutation, additionally allows adjusting the round count.
+* @param s - 5x5 Keccak state encoded as 25 lanes split into 50 uint32 words
+*   in this file's local little-endian lane-word order
+* @param rounds - number of rounds to execute
+* @throws On wrong argument types. {@link TypeError}
+* @throws On wrong argument ranges or values. {@link RangeError}
+* @throws If `rounds` is outside the supported `1..24` range. {@link Error}
+* @example
+* Permute a Keccak state with the default 24 rounds.
+* ```ts
+* keccakP(new Uint32Array(50));
+* ```
+*/
 function keccakP$2(s, rounds = 24) {
-	const B = /* @__PURE__ */ new Uint32Array(10);
+	if (!(s instanceof Uint32Array)) throw new TypeError("\"s\" expected Uint32Array(50), got type=" + typeof s);
+	if (s.length !== 50) throw new RangeError("\"s\" expected Uint32Array(50), got length=" + s.length);
+	anumber(rounds, "rounds");
+	if (rounds < 1 || rounds > 24) throw new Error("\"rounds\" expected integer 1..24");
 	for (let round = 24 - rounds; round < 24; round++) {
 		for (let x = 0; x < 10; x++) B[x] = s[x] ^ s[x + 10] ^ s[x + 20] ^ s[x + 30] ^ s[x + 40];
 		for (let x = 0; x < 10; x += 2) {
@@ -80,15 +89,462 @@ function keccakP$2(s, rounds = 24) {
 			s[PI + 1] = Tl;
 		}
 		for (let y = 0; y < 50; y += 10) {
-			for (let x = 0; x < 10; x++) B[x] = s[y + x];
-			for (let x = 0; x < 10; x++) s[y + x] ^= ~B[(x + 2) % 10] & B[(x + 4) % 10];
+			const b0 = s[y], b1 = s[y + 1], b2 = s[y + 2], b3 = s[y + 3];
+			s[y] ^= ~s[y + 2] & s[y + 4];
+			s[y + 1] ^= ~s[y + 3] & s[y + 5];
+			s[y + 2] ^= ~s[y + 4] & s[y + 6];
+			s[y + 3] ^= ~s[y + 5] & s[y + 7];
+			s[y + 4] ^= ~s[y + 6] & s[y + 8];
+			s[y + 5] ^= ~s[y + 7] & s[y + 9];
+			s[y + 6] ^= ~s[y + 8] & b0;
+			s[y + 7] ^= ~s[y + 9] & b1;
+			s[y + 8] ^= ~b0 & b2;
+			s[y + 9] ^= ~b1 & b3;
 		}
 		s[0] ^= SHA3_IOTA_H$2[round];
 		s[1] ^= SHA3_IOTA_L$2[round];
 	}
+	clean(B);
+}
+/**
+* Keccak sponge function.
+* @param blockLen - absorb/squeeze rate in bytes
+* @param suffix - domain separation suffix byte
+* @param outputLen - default digest length in bytes. This base sponge only
+*   requires a non-negative integer; wrappers that need positive output
+*   lengths must enforce that themselves.
+* @param enableXOF - whether XOF output is allowed
+* @param rounds - number of Keccak-f rounds
+* @example
+* Build a sponge state, absorb bytes, then finalize a digest.
+* ```ts
+* const hash = new Keccak(136, 0x06, 32);
+* hash.update(new Uint8Array([1, 2, 3]));
+* hash.digest();
+* ```
+*/
+var Keccak$2 = class Keccak$2 {
+	state;
+	pos = 0;
+	posOut = 0;
+	finished = false;
+	state32;
+	destroyed = false;
+	blockLen;
+	suffix;
+	outputLen;
+	canXOF;
+	enableXOF = false;
+	rounds;
+	constructor(blockLen, suffix, outputLen, enableXOF = false, rounds = 24) {
+		anumber(blockLen, "blockLen");
+		anumber(suffix, "suffix");
+		anumber(rounds, "rounds");
+		abool(enableXOF, "enableXOF");
+		this.blockLen = blockLen;
+		this.suffix = suffix;
+		this.outputLen = outputLen;
+		this.enableXOF = enableXOF;
+		this.canXOF = enableXOF;
+		this.rounds = rounds;
+		anumber(outputLen, "outputLen");
+		if (!(0 < blockLen && blockLen < 200)) throw new Error("\"blockLen\" must be 1..199");
+		this.state = /* @__PURE__ */ new Uint8Array(200);
+		this.state32 = u32(this.state);
+	}
+	clone() {
+		return this._cloneInto();
+	}
+	keccak() {
+		swap32IfBE(this.state32);
+		keccakP$2(this.state32, this.rounds);
+		swap32IfBE(this.state32);
+		this.posOut = 0;
+		this.pos = 0;
+	}
+	update(data) {
+		aexists(this);
+		abytes(data);
+		const { blockLen, state, state32 } = this;
+		const len = data.length;
+		const canUseU32 = blockLen % 4 === 0 && data.byteOffset % 4 === 0;
+		const blockLen32 = blockLen / 4;
+		const data32 = canUseU32 && len >= blockLen ? u32(data) : void 0;
+		for (let pos = 0; pos < len;) {
+			if (data32 !== void 0 && this.pos === 0 && pos % 4 === 0 && len - pos >= blockLen) {
+				for (let i = 0, o = pos / 4; i < blockLen32; i++) state32[i] ^= data32[o + i];
+				pos += blockLen;
+				this.pos = blockLen;
+				this.keccak();
+				continue;
+			}
+			const take = Math.min(blockLen - this.pos, len - pos);
+			for (let i = 0; i < take; i++) state[this.pos++] ^= data[pos++];
+			if (this.pos === blockLen) this.keccak();
+		}
+		return this;
+	}
+	finish() {
+		if (this.finished) return;
+		this.finished = true;
+		const { state, suffix, pos, blockLen } = this;
+		state[pos] ^= suffix;
+		if ((suffix & 128) !== 0 && pos === blockLen - 1) this.keccak();
+		state[blockLen - 1] ^= 128;
+		this.keccak();
+	}
+	writeInto(out) {
+		aexists(this, false);
+		abytes(out);
+		this.finish();
+		const bufferOut = this.state;
+		const { blockLen } = this;
+		for (let pos = 0, len = out.length; pos < len;) {
+			if (this.posOut >= blockLen) this.keccak();
+			const take = Math.min(blockLen - this.posOut, len - pos);
+			out.set(bufferOut.subarray(this.posOut, this.posOut + take), pos);
+			this.posOut += take;
+			pos += take;
+		}
+		return out;
+	}
+	xofInto(out) {
+		if (!this.enableXOF) throw new Error("XOF is not enabled");
+		return this.writeInto(out);
+	}
+	xof(bytes) {
+		anumber(bytes);
+		return this.xofInto(new Uint8Array(bytes));
+	}
+	digestInto(out) {
+		aoutput(out, this);
+		if (this.finished) throw new Error("digest() was already called");
+		this.writeInto(out.length === this.outputLen ? out : out.subarray(0, this.outputLen));
+		this.destroy();
+	}
+	digest() {
+		const out = new Uint8Array(this.outputLen);
+		this.digestInto(out);
+		return out;
+	}
+	destroy() {
+		this.destroyed = true;
+		clean(this.state);
+	}
+	_cloneInto(to) {
+		const { blockLen, suffix, outputLen, rounds, enableXOF } = this;
+		to ||= new Keccak$2(blockLen, suffix, outputLen, enableXOF, rounds);
+		to.blockLen = blockLen;
+		to.state32.set(this.state32);
+		to.pos = this.pos;
+		to.posOut = this.posOut;
+		to.finished = this.finished;
+		to.rounds = rounds;
+		to.suffix = suffix;
+		to.outputLen = outputLen;
+		to.enableXOF = enableXOF;
+		to.canXOF = this.canXOF;
+		to.destroyed = this.destroyed;
+		return to;
+	}
+};
+var genKeccak = (suffix, blockLen, outputLen, info = {}) => createHasher(() => new Keccak$2(blockLen, suffix, outputLen), info);
+/**
+* Keccak-256 hash function. Different from SHA3-256.
+* @param msg - message bytes to hash
+* @param opts - Reserved hash options.
+* @returns Digest bytes.
+* @example
+* Hash a message with Keccak-256.
+* ```ts
+* keccak_256(new Uint8Array([97, 98, 99]));
+* ```
+*/
+var keccak_256$2 = /* @__PURE__ */ genKeccak(1, 136, 32);
+// node_modules/@solana/web3.js/node_modules/@noble/hashes/esm/sha256.js
+/**
+* SHA2-256 a.k.a. sha256. In JS, it is the fastest hash, even faster than Blake3.
+*
+* To break sha256 using birthday attack, attackers need to try 2^128 hashes.
+* BTC network is doing 2^70 hashes/sec (2^95 hashes/year) as per 2025.
+*
+* Check out [FIPS 180-4](https://nvlpubs.nist.gov/nistpubs/FIPS/NIST.FIPS.180-4.pdf).
+* @module
+* @deprecated
+*/
+/** @deprecated Use import from `noble/hashes/sha2` module */
+var sha256 = sha256$1;
+// node_modules/@solana/web3.js/node_modules/@noble/hashes/esm/sha3.js
+/**
+* SHA3 (keccak) hash function, based on a new "Sponge function" design.
+* Different from older hashes, the internal state is bigger than output size.
+*
+* Check out [FIPS-202](https://nvlpubs.nist.gov/nistpubs/FIPS/NIST.FIPS.202.pdf),
+* [Website](https://keccak.team/keccak.html),
+* [the differences between SHA-3 and Keccak](https://crypto.stackexchange.com/questions/15727/what-are-the-key-differences-between-the-draft-sha-3-standard-and-the-keccak-sub).
+*
+* Check out `sha3-addons` module for cSHAKE, k12, and others.
+* @module
+*/
+var _0n$1 = BigInt(0);
+var _1n$1 = BigInt(1);
+var _2n$1 = BigInt(2);
+var _7n$1 = BigInt(7);
+var _256n$1 = BigInt(256);
+var _0x71n$1 = BigInt(113);
+var SHA3_PI$1 = [];
+var SHA3_ROTL$1 = [];
+var _SHA3_IOTA$1 = [];
+for (let round = 0, R = _1n$1, x = 1, y = 0; round < 24; round++) {
+	[x, y] = [y, (2 * x + 3 * y) % 5];
+	SHA3_PI$1.push(2 * (5 * y + x));
+	SHA3_ROTL$1.push((round + 1) * (round + 2) / 2 % 64);
+	let t = _0n$1;
+	for (let j = 0; j < 7; j++) {
+		R = (R << _1n$1 ^ (R >> _7n$1) * _0x71n$1) % _256n$1;
+		if (R & _2n$1) t ^= _1n$1 << (_1n$1 << /* @__PURE__ */ BigInt(j)) - _1n$1;
+	}
+	_SHA3_IOTA$1.push(t);
+}
+var IOTAS = split$2(_SHA3_IOTA$1, true);
+var SHA3_IOTA_H$1 = IOTAS[0];
+var SHA3_IOTA_L$1 = IOTAS[1];
+var rotlH$1 = (h, l, s) => s > 32 ? rotlBH$2(h, l, s) : rotlSH$2(h, l, s);
+var rotlL$1 = (h, l, s) => s > 32 ? rotlBL$2(h, l, s) : rotlSL$2(h, l, s);
+/** `keccakf1600` internal function, additionally allows to adjust round count. */
+function keccakP$1(s, rounds = 24) {
+	const B = /* @__PURE__ */ new Uint32Array(10);
+	for (let round = 24 - rounds; round < 24; round++) {
+		for (let x = 0; x < 10; x++) B[x] = s[x] ^ s[x + 10] ^ s[x + 20] ^ s[x + 30] ^ s[x + 40];
+		for (let x = 0; x < 10; x += 2) {
+			const idx1 = (x + 8) % 10;
+			const idx0 = (x + 2) % 10;
+			const B0 = B[idx0];
+			const B1 = B[idx0 + 1];
+			const Th = rotlH$1(B0, B1, 1) ^ B[idx1];
+			const Tl = rotlL$1(B0, B1, 1) ^ B[idx1 + 1];
+			for (let y = 0; y < 50; y += 10) {
+				s[x + y] ^= Th;
+				s[x + y + 1] ^= Tl;
+			}
+		}
+		let curH = s[2];
+		let curL = s[3];
+		for (let t = 0; t < 24; t++) {
+			const shift = SHA3_ROTL$1[t];
+			const Th = rotlH$1(curH, curL, shift);
+			const Tl = rotlL$1(curH, curL, shift);
+			const PI = SHA3_PI$1[t];
+			curH = s[PI];
+			curL = s[PI + 1];
+			s[PI] = Th;
+			s[PI + 1] = Tl;
+		}
+		for (let y = 0; y < 50; y += 10) {
+			for (let x = 0; x < 10; x++) B[x] = s[y + x];
+			for (let x = 0; x < 10; x++) s[y + x] ^= ~B[(x + 2) % 10] & B[(x + 4) % 10];
+		}
+		s[0] ^= SHA3_IOTA_H$1[round];
+		s[1] ^= SHA3_IOTA_L$1[round];
+	}
+	clean$1(B);
+}
+/** Keccak sponge function. */
+var Keccak$1 = class Keccak$1 extends Hash {
+	constructor(blockLen, suffix, outputLen, enableXOF = false, rounds = 24) {
+		super();
+		this.pos = 0;
+		this.posOut = 0;
+		this.finished = false;
+		this.destroyed = false;
+		this.enableXOF = false;
+		this.blockLen = blockLen;
+		this.suffix = suffix;
+		this.outputLen = outputLen;
+		this.enableXOF = enableXOF;
+		this.rounds = rounds;
+		anumber$1(outputLen);
+		if (!(0 < blockLen && blockLen < 200)) throw new Error("only keccak-f1600 function is supported");
+		this.state = /* @__PURE__ */ new Uint8Array(200);
+		this.state32 = u32$1(this.state);
+	}
+	clone() {
+		return this._cloneInto();
+	}
+	keccak() {
+		swap32IfBE$1(this.state32);
+		keccakP$1(this.state32, this.rounds);
+		swap32IfBE$1(this.state32);
+		this.posOut = 0;
+		this.pos = 0;
+	}
+	update(data) {
+		aexists$1(this);
+		data = toBytes(data);
+		abytes$1(data);
+		const { blockLen, state } = this;
+		const len = data.length;
+		for (let pos = 0; pos < len;) {
+			const take = Math.min(blockLen - this.pos, len - pos);
+			for (let i = 0; i < take; i++) state[this.pos++] ^= data[pos++];
+			if (this.pos === blockLen) this.keccak();
+		}
+		return this;
+	}
+	finish() {
+		if (this.finished) return;
+		this.finished = true;
+		const { state, suffix, pos, blockLen } = this;
+		state[pos] ^= suffix;
+		if ((suffix & 128) !== 0 && pos === blockLen - 1) this.keccak();
+		state[blockLen - 1] ^= 128;
+		this.keccak();
+	}
+	writeInto(out) {
+		aexists$1(this, false);
+		abytes$1(out);
+		this.finish();
+		const bufferOut = this.state;
+		const { blockLen } = this;
+		for (let pos = 0, len = out.length; pos < len;) {
+			if (this.posOut >= blockLen) this.keccak();
+			const take = Math.min(blockLen - this.posOut, len - pos);
+			out.set(bufferOut.subarray(this.posOut, this.posOut + take), pos);
+			this.posOut += take;
+			pos += take;
+		}
+		return out;
+	}
+	xofInto(out) {
+		if (!this.enableXOF) throw new Error("XOF is not possible for this instance");
+		return this.writeInto(out);
+	}
+	xof(bytes) {
+		anumber$1(bytes);
+		return this.xofInto(new Uint8Array(bytes));
+	}
+	digestInto(out) {
+		aoutput$1(out, this);
+		if (this.finished) throw new Error("digest() was already called");
+		this.writeInto(out);
+		this.destroy();
+		return out;
+	}
+	digest() {
+		return this.digestInto(new Uint8Array(this.outputLen));
+	}
+	destroy() {
+		this.destroyed = true;
+		clean$1(this.state);
+	}
+	_cloneInto(to) {
+		const { blockLen, suffix, outputLen, rounds, enableXOF } = this;
+		to || (to = new Keccak$1(blockLen, suffix, outputLen, enableXOF, rounds));
+		to.state32.set(this.state32);
+		to.pos = this.pos;
+		to.posOut = this.posOut;
+		to.finished = this.finished;
+		to.rounds = rounds;
+		to.suffix = suffix;
+		to.outputLen = outputLen;
+		to.enableXOF = enableXOF;
+		to.destroyed = this.destroyed;
+		return to;
+	}
+};
+var gen$1 = (suffix, blockLen, outputLen) => createHasher$1(() => new Keccak$1(blockLen, suffix, outputLen));
+/** keccak-256 hash function. Different from SHA3-256. */
+var keccak_256$1 = /* @__PURE__ */ (() => gen$1(1, 136, 32))();
+// node_modules/ethers/node_modules/@noble/hashes/esm/_u64.js
+var U32_MASK64 = /* @__PURE__ */ BigInt(2 ** 32 - 1);
+var _32n = /* @__PURE__ */ BigInt(32);
+function fromBig(n, le = false) {
+	if (le) return {
+		h: Number(n & U32_MASK64),
+		l: Number(n >> _32n & U32_MASK64)
+	};
+	return {
+		h: Number(n >> _32n & U32_MASK64) | 0,
+		l: Number(n & U32_MASK64) | 0
+	};
+}
+function split(lst, le = false) {
+	let Ah = new Uint32Array(lst.length);
+	let Al = new Uint32Array(lst.length);
+	for (let i = 0; i < lst.length; i++) {
+		const { h, l } = fromBig(lst[i], le);
+		[Ah[i], Al[i]] = [h, l];
+	}
+	return [Ah, Al];
+}
+var rotlSH = (h, l, s) => h << s | l >>> 32 - s;
+var rotlSL = (h, l, s) => l << s | h >>> 32 - s;
+var rotlBH = (h, l, s) => l << s - 32 | h >>> 64 - s;
+var rotlBL = (h, l, s) => h << s - 32 | l >>> 64 - s;
+// node_modules/ethers/node_modules/@noble/hashes/esm/sha3.js
+var [SHA3_PI, SHA3_ROTL, _SHA3_IOTA] = [
+	[],
+	[],
+	[]
+];
+var _0n = /* @__PURE__ */ BigInt(0);
+var _1n = /* @__PURE__ */ BigInt(1);
+var _2n = /* @__PURE__ */ BigInt(2);
+var _7n = /* @__PURE__ */ BigInt(7);
+var _256n = /* @__PURE__ */ BigInt(256);
+var _0x71n = /* @__PURE__ */ BigInt(113);
+for (let round = 0, R = _1n, x = 1, y = 0; round < 24; round++) {
+	[x, y] = [y, (2 * x + 3 * y) % 5];
+	SHA3_PI.push(2 * (5 * y + x));
+	SHA3_ROTL.push((round + 1) * (round + 2) / 2 % 64);
+	let t = _0n;
+	for (let j = 0; j < 7; j++) {
+		R = (R << _1n ^ (R >> _7n) * _0x71n) % _256n;
+		if (R & _2n) t ^= _1n << (_1n << /* @__PURE__ */ BigInt(j)) - _1n;
+	}
+	_SHA3_IOTA.push(t);
+}
+var [SHA3_IOTA_H, SHA3_IOTA_L] = /* @__PURE__ */ split(_SHA3_IOTA, true);
+var rotlH = (h, l, s) => s > 32 ? rotlBH(h, l, s) : rotlSH(h, l, s);
+var rotlL = (h, l, s) => s > 32 ? rotlBL(h, l, s) : rotlSL(h, l, s);
+function keccakP(s, rounds = 24) {
+	const B = /* @__PURE__ */ new Uint32Array(10);
+	for (let round = 24 - rounds; round < 24; round++) {
+		for (let x = 0; x < 10; x++) B[x] = s[x] ^ s[x + 10] ^ s[x + 20] ^ s[x + 30] ^ s[x + 40];
+		for (let x = 0; x < 10; x += 2) {
+			const idx1 = (x + 8) % 10;
+			const idx0 = (x + 2) % 10;
+			const B0 = B[idx0];
+			const B1 = B[idx0 + 1];
+			const Th = rotlH(B0, B1, 1) ^ B[idx1];
+			const Tl = rotlL(B0, B1, 1) ^ B[idx1 + 1];
+			for (let y = 0; y < 50; y += 10) {
+				s[x + y] ^= Th;
+				s[x + y + 1] ^= Tl;
+			}
+		}
+		let curH = s[2];
+		let curL = s[3];
+		for (let t = 0; t < 24; t++) {
+			const shift = SHA3_ROTL[t];
+			const Th = rotlH(curH, curL, shift);
+			const Tl = rotlL(curH, curL, shift);
+			const PI = SHA3_PI[t];
+			curH = s[PI];
+			curL = s[PI + 1];
+			s[PI] = Th;
+			s[PI + 1] = Tl;
+		}
+		for (let y = 0; y < 50; y += 10) {
+			for (let x = 0; x < 10; x++) B[x] = s[y + x];
+			for (let x = 0; x < 10; x++) s[y + x] ^= ~B[(x + 2) % 10] & B[(x + 4) % 10];
+		}
+		s[0] ^= SHA3_IOTA_H[round];
+		s[1] ^= SHA3_IOTA_L[round];
+	}
 	B.fill(0);
 }
-var Keccak$2 = class Keccak$2 extends Hash {
+var Keccak = class Keccak extends Hash$1 {
 	constructor(blockLen, suffix, outputLen, enableXOF = false, rounds = 24) {
 		super();
 		this.blockLen = blockLen;
@@ -103,17 +559,17 @@ var Keccak$2 = class Keccak$2 extends Hash {
 		number(outputLen);
 		if (0 >= this.blockLen || this.blockLen >= 200) throw new Error("Sha3 supports only keccak-f1600 function");
 		this.state = /* @__PURE__ */ new Uint8Array(200);
-		this.state32 = u32(this.state);
+		this.state32 = u32$2(this.state);
 	}
 	keccak() {
-		keccakP$2(this.state32, this.rounds);
+		keccakP(this.state32, this.rounds);
 		this.posOut = 0;
 		this.pos = 0;
 	}
 	update(data) {
 		exists(this);
 		const { blockLen, state } = this;
-		data = toBytes(data);
+		data = toBytes$1(data);
 		const len = data.length;
 		for (let pos = 0; pos < len;) {
 			const take = Math.min(blockLen - this.pos, len - pos);
@@ -170,7 +626,7 @@ var Keccak$2 = class Keccak$2 extends Hash {
 	}
 	_cloneInto(to) {
 		const { blockLen, suffix, outputLen, rounds, enableXOF } = this;
-		to || (to = new Keccak$2(blockLen, suffix, outputLen, enableXOF, rounds));
+		to || (to = new Keccak(blockLen, suffix, outputLen, enableXOF, rounds));
 		to.state32.set(this.state32);
 		to.pos = this.pos;
 		to.posOut = this.posOut;
@@ -183,12 +639,12 @@ var Keccak$2 = class Keccak$2 extends Hash {
 		return to;
 	}
 };
-var gen$1 = (suffix, blockLen, outputLen) => wrapConstructor(() => new Keccak$2(blockLen, suffix, outputLen));
+var gen = (suffix, blockLen, outputLen) => wrapConstructor(() => new Keccak(blockLen, suffix, outputLen));
 /**
 * keccak-256 hash function. Different from SHA3-256.
 * @param message - that would be hashed
 */
-var keccak_256$2 = /* @__PURE__ */ gen$1(1, 136, 32);
+var keccak_256 = /* @__PURE__ */ gen(1, 136, 32);
 // node_modules/ethers/node_modules/@noble/hashes/esm/ripemd160.js
 var Rho = /* @__PURE__ */ new Uint8Array([
 	7,
@@ -400,8 +856,8 @@ function pbkdf2Init(hash$1, _password, _salt, _opts) {
 	number(dkLen);
 	number(asyncTick);
 	if (c < 1) throw new Error("PBKDF2: iterations (c) should be >= 1");
-	const password = toBytes(_password);
-	const salt = toBytes(_salt);
+	const password = toBytes$1(_password);
+	const salt = toBytes$1(_salt);
 	const DK = new Uint8Array(dkLen);
 	const PRF = hmac.create(hash$1, password);
 	return {
@@ -538,13 +994,13 @@ function scryptInit(password, salt, _opts) {
 	if (dkLen < 0 || dkLen > (2 ** 32 - 1) * 32) throw new Error("Scrypt: dkLen should be positive integer less than or equal to (2^32 - 1) * 32");
 	const memUsed = blockSize * (N + p);
 	if (memUsed > maxmem) throw new Error(`Scrypt: parameters too large, ${memUsed} (128 * r * (N + p)) > ${maxmem} (maxmem)`);
-	const B = pbkdf2(sha256$1, password, salt, {
+	const B = pbkdf2(sha256$2, password, salt, {
 		c: 1,
 		dkLen: blockSize * p
 	});
-	const B32 = u32(B);
-	const V = u32(new Uint8Array(blockSize * N));
-	const tmp = u32(new Uint8Array(blockSize));
+	const B32 = u32$2(B);
+	const V = u32$2(new Uint8Array(blockSize * N));
+	const tmp = u32$2(new Uint8Array(blockSize));
 	let blockMixCb = () => {};
 	if (onProgress) {
 		const totalBlockMix = 2 * N * p;
@@ -570,7 +1026,7 @@ function scryptInit(password, salt, _opts) {
 	};
 }
 function scryptOutput(password, dkLen, B, V, tmp) {
-	const res = pbkdf2(sha256$1, password, B, {
+	const res = pbkdf2(sha256$2, password, B, {
 		c: 1,
 		dkLen
 	});
@@ -637,460 +1093,4 @@ async function scryptAsync(password, salt, opts) {
 	}
 	return scryptOutput(password, dkLen, B, V, tmp);
 }
-// node_modules/@noble/hashes/sha3.js
-/**
-* SHA3 (keccak) hash function, based on a new "Sponge function" design.
-* Different from older hashes, the internal state is bigger than output size.
-*
-* Check out
-* {@link https://nvlpubs.nist.gov/nistpubs/FIPS/NIST.FIPS.202.pdf | FIPS-202},
-* {@link https://keccak.team/keccak.html | Website}, and
-* {@link https://crypto.stackexchange.com/q/15727 | the differences between
-* SHA-3 and Keccak}.
-*
-* Check out `sha3-addons` module for cSHAKE, k12, and others.
-* @module
-*/
-var _0n$1 = BigInt(0);
-var _1n$1 = BigInt(1);
-var _2n$1 = BigInt(2);
-var _7n$1 = BigInt(7);
-var _256n$1 = BigInt(256);
-var _0x71n$1 = BigInt(113);
-var SHA3_PI$1 = [];
-var SHA3_ROTL$1 = [];
-var _SHA3_IOTA$1 = [];
-for (let round = 0, R = _1n$1, x = 1, y = 0; round < 24; round++) {
-	[x, y] = [y, (2 * x + 3 * y) % 5];
-	SHA3_PI$1.push(2 * (5 * y + x));
-	SHA3_ROTL$1.push((round + 1) * (round + 2) / 2 % 64);
-	let t = _0n$1;
-	for (let j = 0; j < 7; j++) {
-		R = (R << _1n$1 ^ (R >> _7n$1) * _0x71n$1) % _256n$1;
-		if (R & _2n$1) t ^= _1n$1 << (_1n$1 << BigInt(j)) - _1n$1;
-	}
-	_SHA3_IOTA$1.push(t);
-}
-var IOTAS$1 = split$1(_SHA3_IOTA$1, true);
-var SHA3_IOTA_H$1 = IOTAS$1[0];
-var SHA3_IOTA_L$1 = IOTAS$1[1];
-var rotlSH = (h, l, s) => h << s | l >>> 32 - s;
-var rotlSL = (h, l, s) => l << s | h >>> 32 - s;
-var rotlBH = (h, l, s) => l << s - 32 | h >>> 64 - s;
-var rotlBL = (h, l, s) => h << s - 32 | l >>> 64 - s;
-var rotlH$1 = (h, l, s) => s > 32 ? rotlBH(h, l, s) : rotlSH(h, l, s);
-var rotlL$1 = (h, l, s) => s > 32 ? rotlBL(h, l, s) : rotlSL(h, l, s);
-var B = /* @__PURE__ */ new Uint32Array(10);
-/**
-* `keccakf1600` internal permutation, additionally allows adjusting the round count.
-* @param s - 5x5 Keccak state encoded as 25 lanes split into 50 uint32 words
-*   in this file's local little-endian lane-word order
-* @param rounds - number of rounds to execute
-* @throws On wrong argument types. {@link TypeError}
-* @throws On wrong argument ranges or values. {@link RangeError}
-* @throws If `rounds` is outside the supported `1..24` range. {@link Error}
-* @example
-* Permute a Keccak state with the default 24 rounds.
-* ```ts
-* keccakP(new Uint32Array(50));
-* ```
-*/
-function keccakP$1(s, rounds = 24) {
-	if (!(s instanceof Uint32Array)) throw new TypeError("\"s\" expected Uint32Array(50), got type=" + typeof s);
-	if (s.length !== 50) throw new RangeError("\"s\" expected Uint32Array(50), got length=" + s.length);
-	anumber(rounds, "rounds");
-	if (rounds < 1 || rounds > 24) throw new Error("\"rounds\" expected integer 1..24");
-	for (let round = 24 - rounds; round < 24; round++) {
-		for (let x = 0; x < 10; x++) B[x] = s[x] ^ s[x + 10] ^ s[x + 20] ^ s[x + 30] ^ s[x + 40];
-		for (let x = 0; x < 10; x += 2) {
-			const idx1 = (x + 8) % 10;
-			const idx0 = (x + 2) % 10;
-			const B0 = B[idx0];
-			const B1 = B[idx0 + 1];
-			const Th = rotlH$1(B0, B1, 1) ^ B[idx1];
-			const Tl = rotlL$1(B0, B1, 1) ^ B[idx1 + 1];
-			for (let y = 0; y < 50; y += 10) {
-				s[x + y] ^= Th;
-				s[x + y + 1] ^= Tl;
-			}
-		}
-		let curH = s[2];
-		let curL = s[3];
-		for (let t = 0; t < 24; t++) {
-			const shift = SHA3_ROTL$1[t];
-			const Th = rotlH$1(curH, curL, shift);
-			const Tl = rotlL$1(curH, curL, shift);
-			const PI = SHA3_PI$1[t];
-			curH = s[PI];
-			curL = s[PI + 1];
-			s[PI] = Th;
-			s[PI + 1] = Tl;
-		}
-		for (let y = 0; y < 50; y += 10) {
-			const b0 = s[y], b1 = s[y + 1], b2 = s[y + 2], b3 = s[y + 3];
-			s[y] ^= ~s[y + 2] & s[y + 4];
-			s[y + 1] ^= ~s[y + 3] & s[y + 5];
-			s[y + 2] ^= ~s[y + 4] & s[y + 6];
-			s[y + 3] ^= ~s[y + 5] & s[y + 7];
-			s[y + 4] ^= ~s[y + 6] & s[y + 8];
-			s[y + 5] ^= ~s[y + 7] & s[y + 9];
-			s[y + 6] ^= ~s[y + 8] & b0;
-			s[y + 7] ^= ~s[y + 9] & b1;
-			s[y + 8] ^= ~b0 & b2;
-			s[y + 9] ^= ~b1 & b3;
-		}
-		s[0] ^= SHA3_IOTA_H$1[round];
-		s[1] ^= SHA3_IOTA_L$1[round];
-	}
-	clean(B);
-}
-/**
-* Keccak sponge function.
-* @param blockLen - absorb/squeeze rate in bytes
-* @param suffix - domain separation suffix byte
-* @param outputLen - default digest length in bytes. This base sponge only
-*   requires a non-negative integer; wrappers that need positive output
-*   lengths must enforce that themselves.
-* @param enableXOF - whether XOF output is allowed
-* @param rounds - number of Keccak-f rounds
-* @example
-* Build a sponge state, absorb bytes, then finalize a digest.
-* ```ts
-* const hash = new Keccak(136, 0x06, 32);
-* hash.update(new Uint8Array([1, 2, 3]));
-* hash.digest();
-* ```
-*/
-var Keccak$1 = class Keccak$1 {
-	state;
-	pos = 0;
-	posOut = 0;
-	finished = false;
-	state32;
-	destroyed = false;
-	blockLen;
-	suffix;
-	outputLen;
-	canXOF;
-	enableXOF = false;
-	rounds;
-	constructor(blockLen, suffix, outputLen, enableXOF = false, rounds = 24) {
-		anumber(blockLen, "blockLen");
-		anumber(suffix, "suffix");
-		anumber(rounds, "rounds");
-		abool(enableXOF, "enableXOF");
-		this.blockLen = blockLen;
-		this.suffix = suffix;
-		this.outputLen = outputLen;
-		this.enableXOF = enableXOF;
-		this.canXOF = enableXOF;
-		this.rounds = rounds;
-		anumber(outputLen, "outputLen");
-		if (!(0 < blockLen && blockLen < 200)) throw new Error("\"blockLen\" must be 1..199");
-		this.state = /* @__PURE__ */ new Uint8Array(200);
-		this.state32 = u32$1(this.state);
-	}
-	clone() {
-		return this._cloneInto();
-	}
-	keccak() {
-		swap32IfBE(this.state32);
-		keccakP$1(this.state32, this.rounds);
-		swap32IfBE(this.state32);
-		this.posOut = 0;
-		this.pos = 0;
-	}
-	update(data) {
-		aexists(this);
-		abytes(data);
-		const { blockLen, state, state32 } = this;
-		const len = data.length;
-		const canUseU32 = blockLen % 4 === 0 && data.byteOffset % 4 === 0;
-		const blockLen32 = blockLen / 4;
-		const data32 = canUseU32 && len >= blockLen ? u32$1(data) : void 0;
-		for (let pos = 0; pos < len;) {
-			if (data32 !== void 0 && this.pos === 0 && pos % 4 === 0 && len - pos >= blockLen) {
-				for (let i = 0, o = pos / 4; i < blockLen32; i++) state32[i] ^= data32[o + i];
-				pos += blockLen;
-				this.pos = blockLen;
-				this.keccak();
-				continue;
-			}
-			const take = Math.min(blockLen - this.pos, len - pos);
-			for (let i = 0; i < take; i++) state[this.pos++] ^= data[pos++];
-			if (this.pos === blockLen) this.keccak();
-		}
-		return this;
-	}
-	finish() {
-		if (this.finished) return;
-		this.finished = true;
-		const { state, suffix, pos, blockLen } = this;
-		state[pos] ^= suffix;
-		if ((suffix & 128) !== 0 && pos === blockLen - 1) this.keccak();
-		state[blockLen - 1] ^= 128;
-		this.keccak();
-	}
-	writeInto(out) {
-		aexists(this, false);
-		abytes(out);
-		this.finish();
-		const bufferOut = this.state;
-		const { blockLen } = this;
-		for (let pos = 0, len = out.length; pos < len;) {
-			if (this.posOut >= blockLen) this.keccak();
-			const take = Math.min(blockLen - this.posOut, len - pos);
-			out.set(bufferOut.subarray(this.posOut, this.posOut + take), pos);
-			this.posOut += take;
-			pos += take;
-		}
-		return out;
-	}
-	xofInto(out) {
-		if (!this.enableXOF) throw new Error("XOF is not enabled");
-		return this.writeInto(out);
-	}
-	xof(bytes) {
-		anumber(bytes);
-		return this.xofInto(new Uint8Array(bytes));
-	}
-	digestInto(out) {
-		aoutput(out, this);
-		if (this.finished) throw new Error("digest() was already called");
-		this.writeInto(out.length === this.outputLen ? out : out.subarray(0, this.outputLen));
-		this.destroy();
-	}
-	digest() {
-		const out = new Uint8Array(this.outputLen);
-		this.digestInto(out);
-		return out;
-	}
-	destroy() {
-		this.destroyed = true;
-		clean(this.state);
-	}
-	_cloneInto(to) {
-		const { blockLen, suffix, outputLen, rounds, enableXOF } = this;
-		to ||= new Keccak$1(blockLen, suffix, outputLen, enableXOF, rounds);
-		to.blockLen = blockLen;
-		to.state32.set(this.state32);
-		to.pos = this.pos;
-		to.posOut = this.posOut;
-		to.finished = this.finished;
-		to.rounds = rounds;
-		to.suffix = suffix;
-		to.outputLen = outputLen;
-		to.enableXOF = enableXOF;
-		to.canXOF = this.canXOF;
-		to.destroyed = this.destroyed;
-		return to;
-	}
-};
-var genKeccak = (suffix, blockLen, outputLen, info = {}) => createHasher(() => new Keccak$1(blockLen, suffix, outputLen), info);
-/**
-* Keccak-256 hash function. Different from SHA3-256.
-* @param msg - message bytes to hash
-* @param opts - Reserved hash options.
-* @returns Digest bytes.
-* @example
-* Hash a message with Keccak-256.
-* ```ts
-* keccak_256(new Uint8Array([97, 98, 99]));
-* ```
-*/
-var keccak_256$1 = /* @__PURE__ */ genKeccak(1, 136, 32);
-// node_modules/@solana/web3.js/node_modules/@noble/hashes/esm/sha256.js
-/**
-* SHA2-256 a.k.a. sha256. In JS, it is the fastest hash, even faster than Blake3.
-*
-* To break sha256 using birthday attack, attackers need to try 2^128 hashes.
-* BTC network is doing 2^70 hashes/sec (2^95 hashes/year) as per 2025.
-*
-* Check out [FIPS 180-4](https://nvlpubs.nist.gov/nistpubs/FIPS/NIST.FIPS.180-4.pdf).
-* @module
-* @deprecated
-*/
-/** @deprecated Use import from `noble/hashes/sha2` module */
-var sha256 = sha256$2;
-// node_modules/@solana/web3.js/node_modules/@noble/hashes/esm/sha3.js
-/**
-* SHA3 (keccak) hash function, based on a new "Sponge function" design.
-* Different from older hashes, the internal state is bigger than output size.
-*
-* Check out [FIPS-202](https://nvlpubs.nist.gov/nistpubs/FIPS/NIST.FIPS.202.pdf),
-* [Website](https://keccak.team/keccak.html),
-* [the differences between SHA-3 and Keccak](https://crypto.stackexchange.com/questions/15727/what-are-the-key-differences-between-the-draft-sha-3-standard-and-the-keccak-sub).
-*
-* Check out `sha3-addons` module for cSHAKE, k12, and others.
-* @module
-*/
-var _0n = BigInt(0);
-var _1n = BigInt(1);
-var _2n = BigInt(2);
-var _7n = BigInt(7);
-var _256n = BigInt(256);
-var _0x71n = BigInt(113);
-var SHA3_PI = [];
-var SHA3_ROTL = [];
-var _SHA3_IOTA = [];
-for (let round = 0, R = _1n, x = 1, y = 0; round < 24; round++) {
-	[x, y] = [y, (2 * x + 3 * y) % 5];
-	SHA3_PI.push(2 * (5 * y + x));
-	SHA3_ROTL.push((round + 1) * (round + 2) / 2 % 64);
-	let t = _0n;
-	for (let j = 0; j < 7; j++) {
-		R = (R << _1n ^ (R >> _7n) * _0x71n) % _256n;
-		if (R & _2n) t ^= _1n << (_1n << /* @__PURE__ */ BigInt(j)) - _1n;
-	}
-	_SHA3_IOTA.push(t);
-}
-var IOTAS = split$2(_SHA3_IOTA, true);
-var SHA3_IOTA_H = IOTAS[0];
-var SHA3_IOTA_L = IOTAS[1];
-var rotlH = (h, l, s) => s > 32 ? rotlBH$2(h, l, s) : rotlSH$2(h, l, s);
-var rotlL = (h, l, s) => s > 32 ? rotlBL$2(h, l, s) : rotlSL$2(h, l, s);
-/** `keccakf1600` internal function, additionally allows to adjust round count. */
-function keccakP(s, rounds = 24) {
-	const B = /* @__PURE__ */ new Uint32Array(10);
-	for (let round = 24 - rounds; round < 24; round++) {
-		for (let x = 0; x < 10; x++) B[x] = s[x] ^ s[x + 10] ^ s[x + 20] ^ s[x + 30] ^ s[x + 40];
-		for (let x = 0; x < 10; x += 2) {
-			const idx1 = (x + 8) % 10;
-			const idx0 = (x + 2) % 10;
-			const B0 = B[idx0];
-			const B1 = B[idx0 + 1];
-			const Th = rotlH(B0, B1, 1) ^ B[idx1];
-			const Tl = rotlL(B0, B1, 1) ^ B[idx1 + 1];
-			for (let y = 0; y < 50; y += 10) {
-				s[x + y] ^= Th;
-				s[x + y + 1] ^= Tl;
-			}
-		}
-		let curH = s[2];
-		let curL = s[3];
-		for (let t = 0; t < 24; t++) {
-			const shift = SHA3_ROTL[t];
-			const Th = rotlH(curH, curL, shift);
-			const Tl = rotlL(curH, curL, shift);
-			const PI = SHA3_PI[t];
-			curH = s[PI];
-			curL = s[PI + 1];
-			s[PI] = Th;
-			s[PI + 1] = Tl;
-		}
-		for (let y = 0; y < 50; y += 10) {
-			for (let x = 0; x < 10; x++) B[x] = s[y + x];
-			for (let x = 0; x < 10; x++) s[y + x] ^= ~B[(x + 2) % 10] & B[(x + 4) % 10];
-		}
-		s[0] ^= SHA3_IOTA_H[round];
-		s[1] ^= SHA3_IOTA_L[round];
-	}
-	clean$1(B);
-}
-/** Keccak sponge function. */
-var Keccak = class Keccak extends Hash$1 {
-	constructor(blockLen, suffix, outputLen, enableXOF = false, rounds = 24) {
-		super();
-		this.pos = 0;
-		this.posOut = 0;
-		this.finished = false;
-		this.destroyed = false;
-		this.enableXOF = false;
-		this.blockLen = blockLen;
-		this.suffix = suffix;
-		this.outputLen = outputLen;
-		this.enableXOF = enableXOF;
-		this.rounds = rounds;
-		anumber$1(outputLen);
-		if (!(0 < blockLen && blockLen < 200)) throw new Error("only keccak-f1600 function is supported");
-		this.state = /* @__PURE__ */ new Uint8Array(200);
-		this.state32 = u32$2(this.state);
-	}
-	clone() {
-		return this._cloneInto();
-	}
-	keccak() {
-		swap32IfBE$1(this.state32);
-		keccakP(this.state32, this.rounds);
-		swap32IfBE$1(this.state32);
-		this.posOut = 0;
-		this.pos = 0;
-	}
-	update(data) {
-		aexists$1(this);
-		data = toBytes$1(data);
-		abytes$1(data);
-		const { blockLen, state } = this;
-		const len = data.length;
-		for (let pos = 0; pos < len;) {
-			const take = Math.min(blockLen - this.pos, len - pos);
-			for (let i = 0; i < take; i++) state[this.pos++] ^= data[pos++];
-			if (this.pos === blockLen) this.keccak();
-		}
-		return this;
-	}
-	finish() {
-		if (this.finished) return;
-		this.finished = true;
-		const { state, suffix, pos, blockLen } = this;
-		state[pos] ^= suffix;
-		if ((suffix & 128) !== 0 && pos === blockLen - 1) this.keccak();
-		state[blockLen - 1] ^= 128;
-		this.keccak();
-	}
-	writeInto(out) {
-		aexists$1(this, false);
-		abytes$1(out);
-		this.finish();
-		const bufferOut = this.state;
-		const { blockLen } = this;
-		for (let pos = 0, len = out.length; pos < len;) {
-			if (this.posOut >= blockLen) this.keccak();
-			const take = Math.min(blockLen - this.posOut, len - pos);
-			out.set(bufferOut.subarray(this.posOut, this.posOut + take), pos);
-			this.posOut += take;
-			pos += take;
-		}
-		return out;
-	}
-	xofInto(out) {
-		if (!this.enableXOF) throw new Error("XOF is not possible for this instance");
-		return this.writeInto(out);
-	}
-	xof(bytes) {
-		anumber$1(bytes);
-		return this.xofInto(new Uint8Array(bytes));
-	}
-	digestInto(out) {
-		aoutput$1(out, this);
-		if (this.finished) throw new Error("digest() was already called");
-		this.writeInto(out);
-		this.destroy();
-		return out;
-	}
-	digest() {
-		return this.digestInto(new Uint8Array(this.outputLen));
-	}
-	destroy() {
-		this.destroyed = true;
-		clean$1(this.state);
-	}
-	_cloneInto(to) {
-		const { blockLen, suffix, outputLen, rounds, enableXOF } = this;
-		to || (to = new Keccak(blockLen, suffix, outputLen, enableXOF, rounds));
-		to.state32.set(this.state32);
-		to.pos = this.pos;
-		to.posOut = this.posOut;
-		to.finished = this.finished;
-		to.rounds = rounds;
-		to.suffix = suffix;
-		to.outputLen = outputLen;
-		to.enableXOF = enableXOF;
-		to.destroyed = this.destroyed;
-		return to;
-	}
-};
-var gen = (suffix, blockLen, outputLen) => createHasher$1(() => new Keccak(blockLen, suffix, outputLen));
-/** keccak-256 hash function. Different from SHA3-256. */
-var keccak_256 = /* @__PURE__ */ (() => gen(1, 136, 32))();
-export { scryptAsync as a, scrypt as i, sha256 as n, ripemd160 as o, keccak_256$1 as r, keccak_256$2 as s, keccak_256 as t };
+export { keccak_256$1 as a, keccak_256 as i, scryptAsync as n, sha256 as o, ripemd160 as r, keccak_256$2 as s, scrypt as t };

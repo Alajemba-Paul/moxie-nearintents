@@ -187,6 +187,36 @@ export default defineConfig(({ command, mode, isPreview }) => {
               // manifest + head-tag middleware). Nitro v3 defaults serverDir to
               // false, so removing this silently unwires /?install=1 on deploys.
               serverDir: "./server",
+              moduleSideEffects: [
+                "@tanstack/router-core",
+                "@tanstack/react-router",
+                "@tanstack/react-start",
+                "@tanstack/start",
+              ],
+              noExternals: [
+                "@tanstack/router-core",
+                "@tanstack/react-router",
+                "@tanstack/react-start",
+                "@tanstack/start",
+                /@tanstack\//,
+              ],
+              externals: {
+                inline: [
+                  "@tanstack/router-core",
+                  "@tanstack/react-router",
+                  "@tanstack/react-start",
+                  "@tanstack/start",
+                ],
+              },
+              rollupConfig: {
+                output: {
+                  manualChunks(id) {
+                    if (id.includes("@tanstack")) {
+                      return undefined;
+                    }
+                  },
+                },
+              },
             }),
           ]
         : []),

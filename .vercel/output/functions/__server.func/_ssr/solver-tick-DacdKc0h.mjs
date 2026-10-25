@@ -1,11 +1,11 @@
 import { i as POLYGON_AMOY_RPC } from "./constants-D25iXV32.mjs";
-// node_modules/.nitro/vite/services/ssr/assets/solver-tick-CgHwknrn.js
+// node_modules/.nitro/vite/services/ssr/assets/solver-tick-DacdKc0h.js
 var SOLANA_SIG = /^[1-9A-HJ-NP-Za-km-z]{80,90}$/;
 function isSolanaSignature(value) {
 	return Boolean(value && SOLANA_SIG.test(value));
 }
 async function broadcastAmoy(to, data) {
-	const key = process.env.SOLVER_EVM_PRIVATE_KEY?.trim();
+	const key = typeof process !== "undefined" && process?.env ? process.env.SOLVER_EVM_PRIVATE_KEY?.trim() : void 0;
 	if (!key) throw new Error("No solver key on this server, so the Amoy fill was not broadcast.");
 	const { ethers } = await import("../_libs/ethers.mjs").then((n) => n.t);
 	const provider = new ethers.JsonRpcProvider(POLYGON_AMOY_RPC, 80002, { staticNetwork: true });

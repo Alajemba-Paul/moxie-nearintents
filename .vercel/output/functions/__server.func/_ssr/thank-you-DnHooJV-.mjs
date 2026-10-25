@@ -1,7 +1,7 @@
 import { C as require_jsx_runtime, b as Link } from "../_libs/@tanstack/react-router+[...].mjs";
 import { O as CircleCheck, d as Share2 } from "../_libs/lucide-react.mjs";
-import { r as Route$6 } from "./router-itBMdy9l.mjs";
-// node_modules/.nitro/vite/services/ssr/assets/thank-you-CknGQOLt.js
+import { r as Route$6 } from "./router-CSvPMnxF.mjs";
+// node_modules/.nitro/vite/services/ssr/assets/thank-you-DnHooJV-.js
 var import_jsx_runtime = require_jsx_runtime();
 function ThankYou() {
 	const search = Route$6.useSearch();

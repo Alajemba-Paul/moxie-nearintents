@@ -2,8 +2,8 @@ import { o as __toESM } from "../_runtime.mjs";
 import { C as require_jsx_runtime, J as require_react, b as Link, x as useNavigate } from "../_libs/@tanstack/react-router+[...].mjs";
 import { M as ArrowUpRight, p as Search } from "../_libs/lucide-react.mjs";
 import { n as motion } from "../_libs/framer-motion+[...].mjs";
-import { Y as sfx, _ as MARKET_CATEGORIES, h as MARKETS, q as complementAsk } from "./router-itBMdy9l.mjs";
-// node_modules/.nitro/vite/services/ssr/assets/markets-PPMCM51k.js
+import { N as MARKET_CATEGORIES, Y as sfx, j as MARKETS, q as complementAsk } from "./router-CSvPMnxF.mjs";
+// node_modules/.nitro/vite/services/ssr/assets/markets-CA9BkLjQ.js
 var import_react = /* @__PURE__ */ __toESM(require_react());
 var import_jsx_runtime = require_jsx_runtime();
 var SPRING = {

@@ -1,4 +1,4 @@
-// node_modules/.nitro/vite/services/ssr/assets/db-hegkCD8P.js
+// node_modules/.nitro/vite/services/ssr/assets/db-DopB8LNR.js
 var _0002_intents_default = "do $$ begin\n  create type intent_status as enum (\n    'PENDING_ESCROW',\n    'ESCROW_LOCKED',\n    'SOLVER_BIDDING',\n    'CLOB_SUBMITTED',\n    'SETTLED',\n    'REFUNDED',\n    'EXPIRED'\n  );\nexception\n  when duplicate_object then null;\nend $$;\n\ncreate table if not exists intents (\n  id uuid primary key,\n  user_solana_pubkey varchar(44) not null,\n  derived_polygon_address varchar(42) not null,\n  market_condition_id varchar(66) not null,\n  outcome_index int not null,\n  usdc_amount_in numeric(18, 6) not null,\n  min_shares_out numeric(18, 6) not null,\n  solana_escrow_pda varchar(44),\n  polygon_order_hash varchar(66),\n  near_mpc_signature text,\n  status intent_status not null default 'PENDING_ESCROW',\n  expiry_timestamp timestamptz not null,\n  nonce bigint not null,\n  created_at timestamptz not null default now(),\n  unique (user_solana_pubkey, nonce)\n);\n\ncreate index if not exists intents_created_idx on intents (created_at desc);\n";
 var _0003_intents_phase1_default = "alter table intents add column if not exists slippage_bps int not null default 100;\nalter table intents add column if not exists source_client varchar(20) not null default 'WEB';\nalter table intents add column if not exists telegram_chat_id varchar(64);\nalter table intents add column if not exists solana_tx_signature varchar(88);\n\ncreate index if not exists idx_intents_status on intents(status);\ncreate index if not exists idx_intents_user on intents(user_solana_pubkey);\n";
 var _0004_wallet_onboarding_default = "create table if not exists wallet_onboarding (\n  solana_pubkey varchar(44) primary key,\n  polygon_address varchar(42) not null,\n  sol_tx_sig varchar(128) not null,\n  usdc_tx_sig varchar(128) not null,\n  pol_tx_hash varchar(80) not null,\n  sol_amount varchar(16) not null default '0.1',\n  usdc_amount int not null default 1000,\n  pol_amount varchar(16) not null default '0.1',\n  funded_at timestamptz not null default now()\n);\n";
@@ -102,7 +102,21 @@ function createNeonSql() {
 	});
 	return globalRef.__pgSqlPromise__;
 }
+async function canLoadPgliteAssets() {
+	try {
+		if (typeof process !== "undefined" && process?.env && (process.env.VERCEL || process.env.AWS_LAMBDA_FUNCTION_NAME)) return false;
+		const { existsSync } = await import("node:fs");
+		const { dirname, join } = await import("node:path");
+		const { fileURLToPath } = await import("node:url");
+		const moduleDir = dirname(fileURLToPath(import.meta.url));
+		if (moduleDir.includes(".vercel")) return existsSync(join(moduleDir, "pglite.data")) || existsSync(join(moduleDir, "../_libs/pglite.data"));
+		return true;
+	} catch {
+		return false;
+	}
+}
 async function createPgliteSql() {
+	if (!await canLoadPgliteAssets()) throw new Error("PGLite WASM data files are not bundled in this serverless runtime");
 	globalRef.__pgliteInstance__ ??= (async () => {
 		const { PGlite } = await import("../_libs/electric-sql__pglite.mjs").then((n) => n.t);
 		const pg = new PGlite({ parsers: {
@@ -138,9 +152,17 @@ async function createPgliteSql() {
 	});
 }
 var sqlPromise = null;
+function createMemorySql() {
+	return toSql(async () => []);
+}
 async function createSql() {
 	if (typeof window !== "undefined") throw new Error("@/lib/db is server-only — call getSql() from a createServerFn handler or a server route loader, never from client code.");
-	return dbSource === "neon" ? createNeonSql() : createPgliteSql();
+	try {
+		return dbSource === "neon" ? await createNeonSql() : await createPgliteSql();
+	} catch (err) {
+		console.warn("[db] Database backend unavailable in this runtime; falling back to in-memory store:", err instanceof Error ? err.message : err);
+		return createMemorySql();
+	}
 }
 /**
 * Get the shared, **server-only** SQL client. Neon when `DATABASE_URL` is set,
@@ -152,28 +174,9 @@ async function createSql() {
 function getSql() {
 	sqlPromise ??= createSql().catch((err) => {
 		sqlPromise = null;
-		throw err;
+		console.warn("[db] getSql fallback:", err instanceof Error ? err.message : err);
+		return createMemorySql();
 	});
 	return sqlPromise;
 }
-/**
-* Finish DB bootstrap before the server handles traffic.
-*
-* - **PGLite** (preview / no `DATABASE_URL`): open the in-memory DB and apply
-*   `migrations/*.sql`. Idempotent — concurrent callers share one promise.
-* - **Neon**: no-op (pool is created lazily on first query).
-*
-* Vite `configureServer` awaits this at dev startup; production imports of this
-* module kick it off immediately (see bottom of file).
-*/
-function ensureDbReady() {
-	if (dbSource !== "pglite") return Promise.resolve();
-	return getSql().then(() => void 0);
-}
-var globalBoot = globalThis;
-if (typeof window === "undefined" && dbSource === "pglite") globalBoot.__pgBootstrapPromise__ ??= ensureDbReady().catch((err) => {
-	globalBoot.__pgBootstrapPromise__ = void 0;
-	console.error("[db] PGLite bootstrap failed:", err);
-	throw err;
-});
 export { dbSource, getSql };

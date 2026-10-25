@@ -199,4 +199,4 @@ var persistImpl = (config, baseOptions) => (set, get, api) => {
 	return stateFromStorage || configResult;
 };
 var persist = persistImpl;
-export { create as n, persist as t };
+export { persist as n, create as r, createJSONStorage as t };
