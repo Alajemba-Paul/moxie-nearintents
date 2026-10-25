@@ -50,12 +50,10 @@ interface TradeSearchSchema {
 }
 
 export const Route = createFileRoute("/trade/$marketId")({
-  validateSearch: (search: Record<string, unknown>): TradeSearchSchema => {
-    return {
-      side: search.side === "yes" || search.side === "no" ? search.side : undefined,
-      amount: typeof search.amount === "string" ? search.amount : undefined,
-    };
-  },
+  validateSearch: (rawSearch: Record<string, unknown>): TradeSearchSchema => ({
+    side: (rawSearch.side as "yes" | "no") || undefined,
+    amount: (rawSearch.amount as string) || undefined,
+  }),
   head: ({ params }) => {
     const market = MARKETS.find((m) => m.id === params.marketId);
     return {
@@ -140,7 +138,7 @@ function trackerStepIndex(order: DeskOrder | null): { activeStep: number; state:
 
 function TradeExecutionDesk() {
   const { marketId } = Route.useParams();
-  const { side: searchSide, amount: searchAmount } = Route.useSearch();
+  const search = Route.useSearch();
   const navigate = useNavigate();
   const reduce = useReducedMotion();
 
@@ -151,8 +149,8 @@ function TradeExecutionDesk() {
 
   const [ready, setReady] = useState(false);
   const [market, setMarket] = useState<Market>(baseMarket);
-  const [side, setSide] = useState<"yes" | "no">(searchSide ?? "yes");
-  const [amountInput, setAmountInput] = useState(searchAmount ?? "25");
+  const [side, setSide] = useState<"yes" | "no">(search?.side ?? "yes");
+  const [amountInput, setAmountInput] = useState(search?.amount ?? "25");
   const [formError, setFormError] = useState<string | null>(null);
   const [timeframe, setTimeframe] = useState<ChartTimeframe>("1D");
   const [hoverIdx, setHoverIdx] = useState<number | null>(null);
@@ -193,8 +191,8 @@ function TradeExecutionDesk() {
   }, [baseMarket]);
 
   useEffect(() => {
-    if (searchSide) setSide(searchSide);
-  }, [searchSide]);
+    if (search?.side) setSide(search.side);
+  }, [search?.side]);
 
   // Fetch live orderbook from /api/polymarket/book and stream updates
   useEffect(() => {
