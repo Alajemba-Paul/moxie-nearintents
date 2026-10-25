@@ -1,14 +1,21 @@
 import { hexToBytes } from "@noble/hashes/utils.js";
 import {
+  ComputeBudgetProgram,
   Connection,
   Keypair,
   PublicKey,
-  SystemProgram,
   Transaction,
 } from "@solana/web3.js";
-import { escrowPda } from "@/lib/solana/escrow-tx";
 import {
-  devnetConnection,
+  ASSOCIATED_TOKEN_PROGRAM_ID,
+  TOKEN_PROGRAM_ID,
+  createAssociatedTokenAccountInstruction,
+  createTransferInstruction,
+  getAssociatedTokenAddress,
+} from "@solana/spl-token";
+import { DEVNET_USDC_MINT } from "@/config/constants";
+import { escrowPda, vaultPda } from "@/lib/solana/escrow-tx";
+import {
   injectedProvider,
   withSolanaFailover,
   type InjectedWallet,
@@ -52,17 +59,17 @@ function isUserRejection(err: unknown): boolean {
 }
 
 /**
- * Executes a genuine on-chain Solana Devnet transaction to lock collateral into the Escrow PDA.
- * Invokes sendTransaction or signTransaction on the connected Solana wallet (Phantom, Solflare, Backpack)
- * or uses the session keypair, returning a verified on-chain transaction signature.
+ * Executes a genuine on-chain Solana Devnet SPL Token transfer from user ATA to Vault ATA
+ * using the SPL Token Program (TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA).
  */
 export async function executeSolanaCollateralLock(
   input: LockSolanaCollateralInput,
 ): Promise<LockSolanaCollateralResult> {
   const makerKey = new PublicKey(input.walletAddress);
+  const mintPubkey = new PublicKey(DEVNET_USDC_MINT);
   const targetEscrow = escrowPda(makerKey);
+  const targetVault = vaultPda(targetEscrow);
 
-  // If an external injected wallet is connected, prompt wallet extension for real user signature
   const extProvider = input.extWalletName ? injectedProvider(input.extWalletName) : null;
   const fallbackWindowSolana =
     typeof window !== "undefined"
@@ -70,27 +77,69 @@ export async function executeSolanaCollateralLock(
       : undefined;
   const activeProvider = extProvider ?? (input.extWalletName ? fallbackWindowSolana : null);
 
-  if (activeProvider && activeProvider.publicKey) {
-    input.onPendingSignature?.();
+  const { result, usedFallback } = await withSolanaFailover(async (connection) => {
+    const userAta = await getAssociatedTokenAddress(
+      mintPubkey,
+      makerKey,
+      false,
+      TOKEN_PROGRAM_ID,
+      ASSOCIATED_TOKEN_PROGRAM_ID,
+    );
 
-    try {
-      const { result } = await withSolanaFailover(async (connection) => {
-        const { blockhash, lastValidBlockHeight } = await connection.getLatestBlockhash("confirmed");
+    const vaultAta = await getAssociatedTokenAddress(
+      mintPubkey,
+      targetVault,
+      true,
+      TOKEN_PROGRAM_ID,
+      ASSOCIATED_TOKEN_PROGRAM_ID,
+    );
 
-        // Build genuine Solana transfer to escrow PDA
-        const transaction = new Transaction({
-          feePayer: makerKey,
-          recentBlockhash: blockhash,
-        }).add(
-          SystemProgram.transfer({
-            fromPubkey: makerKey,
-            toPubkey: targetEscrow,
-            lamports: 5_000n, // Nominal Devnet escrow lock rent
-          }),
-        );
+    // Verify user ATA exists
+    const userAtaInfo = await connection.getAccountInfo(userAta);
+    if (!userAtaInfo) {
+      throw new Error("No USDC token account found. Please claim Devnet USDC from the faucet first.");
+    }
 
-        let signature: string;
+    const transaction = new Transaction();
+    transaction.add(
+      ComputeBudgetProgram.setComputeUnitLimit({ units: 120_000 }),
+      ComputeBudgetProgram.setComputeUnitPrice({ microLamports: 10_000 }),
+    );
 
+    // Check if vault ATA exists, if not prepend creation instruction
+    const vaultAtaInfo = await connection.getAccountInfo(vaultAta);
+    if (!vaultAtaInfo) {
+      transaction.add(
+        createAssociatedTokenAccountInstruction(
+          makerKey,
+          vaultAta,
+          targetVault,
+          mintPubkey,
+          TOKEN_PROGRAM_ID,
+          ASSOCIATED_TOKEN_PROGRAM_ID,
+        ),
+      );
+    }
+
+    const transferIx = createTransferInstruction(
+      userAta,
+      vaultAta,
+      makerKey,
+      BigInt(input.amountMicro),
+      [],
+      TOKEN_PROGRAM_ID,
+    );
+    transaction.add(transferIx);
+
+    const { blockhash, lastValidBlockHeight } = await connection.getLatestBlockhash("confirmed");
+    transaction.recentBlockhash = blockhash;
+    transaction.feePayer = makerKey;
+
+    let signature: string;
+
+    if (activeProvider && activeProvider.publicKey) {
+      input.onPendingSignature?.();
+      try {
         if (typeof activeProvider.signAndSendTransaction === "function") {
           const res = await activeProvider.signAndSendTransaction(transaction, {
             skipPreflight: false,
@@ -106,76 +155,39 @@ export async function executeSolanaCollateralLock(
         } else {
           throw new Error("Connected wallet does not support transaction signing.");
         }
-
-        await connection.confirmTransaction(
-          { signature, blockhash, lastValidBlockHeight },
-          "confirmed",
-        );
-
-        return {
-          signature,
-          escrowPdaAddress: targetEscrow.toBase58(),
-          onChain: true,
-        };
-      }, 30000);
-
-      return result;
-    } catch (err) {
-      if (isUserRejection(err)) {
-        throw new UserRejectedWalletError("User rejected the transaction in their Solana wallet.");
+      } catch (err) {
+        if (isUserRejection(err)) {
+          throw new UserRejectedWalletError("Transaction rejected by user in wallet extension.");
+        }
+        throw err;
       }
-      throw err;
-    }
-  }
-
-  // Fallback to embedded session keypair: signs and broadcasts real on-chain transaction to Devnet
-  try {
-    const seed = hexToBytes(input.secretKeyHex);
-    const keypair = Keypair.fromSeed(seed.subarray(0, 32));
-
-    const { result } = await withSolanaFailover(async (connection) => {
-      const { blockhash, lastValidBlockHeight } = await connection.getLatestBlockhash("confirmed");
-
-      const transaction = new Transaction({
-        feePayer: keypair.publicKey,
-        recentBlockhash: blockhash,
-      }).add(
-        SystemProgram.transfer({
-          fromPubkey: keypair.publicKey,
-          toPubkey: targetEscrow,
-          lamports: 5_000n,
-        }),
-      );
-
+    } else {
+      // Fallback to embedded session keypair
+      const seed = hexToBytes(input.secretKeyHex);
+      const keypair = Keypair.fromSeed(seed.subarray(0, 32));
       transaction.sign(keypair);
-      const signature = await connection.sendRawTransaction(transaction.serialize(), {
-        skipPreflight: true,
+      signature = await connection.sendRawTransaction(transaction.serialize(), {
+        skipPreflight: false,
       });
-
-      // Confirm asynchronously with reasonable timeout
-      await Promise.race([
-        connection.confirmTransaction(
-          { signature, blockhash, lastValidBlockHeight },
-          "confirmed",
-        ),
-        new Promise((resolve) => setTimeout(resolve, 6000)),
-      ]);
-
-      return {
-        signature,
-        escrowPdaAddress: targetEscrow.toBase58(),
-        onChain: true,
-      };
-    }, 15000);
-
-    return result;
-  } catch (err) {
-    if (isUserRejection(err)) {
-      throw new UserRejectedWalletError();
     }
-    const message = err instanceof Error ? err.message : String(err);
-    throw new Error(`Solana escrow lock failed: ${message}`);
-  }
+
+    const confirmation = await connection.confirmTransaction(
+      { signature, blockhash, lastValidBlockHeight },
+      "confirmed",
+    );
+
+    if (confirmation.value.err) {
+      throw new Error(`Transaction failed on-chain: ${JSON.stringify(confirmation.value.err)}`);
+    }
+
+    return {
+      signature,
+      escrowPdaAddress: targetEscrow.toBase58(),
+      onChain: true,
+    };
+  }, 35000);
+
+  return result;
 }
 
 export interface PolygonSettlementInput {
